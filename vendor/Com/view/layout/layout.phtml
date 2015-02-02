@@ -1,0 +1,58 @@
+<?php echo $this->doctype(); ?>
+<html>
+      <head>
+         <meta charset="UTF-8">
+         
+         <?php echo $this->headTitle($this->translate('Paradiso Solutions'))->setSeparator(' - ')->setAutoEscape(false) ?>
+
+         <?php 
+            echo $this->headMeta()
+                ->appendName('viewport', 'width=device-width, initial-scale=1.0')
+                ->appendHttpEquiv('X-UA-Compatible', 'IE=edge')
+         ?>
+         
+         <!-- styles -->
+         <?php 
+         echo $this->headLink(
+            array('rel' => 'shortcut icon'
+                  ,'type' => 'image/vnd.microsoft.icon'
+                  ,'href' => $this->basePath('/img/favicon.ico')
+               )
+             )
+            ->prependStylesheet($this->basePath('/css/style.css'))
+            // ->prependStylesheet($this->basePath('/css/bootstrap-theme.min.css'))
+            // ->prependStylesheet($this->basePath('/css/bootstrap.min.css'))
+         ?>
+         <!-- /styles -->
+         
+        <!-- scripts -->
+        <?php 
+        echo $this->headScript()
+            ->prependFile($this->basePath('/js/bootstrap.min.js'))
+            ->prependFile($this->basePath('/js/jquery.min.js'))
+            ->prependFile($this->basePath('/js/respond.min.js'), 'text/javascript', 
+                array('conditional' => 'lt IE 9'))
+            ->prependFile($this->basePath('/js/html5shiv.js'),   'text/javascript', 
+                array('conditional' => 'lt IE 9'));
+        ?>
+        <!-- /scripts -->
+        
+      </head>
+      <body style="background: #000;">
+      
+         <header>
+            <div id="logo">
+               <img src="<?php echo $this->basePath('img/lms-logo.png') ?>" alt="Paradiso LMS">
+            </div>
+            <div id="right-buttons">
+               <!--a href="<?php //echo $CFG->wwwroot?>/login/index.php"><?php echo $this->translate('Login')?></a-->
+            </div>
+         </header>
+
+         <?php echo $this->content; ?>
+         
+         <footer>Powered by Paradiso Solutions</footer>
+         
+         <?php echo $this->inlineScript() ?>
+   </body>
+</html>

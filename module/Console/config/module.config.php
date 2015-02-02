@@ -1,0 +1,27 @@
+<?php 
+return array(
+
+    'view_manager' => array(
+        'template_path_stack' => array(
+            __DIR__ . '/../view',
+        ),
+    ),
+    
+    
+    'console' => array(
+        'router' => array(
+            'routes' => array(
+                'create-databases' => array(
+                    'options' => array(
+                        'route' => 'create-databases <number>',
+                        'defaults' => array(
+                            '__NAMESPACE__' => 'Console\Controller',
+                            'controller' => 'Index',
+                            'action' => 'create-databases'
+                        ),
+                    ),
+                ),
+            )
+        )
+    ),
+);

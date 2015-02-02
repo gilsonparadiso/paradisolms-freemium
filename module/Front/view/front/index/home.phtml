@@ -1,0 +1,117 @@
+<?php
+$com = $this->Communicator();
+?>
+
+<div id="form">
+   <h1><?php echo $this->translate('Welcome to Paradiso LMS') ?></h1>
+   <p><?php echo $this->translate('Once you complete this form, we will send you username and password to your email. Please specify a correct email address.') ?></p>
+
+   <div id="container">
+   
+      <h2><?php echo $this->translate('Create Account')?> <span><?php echo $this->translate('Please fill in all required fields *') ?></span></h2>
+      <form method="post" action="<?php echo $this->url('home') ?>" id="form_element">
+      
+         <div style="display:none" id="alert"><?php $com->printMessage() ?></div>
+         <div id="loader" style="text-align:center;display:none"><img src="<?php echo $this->basePath('img/loader.gif') ?> "> Please wait...</div>
+
+         <div class="form-control required large <?php $com->printErrorClass('email'); ?>">
+            <label><?php echo $this->translate('Email address')?>*</label>
+            <input type="text" name="email" value="<?php echo $this->escapeHtml($this->email) ?>" required="required">
+            <?php $com->printFieldErrors('email'); ?>
+         </div>
+
+         <div class="form-control required <?php $com->printErrorClass('password'); ?>">
+            <label><?php echo $this->translate('Password')?>*</label>
+            <input type="password" name="password" required="required">
+            <?php $com->printFieldErrors('password'); ?>
+         </div>
+
+         <div class="form-control required <?php $com->printErrorClass('domain'); ?>">
+            <label><?php echo $this->translate('Domain')?>*</label>
+            <input type="text" name="domain" value="<?php echo $this->escapeHtml($this->domain) ?>" required="required">.paradisolms.com
+            <?php $com->printFieldErrors('domain'); ?>
+         </div>
+
+         <div class="form-control required large <?php $com->printErrorClass('first_name'); ?>">
+            <label><?php echo $this->translate('First name')?>*</label>
+            <input type="text" name="first_name" value="<?php echo $this->escapeHtml($this->first_name) ?>" required="required">
+            <?php $com->printFieldErrors('first_name'); ?>
+         </div>
+
+         <div class="form-control required large <?php $com->printErrorClass('last_name'); ?>">
+            <label><?php echo $this->translate('Last name')?>*</label>
+            <input type="text" name="last_name" value="<?php echo $this->escapeHtml($this->last_name) ?>" required="required">
+            <?php $com->printFieldErrors('last_name'); ?>
+         </div>
+
+         <div id="submit">
+            <input type="submit" value="<?php echo $this->translate('Create account')?>">
+            <button type="button" onclick="window.history.back();"><?php echo $this->translate('Cancel')?></button>
+         </div>
+
+      </form>
+   </div>
+</div>
+
+<?php if($this->is_post && $com->isSuccess()) : ?>
+<script type="text/javascript">
+
+var $alert= $("#alert");
+var $loader = $("#loader");
+
+function check_website(done, calls)
+{
+    $loader.show();
+    $("#form_element :input").prop("disabled", true);
+    
+    $("#target :input").prop("disabled", true);
+    
+    var max_calls = 2;
+    var url = "<?php echo $this->url('ajax', array('action' => 'check-website'));?>";
+
+    if(calls >= max_calls)
+    {
+        $loader.hide();
+        
+        var $div = $alert.find("div.alert");
+        $div.html("There was an unexpected error, please try again or contact support@paradisosolutions.com").css("padding", "0px 10px");
+        $alert.show();
+        
+        $("#form_element :input").prop("disabled", false);
+        
+        return false;
+    }
+    
+    if (done) 
+    {
+        $loader.hide();
+        $alert.show();
+        
+        $("#form_element :input").prop("disabled", false);
+        
+        return true;
+    }
+    
+    $.ajax({
+        url: url
+        ,success: function(data)
+        {
+            if(!calls)
+            {
+                calls = 1;
+            }
+            else
+            {
+                ++calls;
+            }
+            
+            check_website(data.success, calls);
+        }
+    });
+}
+
+jQuery(function() {
+    check_website();
+});
+</script>
+<?php endif; ?>
