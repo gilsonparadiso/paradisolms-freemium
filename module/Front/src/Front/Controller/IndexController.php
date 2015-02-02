@@ -21,7 +21,7 @@ class IndexController extends Com\Controller\AbstractController
             
             $com = $mInstance->getCommunicator();
             
-            if(!$flag)
+            if($flag)
             {
                 $data = $com->getData();
                 $this->assign($data);
