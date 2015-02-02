@@ -8,7 +8,7 @@ $modules = array(
    'Routes',
    'Com',
    'Console',
-   'ZfcDatagrid',
+   // 'ZfcDatagrid',
    'Front',
    'Freemium',
 );
