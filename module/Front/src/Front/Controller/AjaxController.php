@@ -25,11 +25,20 @@ class AjaxController extends Com\Controller\AbstractController
             try
             {
                 $response = $client->send();
-            
-                $statusCode = $response->getStatusCode();
-                if(200 == $statusCode)
+                if($response->isOk())
                 {
-                    $com->setSuccess();
+                    // analizamos el cuerpo de la pagina para buscar si esta intentando redireccionar
+                    // a la pagina por defecto de cpanel
+                    $body = $response->getBody();
+                    $pos = stripos($body, '/cgi-sys/defaultwebpage.cgi');
+                    if($pos === false)
+                    {
+                        $com->setSuccess();
+                    }
+                    else
+                    {
+                        $com->setNoSuccess();
+                    }
                 }
                 else
                 {
