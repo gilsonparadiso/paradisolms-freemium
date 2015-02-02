@@ -19,13 +19,19 @@ class IndexController extends Com\Controller\AbstractController
             $mInstance = $sl->get('Freemium\Model\Instance');
             $flag = $mInstance->doCreate($params);
             
+            $com = $mInstance->getCommunicator();
+            
             if(!$flag)
+            {
+                $data = $com->getData();
+                $this->assign($data);
+            }
+            else
             {
                 $this->assign($params);
             }
-            
-            $communicator = $mInstance->getCommunicator();
-            $this->setCommunicator($communicator);
+                        
+            $this->setCommunicator($com);
             $this->assign('is_post', true);
         }
 

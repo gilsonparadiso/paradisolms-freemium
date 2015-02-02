@@ -66,7 +66,7 @@ function check_website(done, calls)
     
     $("#target :input").prop("disabled", true);
     
-    var max_calls = 2;
+    var max_calls = 20;
     var url = "<?php echo $this->url('ajax', array('action' => 'check-website'));?>";
 
     if(calls >= max_calls)
@@ -94,6 +94,8 @@ function check_website(done, calls)
     
     $.ajax({
         url: url
+        ,type: "POST"
+        ,data: { website : "<?php echo $this->website?>" }
         ,success: function(data)
         {
             if(!calls)

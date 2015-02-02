@@ -14,7 +14,8 @@ class AjaxController extends Com\Controller\AbstractController
       
         if($request->isPost())
         {
-            $uri = $request->getPost('website'); //'http://gilson2.paradisolms.com';
+            $uri = $request->getPost('website');
+            #$uri = 'http://gilson2.paradisolms.com';
             
             $client = new Zend\Http\Client();
             $client->setUri($uri);
