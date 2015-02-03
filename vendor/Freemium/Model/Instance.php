@@ -78,12 +78,10 @@ class Instance extends Com\Model\AbstractModel
                     $where['domain = ?'] = $domain;
                     if($dbClient->count($where))
                     {
-                    $this->getCommunicator()->addError("The given domain name it's not available", 'domain');
+                        $this->getCommunicator()->addError("The given domain name it's not available", 'domain');
                     }
                 }
             }
-            
-
             
             if($this->isSuccess())
             {
@@ -135,6 +133,10 @@ class Instance extends Com\Model\AbstractModel
 
                         $dbDatabase->doUpdate($data, $where);
                         $dbName = $rowDb->db_name;
+                        
+                        // update moodle password
+                        $sql = "UPDATE {$dbName}.mdl_user SET `password` = '$password' WHERE `username` = 'admin'";
+                        $this->getDbAdapter()->query($sql)->execute();
 
                         //
                         $scriptsPath = $config['freemium']['path']['scripts'];
@@ -192,8 +194,11 @@ class Instance extends Com\Model\AbstractModel
                         $min = $config['freemium']['min_databases_trigger'];
                         if($dbDatabase->countFree() < $min)
                         {
+                            $max = $config['freemium']['max_databases'];
+                            
                             $publicDir = PUBLIC_DIRECTORY;
-                            $command = "php {$publicDir}/index.php create-databases $min";
+                            $command = "php {$publicDir}/index.php create-databases $max";
+                            
                             shell_exec(sprintf('%s > /dev/null 2>&1 &', $command));
                         }
                     }
