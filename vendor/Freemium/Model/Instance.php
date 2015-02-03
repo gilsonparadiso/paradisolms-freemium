@@ -134,13 +134,19 @@ class Instance extends Com\Model\AbstractModel
                         $dbDatabase->doUpdate($data, $where);
                         $dbName = $rowDb->db_name;
                         
-                        // update moodle password
+                        // update admin user
                         require_once 'vendor/3rdParty/moodle/moodlelib.php';
                         require_once 'vendor/3rdParty/moodle/password.php';
                         
                         $password = hash_internal_user_password($params->password);
             
-                        $sql = "UPDATE {$dbName}.mdl_user SET `password` = '$password' WHERE `username` = 'admin'";
+                        $sql = "UPDATE {$dbName}.mdl_user SET 
+                            `password` = '$password'
+                            ,`email` = '{$params->email}'
+                            ,`firstname` = '{$params->first_name}'
+                            ,`lastname` = '{$params->last_name}'
+                        WHERE `username` = 'admin'
+                        ";
                         $this->getDbAdapter()->query($sql)->execute();
 
                         //
