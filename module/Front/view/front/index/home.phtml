@@ -9,7 +9,7 @@ $com = $this->Communicator();
    <div id="container">
    
       <h2><?php echo $this->translate('Create Account')?> <span><?php echo $this->translate('Please fill in all required fields *') ?></span></h2>
-      <form method="post" action="<?php echo $this->url('home') ?>" id="form_element">
+      <form method="post" action="<?php echo $this->url('home') ?>" id="form_element" enctype="multipart/form-data">
       
          <div style="display:none" id="alert"><?php $com->printMessage() ?></div>
          <div id="loader" style="text-align:center;display:none"><img src="<?php echo $this->basePath('img/loader.gif') ?> "> Please wait...</div>
@@ -43,8 +43,15 @@ $com = $this->Communicator();
             <input type="text" name="last_name" value="<?php echo $this->escapeHtml($this->last_name) ?>" required="required">
             <?php $com->printFieldErrors('last_name'); ?>
          </div>
+         
+         <div class="form-control required <?php $com->printErrorClass('logo'); ?>">
+            <label><?php echo $this->translate('Logo')?></label>
+            <input type="file" name="logo" />
+            <div style="font-size:12px;margin;margin-left:170px">Only images in the wollowing formats jpg,png</div>
+            <?php $com->printFieldErrors('logo'); ?>
+         </div>
 
-         <div id="submit">
+         <div id="submit" style="margin-top:10px">
             <input type="submit" value="<?php echo $this->translate('Create account')?>">
             <button type="button" onclick="window.history.back();"><?php echo $this->translate('Cancel')?></button>
          </div>
@@ -88,6 +95,9 @@ function check_website(done, calls)
         $alert.show();
         
         $("#form_element :input").prop("disabled", false);
+        
+        // setup the logo
+        $.post("<?php echo $this->website?>/logo.php");
         
         return true;
     }

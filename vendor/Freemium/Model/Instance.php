@@ -5,6 +5,10 @@ use Zend, Com, Freemium;
 
 class Instance extends Com\Model\AbstractModel
 {
+
+    protected $fileMimeType;
+    
+    
    
    /**
    *
@@ -79,6 +83,67 @@ class Instance extends Com\Model\AbstractModel
                     if($dbClient->count($where))
                     {
                         $this->getCommunicator()->addError("The given domain name it's not available", 'domain');
+                    }
+                }
+            }
+            
+            $logoFile = null;
+            $logoExtension = null;
+            
+            //
+            if($params->logo)
+            {
+                $name = isset($params->logo['name']) ? $params->logo['name'] : null;
+                $type = isset($params->logo['type']) ? $params->logo['type'] : null;
+                $size = isset($params->logo['size']) ? $params->logo['size'] : null;
+                $tmpName = isset($params->logo['tmp_name']) ? $params->logo['tmp_name'] : null;
+                $error = isset($params->logo['error']) ? $params->logo['error']: null;
+                
+                $postedFile = new Com\PostedFile($name, $type, $size, $tmpName, $error);
+                if($postedFile->hasFile())
+                {
+                    $this->fileMimeType = Com\Func\File::getMimeType($postedFile->getTmpName());
+                    
+                    $allowedExtensions = array('jpg', 'jpeg', 'png', 'gif');
+                    $allowedTypes = array('image/jpeg', 'image/png', 'image/gif');
+                    
+                    // verificar la extension del archivo
+                    if(! $this->_checkExtensionAndType($allowedExtensions, $allowedTypes, $postedFile))
+                    {
+                        $errorMessage = 'For the logo we only allow images in formats (jpg, png, gif)';
+                        $this->getCommunicator()->addError($errorMessage, 'logo');
+                        return false;
+                    }
+                    
+                    $uploadPath = PUBLIC_DIRECTORY . '/uploads';
+                    
+                    $fileSaver = new Com\FileSaver($postedFile);
+                    $fileSaver->setEncloseWithDate(true);
+                    $fileSaver->setUseRandFileName(true);
+                    $fileSaver->setUploadPath($uploadPath);
+                    $fileSaver->setContainerDirectory('img');
+                    $fileSaver->setAllowImagesForWeb();
+                    $fileSaver->setUseRandFileName(true);
+                    
+                    if($fileSaver->check())
+                    {
+                        $filename = $fileSaver->saveAs();
+                        if($filename)
+                        {
+                            $logoFile = "{$fileSaver->getFullPathToUpload()}/$filename";
+                            
+                            $pathinfo = pathinfo($logoFile);
+                            $logoExtension = $pathinfo['extension'];
+                        }
+                        else
+                        {
+                            $this->getCommunicator()->addError('There was an error trying to upload your logo', 'logo');
+                        }
+                    }
+                    else
+                    {
+                        $errorMessage = $fileSaver->getCommunicator()->getErrors();
+                        $this->getCommunicator()->addError($errorMessage[0], 'logo');
                     }
                 }
             }
@@ -194,6 +259,12 @@ class Instance extends Com\Model\AbstractModel
             
                         exec("chown {$cpanelUser}:{$cpanelUser} $configFilename & chmod 755 $configFilename");
                         
+                        // move the logo
+                        if($logoFile)
+                        {
+                            move($logoFile, "$mDataPath/logo.{$logoExtension}");
+                        }
+                        
                         // ok done
                         $this->getCommunicator()->setSuccess("Done, you can now login to <a href='$website' target='_blank'>$website</a>.");
                         $this->getCommunicator()->addData($website, 'website');
@@ -218,6 +289,7 @@ class Instance extends Com\Model\AbstractModel
         }
         catch(\Exception $e)
         {
+            exit;
             $this->setException($e);
         }
         
@@ -231,5 +303,50 @@ class Instance extends Com\Model\AbstractModel
          && preg_match("/^.{1,253}$/", $domainName) //overall length check
          && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $domainName)   ); //length of each label
    }
+   
+   
+   /**
+     *
+     * @param array $allowedExtensions
+     * @param array $allowedTypes
+     * @param \Com\PostedFile $postedFile
+     * @return bool
+     */
+    protected function _checkExtensionAndType(array $allowedExtensions, array $allowedTypes,\Com\PostedFile $postedFile)
+    {
+        $result = true;
+        
+        if($postedFile->hasFile())
+        {
+            
+            // verificar la extension del archivo
+            if(count($allowedExtensions))
+            {
+                if(! $postedFile->hasExtension($allowedExtensions))
+                {
+                    $result = false;
+                }
+            }
+            
+            if(count($allowedTypes))
+            {
+                $patterns = array();
+                
+                foreach($allowedTypes as $value)
+                {
+                    $patterns[] = '^(' . $value . ')$';
+                }
+                
+                $pattern = implode('|', $patterns);
+                
+                if(! preg_match("#$pattern#i", $this->fileMimeType))
+                {
+                    $result = false;
+                }
+            }
+        }
+        
+        return $result;
+    }
    
 }

@@ -14,7 +14,8 @@ class IndexController extends Com\Controller\AbstractController
 
         if($request->isPost())
         {
-            $params = $request->getPost();
+            $post = array_merge_recursive($request->getPost()->toArray(), $request->getFiles()->toArray());
+            $params = new Zend\Stdlib\Parameters($post);
             
             $mInstance = $sl->get('Freemium\Model\Instance');
             $flag = $mInstance->doCreate($params);
