@@ -26,7 +26,6 @@ class Instance extends Com\Model\AbstractModel
         // check required fields
         $fields = array(
             'email',
-            'domain',
             'password',
             'first_name',
             'last_name',
@@ -184,7 +183,7 @@ class Instance extends Com\Model\AbstractModel
                 
                     $apiResponse = new App\Cpanel\ApiResponse($result);
                     
-                    if(!$apiResponse->isError())
+                    if($apiResponse->isError())
                     {
                         $err = $apiResponse->getError();
                         if(stripos($err, 'already exists') !== false)

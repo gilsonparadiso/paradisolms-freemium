@@ -54,6 +54,14 @@ $com = $this->Communicator();
    </div>
 </div>
 
+<?php if($this->is_post && !$com->isSuccess()) : ?>
+
+<script type="text/javascript">
+    $("#alert").show();
+</script>
+
+<?php endif; ?>
+
 <?php if($this->is_post && $com->isSuccess()) : ?>
 <script type="text/javascript">
 

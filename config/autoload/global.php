@@ -9,7 +9,7 @@ return array(
                     'database' => 'paradiso_admin',//'freemium',
                     'username' => 'paradisolms', //'root',
                     'password' => 'Paradiso123', //
-                    'hostname' => '72.167.35.86', // 'localhost'
+                    'hostname' => 'localhost', // 'localhost'
                     'profiler' => true,
                     'charset' => 'UTF8',
                     'options' => array(
