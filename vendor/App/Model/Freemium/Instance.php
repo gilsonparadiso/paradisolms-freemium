@@ -42,15 +42,6 @@ class Instance extends Com\Model\AbstractModel
             $dbEmailProvider = $sl->get('App\Db\EmailProvider');
             $config = $sl->get('config');
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
             // checm email
             $vEmail = new Zend\Validator\EmailAddress();
             
@@ -99,11 +90,29 @@ class Instance extends Com\Model\AbstractModel
                 }
                 else
                 {
-                    // check if already exist registered users with the given domain
-                    $where = array();
-                    $where['domain = ?'] = $domain;
-                 
-                    $rowClient = $dbClient->findBy($where, array(), null, 1)->current();
+                    if('paradisosolutions.com' == $emailDomain)
+                    {
+                        while($dbClient->count($where) > 0)
+                        {
+                            $emailDomain = str_replace('.com', '', $emailDomain);
+                            $emailDomain .= mt_rand(1, 9000000);
+                            
+                            $topDomain = $config['freemium']['top_domain'];
+                            $domain = "{$emailDomain}.$topDomain";
+                            $website = "http://{$domain}";
+                            
+                            $where = array();
+                            $where['domain = ?'] = $domain;
+                        }
+                    }
+                    else
+                    {
+                        // check if already exist registered users with the given domain
+                        $where = array();
+                        $where['domain = ?'] = $domain;
+                    
+                        $rowClient = $dbClient->findBy($where, array(), null, 1)->current();
+                    }
                 }
             }
           
@@ -220,7 +229,6 @@ class Instance extends Com\Model\AbstractModel
                     {
                         $rowDb = $dbDatabase->findFreeDatabase();                        
                         
-                        
                         // ups, no free database found
                         if(!$rowDb)
                         {
@@ -241,6 +249,7 @@ class Instance extends Com\Model\AbstractModel
                             $sql = "UPDATE {$dbName}.mdl_user SET 
                                 `password` = '$password'
                                 ,`email` = '{$params->email}'
+                                ,`username` = '{$params->email}'
                                 ,`firstname` = '{$params->first_name}'
                                 ,`lastname` = '{$params->last_name}'
                                 ,`confirmed` = 0
@@ -319,6 +328,10 @@ class Instance extends Com\Model\AbstractModel
                         $sql = "INSERT INTO {$dbName}.mdl_user (`username`, `password`, `firstname`, `lastname`, `email`) VALUES
                         ('{$params->email}', '$password', '{$params->fist_name}', '{$params->last_name}', '$email')";
                         $this->getDbAdapter()->query($sql)->execute();
+                        
+                        // ok, we are done
+                        $this->getCommunicator()->setSuccess($this->_('freemium_account_created', array($website)));
+                        $this->getCommunicator()->addData($website, 'website');
                     }
                     
                     // send the confirmation email to the user
@@ -427,7 +440,7 @@ class Instance extends Com\Model\AbstractModel
                 else
                 {
                     $cPassword = new Com\Crypt\Password();
-                    if(! $cPassword->validate($email, $params->code))
+                    if(! $cPassword->validate($params->email, $params->code))
                     {
                         $this->getCommunicator()->addError($this->_('invalid_verification_code'));
                     }
@@ -442,7 +455,17 @@ class Instance extends Com\Model\AbstractModel
                     $where = array();
                     $where['id = ?'] = $row->id;
                     
-                    $dbUser->doUpdate($row->toArray(), $where);
+                    $dbClient = $sl->get('App\Db\Client');
+                    $dbClient->doUpdate($row->toArray(), $where);
+                    
+                    
+                    //
+                    $sql = "UPDATE {$dbName}.mdl_user SET 
+                        `confirmed` = 1
+                    WHERE `email` = '{$params->email}'
+                    ";
+                    $this->getDbAdapter()->query($sql)->execute();
+                    //
                     
                     $this->getCommunicator()->setSuccess($this->_('account_verified', array("http://{$row->domain}")));
                 }

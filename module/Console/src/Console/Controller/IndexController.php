@@ -91,9 +91,11 @@ class IndexController extends Com\Controller\AbstractController
                 // add the new database
                 /*************************************/
                 $data = array(
-                'db_host' => $dbHost
-                ,'db_user' => $dbUser
-                ,'db_password' => $dbPassword
+                    'db_host' => $dbHost
+                    ,'db_name' => null
+                    ,'db_user' => $dbUser
+                    ,'db_password' => $dbPassword
+                    ,'client_id' => null
                 );
                 $dbDatabase->doInsert($data);
                 $databaseId = $dbDatabase->getLastInsertValue();
@@ -105,11 +107,11 @@ class IndexController extends Com\Controller\AbstractController
                 // update database name
                 /*************************************/
                 $data = array(
-                'db_name' => $newDatabaseNamePrefixed
+                    'db_name' => $newDatabaseNamePrefixed
                 );
                 
                 $where = array(
-                'id' => $databaseId
+                    'id' => $databaseId
                 );
                 $dbDatabase->doUpdate($data, $where);
 
@@ -120,7 +122,7 @@ class IndexController extends Com\Controller\AbstractController
                 // create the database
                 /*************************************/
                 $response = $cp->api2_query($cpanelUser, 'MysqlFE', 'createdb', array(
-                'db' => $newDatabaseName,
+                    'db' => $newDatabaseName,
                 ));
 
                 if(isset($response['error']) || isset($response['event']['error']))
@@ -142,13 +144,13 @@ class IndexController extends Com\Controller\AbstractController
                 /*******************************/
                 // Assign user to db
                 /*******************************/
-                $dbUser = 'user';
+                $dbUserName = 'user';
                 $grant_user = $cp->api2_query(CPANEL_USER, 
                     'MysqlFE', 'setdbuserprivileges',
                     array(
                         'privileges' => 'ALL_PRIVILEGES',
                         'db' => $newDatabaseName,
-                        'dbuser' => $dbUser,
+                        'dbuser' => $dbUserName,
                     )
                 );
                 
