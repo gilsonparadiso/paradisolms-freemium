@@ -7,10 +7,11 @@
 $modules = array(
    'Routes',
    'Com',
+   'App',
    'Console',
+   'Backend',
    // 'ZfcDatagrid',
    'Front',
-   'Freemium',
 );
 
 if (APP_ENV == APP_DEVELOPMENT)

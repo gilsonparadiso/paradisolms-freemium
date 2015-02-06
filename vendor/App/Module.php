@@ -1,6 +1,6 @@
 <?php
 
-namespace Freemium;
+namespace App;
 
 use Zend, Com;
 class Module

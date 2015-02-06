@@ -143,8 +143,8 @@ return array(
                     'port' => 465,
                     'connection_class' => 'login',
                     'connection_config' => array(
-                        'username' => 'no-reply@ideasti.com',
-                        'password' => '9?z1%3RL(*&6w4K',
+                        'username' => 'sales@paradisosolutions.com',
+                        'password' => 'Parad1s0',
                         'ssl' => 'ssl' 
                     ) 
                 ) 
@@ -153,11 +153,11 @@ return array(
         'from' => array(
             'no-reply' => array(
                 'name' => 'no reply',
-                'email' => 'no-reply@v2.trabajopolis.bo' 
+                'email' => 'noreply@paradisosolutions.com' 
             ),
-            'contact' => array(
-                'name' => 'Trabajopolis',
-                'email' => 'test@boletin.trabajopolis.bo' 
+            'sales' => array(
+                'name' => 'Sales',
+                'email' => 'sales@paradisosolutions.com' 
             ) 
         ) 
     ),
@@ -324,7 +324,7 @@ return array(
             array(
                 'type' => 'phpArray',
                 'base_dir' => 'language',
-                'pattern' => 'messages.php',
+                'pattern' => 'en.php',
                 'text_domain' => 'default' 
             ),
             /*array(
@@ -352,6 +352,7 @@ return array(
         
         'template_map' => array(
             'layout/layout' => __DIR__ . '/../view/layout/layout.phtml',
+            'backend' => __DIR__ . '/../view/layout/backend.phtml',
             
             'error/404' => __DIR__ . '/../view/error/404.phtml',
             'error/index' => __DIR__ . '/../view/error/index.phtml' 

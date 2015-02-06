@@ -17,7 +17,7 @@ class IndexController extends Com\Controller\AbstractController
             $post = array_merge_recursive($request->getPost()->toArray(), $request->getFiles()->toArray());
             $params = new Zend\Stdlib\Parameters($post);
             
-            $mInstance = $sl->get('Freemium\Model\Instance');
+            $mInstance = $sl->get('App\Model\Freemium\Instance');
             $flag = $mInstance->doCreate($params);
             
             $com = $mInstance->getCommunicator();
@@ -37,5 +37,22 @@ class IndexController extends Com\Controller\AbstractController
         }
 
         return $this->viewVars;
-   }
+    }
+    
+    
+    function testAction()
+    {
+        $sl = $this->getServiceLocator();
+        
+        $cp = $sl->get('cPanelApi');
+                
+        $domain = null;
+        $cpUser = $cp->get_user();
+        $result = $cp->listparkeddomains($cpUser, $domain);
+        
+        echo '<pre>';
+        print_r($result);
+    
+        exit;
+    }
 }

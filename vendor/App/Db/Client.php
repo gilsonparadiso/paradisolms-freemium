@@ -1,6 +1,6 @@
 <?php
 
-namespace Freemium\Db;
+namespace App\Db;
 
 use Com, Zend;
 

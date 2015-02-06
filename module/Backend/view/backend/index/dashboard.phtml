@@ -1,0 +1,25 @@
+<?php
+$com = $this->communicator();
+$userId = $this->globalVars('identity.id', 0);
+
+?>
+<div class="row">
+    <div class="col-lg-4">
+        <ul>
+            <li>
+                <a href="<?php echo $this->url('backend-crm/wildcard', array('controller' => 'index', 'action' => 'index', 'reason' => 1)); ?>">Crm Anuncios Básicos</a>
+                <ul>
+                    <li><a href="<?php echo $this->url('backend-crm/wildcard', array('controller' => 'reports', 'action' => 'calls-per-user', 'reason' => 1)); ?>">Reporte de Llamadas</a></li>
+                </ul>
+            </li>
+            
+            <li><a href="<?php echo $this->url('backend-crm/wildcard', array('controller' => 'index', 'action' => 'index', 'reason' => 2)); ?>">Crm Publicidad Intersitial</a></li>
+            
+            <li><a href="<?php echo $this->url('backend-jobseeker', array('controller' => 'user', 'action' => 'invite'))?>">Invitar a Postular</a></li>
+            
+			<li><a href="<?php echo $this->url('ad/wildcard', array('controller' => 'user', 'action' => 'index')); ?>">Publicidad Intersitial</a></li>
+
+            <li><a href="<?php echo $this->url('backend-course/wildcard', array('controller' => 'course', 'action' => 'index')); ?>">Cursos</a></li>
+        </ul>
+    </div>
+</div>

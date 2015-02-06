@@ -26,12 +26,6 @@ $com = $this->Communicator();
             <?php $com->printFieldErrors('password'); ?>
          </div>
 
-         <div class="form-control required <?php $com->printErrorClass('domain'); ?>">
-            <label><?php echo $this->translate('Domain')?>*</label>
-            <input type="text" name="domain" value="<?php echo $this->escapeHtml($this->domain) ?>" required="required">.paradisolms.com
-            <?php $com->printFieldErrors('domain'); ?>
-         </div>
-
          <div class="form-control required large <?php $com->printErrorClass('first_name'); ?>">
             <label><?php echo $this->translate('First name')?>*</label>
             <input type="text" name="first_name" value="<?php echo $this->escapeHtml($this->first_name) ?>" required="required">

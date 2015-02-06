@@ -1,6 +1,6 @@
 <?php
 
-namespace Freemium\Cpanel;
+namespace App\Cpanel;
 
 use Com;
 
@@ -50,7 +50,7 @@ class ApiResponse
     /**
     *
     * @param mixed $result 
-    * @return  Freemium\Cpanel\ApiResponse
+    * @return  App\Cpanel\ApiResponse
     */
     function setResult($result)
     {

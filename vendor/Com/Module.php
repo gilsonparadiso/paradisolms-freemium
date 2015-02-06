@@ -139,8 +139,8 @@ class Module
                     $session = $sl->get('session');
                     $session->back = $request->getRequestUri();
                     
-                    $options['name'] = 'login';
-                    $params = array();
+                    $options['name'] = 'auth';
+                    $params = array('action' => 'login');
                     
                     $url = $event->getRouter()
                         ->assemble($params, $options);
