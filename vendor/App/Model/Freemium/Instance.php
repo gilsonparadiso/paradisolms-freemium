@@ -380,7 +380,6 @@ class Instance extends Com\Model\AbstractModel
         }
         catch(\Exception $e)
         {
-            exit;
             $this->setException($e);
         }
         
