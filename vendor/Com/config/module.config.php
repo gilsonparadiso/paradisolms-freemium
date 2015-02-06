@@ -42,7 +42,7 @@ return array(
          'master_mdata' => '/home/paradisolms/mdata/master_data',
          'config' => '/home/paradisolms/clients/config',
          'scripts' => '/home/paradisolms/scripts',
-         'master_sql_file' => '/home/paradisolms/public_html/paradisolms-pepe/db/master_freemium.sql',
+         'master_sql_file' => '/home/paradisolms/db/master_freemium.sql',
       ),
       
       'db' => array(
@@ -53,7 +53,7 @@ return array(
       ),
       
       'cpanel' => array(
-         'server' => '72.167.35.86',
+         'server' => '65.111.187.33',
          'username' => 'paradisolms',
          'password' => 'Paradiso123',
       ),
