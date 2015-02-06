@@ -1,7 +1,7 @@
 <?php
 namespace App\Model\Freemium;
 
-use Zend, Com;
+use Zend, Com, App;
 
 class Instance extends Com\Model\AbstractModel
 {
