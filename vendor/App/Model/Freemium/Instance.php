@@ -56,7 +56,7 @@ class Instance extends Com\Model\AbstractModel
             
             if(!$vEmail->isValid($params->email))
             {
-                $this->getCommunicator()->addError($thi->_('provide_valid_email'), 'email');
+                $this->getCommunicator()->addError($this->_('provide_valid_email'), 'email');
             }
             else
             {
@@ -65,7 +65,7 @@ class Instance extends Com\Model\AbstractModel
                 $where['email = ?'] = $params->email;
                 if($dbClient->count($where))
                 {
-                    $this->getCommunicator()->addError($thi->_('user_email_already_exist'), 'email');
+                    $this->getCommunicator()->addError($this->_('user_email_already_exist'), 'email');
                 }
             }
             
