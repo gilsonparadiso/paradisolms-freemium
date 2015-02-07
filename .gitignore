@@ -27,6 +27,5 @@ data/ZfcDatagrid/*
 sftp*
 
 public_html/uploads/*
-public_html/
 .directory 
 composer.json
