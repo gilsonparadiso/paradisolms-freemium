@@ -1,29 +1,25 @@
 <?php echo $this->doctype(); ?>
 <html>
       <head>
-         <meta charset="UTF-8">
+        <meta charset="UTF-8">
          
-         <?php echo $this->headTitle($this->translate('Paradiso Solutions'))->setSeparator(' - ')->setAutoEscape(false) ?>
+        <?php echo $this->headTitle($this->translate('Paradiso Solutions'))->setSeparator(' - ')->setAutoEscape(false) ?>
 
-         <?php 
+        <?php 
             echo $this->headMeta()
                 ->appendName('viewport', 'width=device-width, initial-scale=1.0')
-                ->appendHttpEquiv('X-UA-Compatible', 'IE=edge')
-         ?>
+                ->appendHttpEquiv('X-UA-Compatible', 'IE=edge');
+        ?>
          
-         <!-- styles -->
-         <?php 
-         echo $this->headLink(
-            array('rel' => 'shortcut icon'
-                  ,'type' => 'image/vnd.microsoft.icon'
-                  ,'href' => $this->basePath('/img/favicon.ico')
-               )
-             )
-            ->prependStylesheet($this->basePath('/css/style.css'))
-            // ->prependStylesheet($this->basePath('/css/bootstrap-theme.min.css'))
-            // ->prependStylesheet($this->basePath('/css/bootstrap.min.css'))
-         ?>
-         <!-- /styles -->
+        <!-- styles -->
+        <?php 
+        echo $this->headLink(array('rel' => 'shortcut icon'
+                ,'type' => 'image/vnd.microsoft.icon'
+                ,'href' => $this->basePath('/img/favicon.ico')
+            ))->prependStylesheet($this->basePath('/css/style.css'));
+        ?>
+        <?php  echo $this->headStyle() ?>
+        <!-- /styles -->
          
         <!-- scripts -->
         <?php 

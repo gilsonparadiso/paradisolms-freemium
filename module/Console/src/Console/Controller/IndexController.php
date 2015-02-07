@@ -95,7 +95,6 @@ class IndexController extends Com\Controller\AbstractController
                     ,'db_name' => null
                     ,'db_user' => $dbUser
                     ,'db_password' => $dbPassword
-                    ,'client_id' => null
                 );
                 $dbDatabase->doInsert($data);
                 $databaseId = $dbDatabase->getLastInsertValue();
@@ -181,7 +180,7 @@ class IndexController extends Com\Controller\AbstractController
         }
         catch (RuntimeException $e)
         {
-            ;
+            $this->_unlock(__method__);
         }
    }
    

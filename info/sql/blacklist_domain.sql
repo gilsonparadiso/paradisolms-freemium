@@ -1,7 +1,8 @@
-truncate email_provider;
-INSERT INTO `email_provider`(`domain`) VALUES
+truncate blacklist_domain;
+INSERT INTO `blacklist_domain`(`domain`) VALUES
 
 ('0815.ru0clickemail.com')
+,('paradisolms.com')
 ,('0wnd.net')
 ,('0wnd.org')
 ,('10minutemail.com')

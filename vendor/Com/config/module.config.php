@@ -41,7 +41,6 @@ return array(
          'mdata' => '/home/paradisolms/mdata',
          'master_mdata' => '/home/paradisolms/mdata/master_data',
          'config' => '/home/paradisolms/clients/config',
-         'scripts' => '/home/paradisolms/scripts',
          'master_sql_file' => '/home/paradisolms/db/master_freemium.sql',
       ),
       

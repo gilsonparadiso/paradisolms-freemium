@@ -2,22 +2,48 @@
 $com = $this->Communicator();
 ?>
 
+<?php $this->headStyle()->captureStart() ?>
+#edit_instance{cursor:pointer;display:none}
+#instance{width:200px}
+#loader{text-align:center;visibility:hidden}
+#alert{display:none}
+<?php $this->headStyle()->captureEnd() ?>
+
+
 <div id="form">
    <h1><?php echo $this->translate('Welcome to Paradiso LMS') ?></h1>
-   <p><?php echo $this->translate('Once you complete this form, we will send you username and password to your email. Please specify a correct email address.') ?></p>
+   <p><?php echo $this->translate('Once you complete this form, we will create an account for you. Please specify a correct email address.') ?></p>
 
    <div id="container">
    
       <h2><?php echo $this->translate('Create Account')?> <span><?php echo $this->translate('Please fill in all required fields *') ?></span></h2>
+      
       <form method="post" action="<?php echo $this->url('home') ?>" id="form_element" enctype="multipart/form-data">
       
-         <div style="display:none" id="alert"><?php $com->printMessage() ?></div>
-         <div id="loader" style="text-align:center;display:none"><img src="<?php echo $this->basePath('img/loader.gif') ?> "> Please wait...</div>
+         <div id="alert"><?php $com->printMessage() ?></div>
+         <div id="loader"><img src="<?php echo $this->basePath('img/loader.gif') ?>"> 
+         <?php echo $this->translate('please_wait') ?></div>
 
          <div class="form-control required large <?php $com->printErrorClass('email'); ?>">
             <label><?php echo $this->translate('Email address')?>*</label>
-            <input type="text" name="email" value="<?php echo $this->escapeHtml($this->email) ?>" required="required">
+            <input type="text" id="email" name="email" value="<?php echo $this->escapeHtml($this->email) ?>" required="required">
             <?php $com->printFieldErrors('email'); ?>
+         </div>
+         
+         <div id="instance_container" class="form-control required <?php $com->printErrorClass('instance'); ?>">
+            <label><?php echo $this->translate('Instance name')?>*</label>
+            <input disabled="disabled" 
+                type="text" 
+                id="instance" 
+                name="instance" 
+                value="<?php echo $this->escapeHtml($this->instance) ?>" >.paradisolms.com 
+            
+            <img id="edit_instance" 
+                src="<?php echo $this->basePath('img/edit.png') ?>" 
+                alt="<?php echo $this->translate('edit_instance_name') ?>" 
+                title="<?php echo $this->translate('edit_instance_name') ?>">
+            
+            <?php $com->printFieldErrors('instance'); ?>
          </div>
 
          <div class="form-control required <?php $com->printErrorClass('password'); ?>">
@@ -54,78 +80,166 @@ $com = $this->Communicator();
    </div>
 </div>
 
-<?php if($this->is_post && !$com->isSuccess()) : ?>
 
 <script type="text/javascript">
-    $("#alert").show();
-</script>
-
-<?php endif; ?>
-
-<?php if($this->is_post && $com->isSuccess()) : ?>
-<script type="text/javascript">
-
-var $alert= $("#alert");
-var $loader = $("#loader");
-
-function check_website(done, calls)
-{
-    $loader.show();
-    $("#form_element :input").prop("disabled", true);
-    
-    $("#target :input").prop("disabled", true);
-    
-    var max_calls = 200;
-    var url = "<?php echo $this->url('ajax', array('action' => 'check-website'));?>";
-
-    if(calls >= max_calls)
+    var $alert = null;
+    var $loader = null;
+        
+    function show_loader()
     {
-        $loader.hide();
-        
-        var $div = $alert.find("div.alert");
-        $div.html("There was an unexpected error, please try again or contact support@paradisosolutions.com").css("padding", "0px 10px");
-        $alert.show();
-        
-        $("#form_element :input").prop("disabled", false);
-        
-        return false;
+        $loader.css("visibility", 'visible');
     }
     
-    if (done) 
+    function hide_loader()
     {
-        $loader.hide();
-        $alert.show();
-        
-        $("#form_element :input").prop("disabled", false);
-        
-        // setup the logo
-        $.post("<?php echo $this->website?>/logo.php");
-        
-        return true;
+        $loader.css("visibility", 'hidden');
     }
+
+    jQuery(function() {
     
-    $.ajax({
-        url: url
-        ,type: "POST"
-        ,data: { website : "<?php echo $this->website?>" }
-        ,success: function(data)
-        {
-            if(!calls)
+        $alert = $("#alert");
+        $loader = $("#loader");
+        
+        $("#edit_instance").click(function() {
+        
+            var $self = $(this);
+            
+            $self.hide();
+            
+            show_loader();
+            
+            var url = "<?php echo $this->url('ajax', array('action' => 'can-edit-instance'));?>";
+            var data = {email: $("#email").val()};
+            
+            $.post(url, data, function(response) {
+            
+                hide_loader();
+                $self.show();
+                
+                if(response.success)
+                {
+                    $("#instance").removeAttr("disabled");
+                    $("#instance").focus();
+                }
+                else
+                {
+                    $("#instance").attr("disabled", "disabled");
+                    
+                    var $div = $alert.find("div.alert");
+                    $div.html("Sorry, you can't edit the instance name.").css("padding", "0px 10px");
+                    $alert.show();
+                }
+            });
+
+        });
+        
+        
+        $("#email").blur(function() {
+        
+            $("#instance").attr("disabled", "disabled");
+            
+            var $self = $(this);
+            var email = $self.val();
+            
+            email = email.toLowerCase();
+            $self.val(email);
+            
+            var exploded = email.split("@");
+            
+            if(2 == exploded.length)
             {
-                calls = 1;
+                exploded = exploded[1].split(".");
+                if(exploded.length > 1)
+                {
+                    $("#instance").val(exploded[0]);
+                    $("#edit_instance").show();
+                }
+                else
+                {
+                    $("#edit_instance").hide();
+                    $("#instance").val('');
+                }
             }
             else
             {
-                ++calls;
+                $("#edit_instance").hide();
+                $("#instance").val('');
+            }
+        });
+    });
+
+    
+    <?php if($this->is_post && !$com->isSuccess()) : ?>
+        $("#alert").show();
+    <?php endif; ?>
+    
+    
+    <?php if($this->is_post && $com->isSuccess()) : ?>
+
+        function check_instance_created(done, calls)
+        {
+            show_loader();
+            
+            $("#form_element :input").prop("disabled", true);
+            
+            $("#target :input").prop("disabled", true);
+            
+            var max_calls = 200;
+            var url = "<?php echo $this->url('ajax', array('action' => 'check-instance-created'));?>";
+
+            if(calls >= max_calls)
+            {
+                hide_loader();
+                
+                var $div = $alert.find("div.alert");
+                $div.html("There was an unexpected error, please try again or contact support@paradisosolutions.com").css("padding", "0px 10px");
+                $alert.show();
+                
+                $("#form_element :input").prop("disabled", false);
+                
+                return false;
             }
             
-            check_website(data.success, calls);
+            if (done) 
+            {
+                show_loader();
+                $alert.show();
+                
+                $("#form_element :input").prop("disabled", false);
+                
+                // setup the logo
+                $.post("<?php echo $this->website?>/logo.php");
+                
+                return true;
+            }
+            
+            $.ajax({
+                url: url
+                ,type: "POST"
+                ,data: { website : "<?php echo $this->website?>" }
+                ,success: function(data)
+                {
+                    if(!calls)
+                    {
+                        calls = 1;
+                    }
+                    else
+                    {
+                        ++calls;
+                    }
+                    
+                    check_instance_created(data.success, calls);
+                }
+            });
         }
-    });
-}
 
-jQuery(function() {
-    check_website();
-});
+        jQuery(function() {
+            check_instance_created();
+        });
+
+    <?php endif; ?>
+
 </script>
-<?php endif; ?>
+
+
+

@@ -20,9 +20,33 @@ class Database extends Com\Db\AbstractDb
     */
     function countFree()
     {
-       $predicate = new Zend\Db\Sql\Predicate\Literal('client_id IS NULL');
-       return $this->count($predicate);
+        $sl = $this->getServiceLocator();
+       
+        $dbDatabase = $this;
+        $dbClientHasDb = $sl->get('App\Db\Client\HasDatabase');
+
+        //
+        $select = new Zend\Db\Sql\Select();
+
+        // tabla 
+        $select->from(array(
+            'd' => $dbDatabase->getTable()
+        ));
+
+        $count = new Zend\Db\Sql\Literal('COUNT(*) AS c');
+        $select->columns(array($count));
+
+        // join 
+        $select->join(array('chd' => $dbClientHasDb->getTable()), 'chd.database_id = d.id', array());
+
+        //
+        $predicate = new Zend\Db\Sql\Predicate\Literal('chd.client_id IS NULL');
+        $select->where($predicate);
+
+        //
+        return $this->executeCustomSelect($select)->current()->c;
     }
+    
     
     /**
     *
@@ -30,7 +54,30 @@ class Database extends Com\Db\AbstractDb
     */
     function findFreeDatabase()
     {
-       $predicate = new Zend\Db\Sql\Predicate\Literal('client_id IS NULL');
-       return $this->findBy($predicate, array(), null, 1)->current();
+        $sl = $this->getServiceLocator();
+       
+        $dbDatabase = $this;
+        $dbClientHasDb = $sl->get('App\Db\Client\HasDatabase');
+
+        //
+        $select = new Zend\Db\Sql\Select();
+
+        // tabla 
+        $select->from(array(
+            'd' => $dbDatabase->getTable()
+        ));
+
+        // join 
+        $select->join(array('chd' => $dbClientHasDb->getTable()), 'chd.database_id = d.id', array());
+
+        //
+        $predicate = new Zend\Db\Sql\Predicate\Literal('chd.client_id IS NULL');
+        $select->where($predicate);
+        
+        //
+        $select->limit(1);
+
+        //
+        return $this->executeCustomSelect($select)->current();
     }
 }
