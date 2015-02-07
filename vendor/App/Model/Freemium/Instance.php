@@ -42,7 +42,7 @@ class Instance extends Com\Model\AbstractModel
             $dbClient = $sl->get('App\Db\Client');
             $dbClientHasDb = $sl->get('App\Db\Client\HasDatabase');
             $dbDatabase = $sl->get('App\Db\Database');
-            $dbEmailProvider = $sl->get('App\Db\EmailProvider');
+            $dbBlacklistDomain = $sl->get('App\Db\BlacklistDomain');
             $config = $sl->get('config');
             
             $params->email = strtolower($params->email);
@@ -82,12 +82,12 @@ class Instance extends Com\Model\AbstractModel
                 $website = "http://{$domain}";
                     
                 // check if the domain of the email is allowed to create account
-                $exploded = explode('@', $email);
+                $exploded = explode('@', $params->email);
                 $emailDomain = $exploded[1];
         
                 $where = array();
                 $where['domain = ?'] = $emailDomain;
-                if($dbEmailProvider->count($where))
+                if($dbBlacklistDomain->count($where))
                 {
                     $this->getCommunicator()->addError($this->_('email_address_not_allowed'), 'email');
                     return false;

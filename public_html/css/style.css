@@ -21,262 +21,261 @@
 
 
 body, html {
-   background: #fff;
-   margin: 0px;
-   padding: 0px;
+background: #fff;
+margin: 0px;
+padding: 0px;
 }
 
 header {
-   border-bottom: 3px solid #89BD04;
-   margin: auto;
-   padding-bottom: 45px;
-   width: 1140px;
+border-bottom: 3px solid #89BD04;
+margin: auto;
+padding-bottom: 45px;
+width: 1140px;
 }
 
 header div {
-   display: inline-block;
-   vertical-align: top;
+display: inline-block;
+vertical-align: top;
 }
 
 header div#logo {
-   padding-top: 50px;
+padding-top: 50px;
 }
 
 header div#right-buttons {
-   width:900px;
-   text-align: right;
+width:900px;
+text-align: right;
 }
 
 header div#right-buttons a {
-   color: #fff;
-   display: inline-block;
-   font-family: Arial;
-   margin-top: 15px;
-   text-decoration: none;
+color: #fff;
+display: inline-block;
+font-family: Arial;
+margin-top: 15px;
+text-decoration: none;
 }
 
 #form, #thanks {
-        background: #fff;
-        width: 1138px;
-        margin: auto;
-        padding-bottom: 20px;
+background: #fff;
+width: 1138px;
+margin: auto;
+padding-bottom: 20px;
 }
 
 #form h1, #thanks h1 {
-        background: url("../img/register-form.jpg");
-        font-family: 'Open Sans', sans-serif;
-        font-size: 24px;
-        height: 40px;
-        padding-top: 10px;
-        padding-left: 80px;
-        width: 1058px;
+background: url("../img/register-form.jpg");
+font-family: 'Open Sans', sans-serif;
+font-size: 24px;
+height: 40px;
+padding-top: 10px;
+padding-left: 80px;
 }
 
 #form p {
-        font-family: 'Open Sans', sans-serif;
-        font-size: 18px;
-        margin: auto;
-        margin-bottom: 30px;
-        text-align: center;
-        width: 727px;
+font-family: 'Open Sans', sans-serif;
+font-size: 18px;
+margin: auto;
+margin-bottom: 30px;
+text-align: center;
+width: 727px;
 }
 
 #form div#container {
-        background: #8ABC01;
-        border-radius: 5px;
-        margin: auto;
-        padding: 10px 1px 1px 1px;
-        width: 618px;
+background: #8ABC01;
+border-radius: 5px;
+margin: auto;
+padding: 10px 1px 1px 1px;
+width: 618px;
 }
 
 #form div h2 {
-        color: #fff;
-        font-family: 'Open Sans', sans-serif;
-        font-size: 18px;
-        font-weight: normal;
-        padding: 0px;
-        padding-bottom: 5px;
-        padding-left: 30px;
-        margin: 0px;
+color: #fff;
+font-family: 'Open Sans', sans-serif;
+font-size: 18px;
+font-weight: normal;
+padding: 0px;
+padding-bottom: 5px;
+padding-left: 30px;
+margin: 0px;
 }
 
 #form div h2 span {
-        color: #5B5B5F;
-        display: inline-block;
-        padding-left: 100px;
+color: #5B5B5F;
+display: inline-block;
+padding-left: 100px;
 }
 
 #form div form {
-        background: #fff;
-        border-radius: 5px;
-        padding-top: 20px;
+background: #fff;
+border-radius: 5px;
+padding-top: 20px;
 }
 
 #form div form div {
-        font-family: 'Open Sans', sans-serif;
+font-family: 'Open Sans', sans-serif;
 }
 
 #form div form div input, #form div form div label {
-        display: inline-block;
-        font-size: 14px;
+display: inline-block;
+font-size: 14px;
 }
 
 #form div form {
-        margin-bottom: 0px;
+margin-bottom: 0px;
 }
 
 #form div form div label {
-        width: 150px;
-        padding-right: 15px;
-        text-align: right;
-        vertical-align: middle;
+width: 150px;
+padding-right: 15px;
+text-align: right;
+vertical-align: middle;
 }
 
-.form-control {
-   padding: 5px 0;
+.form-control-2 {
+padding: 5px 0;
 }
 
 
 .required label {
-   color: #8ABC01;
+color: #8ABC01;
 }
 
 
 #form div form div input, #form div form div select {
-        border-radius:5px;
-        border: 1px solid #ccc;
-        padding: 5px;
-        width: 250px;
+border-radius:5px;
+border: 1px solid #ccc;
+padding: 5px;
+width: 250px;
 }
 
 #form div form div.large input {
-        width: 350px;
+width: 350px;
 }
 
 #form div form div input[type="checkbox"] {
-        width: 30px;
+width: 30px;
 }
 
 #form div form div.textarea label {
-        vertical-align: top;
+vertical-align: top;
 }
 
 #form div form div.textarea textarea {
-        border-radius:5px;
-        border: 1px solid #ccc;
-        padding: 5px;
-        height: 150px;
-        resize: none;
-        width: 350px;
+border-radius:5px;
+border: 1px solid #ccc;
+padding: 5px;
+height: 150px;
+resize: none;
+width: 350px;
 }
 
 #submit {
-        margin: auto;
-        text-align: right;
-        width: 420px;
+margin: auto;
+text-align: right;
+width: 420px;
 }
 .error{margin-left:170px;font-size:12px;color:red;display:block}
 #submit input[type="submit"] {
-        background: url('../img/save.png') #8ABC01 no-repeat center right;
-        padding: 5px;
-        width:auto;
-        color: #fff;
-        text-align: left;
-        padding-left:30px;
-        padding-right:40px
+background: url('../img/save.png') #8ABC01 no-repeat center right;
+padding: 5px;
+width:auto;
+color: #fff;
+text-align: left;
+padding-left:30px;
+padding-right:40px
 }
 
 #submit button {
-        color: #8ABC01;
-        background: #fff;
-        border: 1px solid #8ABC01;
-        border-radius: 5px;
-        padding: 5px;
-        width: 72px;
+color: #8ABC01;
+background: #fff;
+border: 1px solid #8ABC01;
+border-radius: 5px;
+padding: 5px;
+width: 72px;
 }
 
 footer {
-   background: #444242;
-   color: #fff;
-   font-family: 'Open Sans', sans-serif;
-   text-align: right;
-   padding-bottom: 10px;
-   padding-top: 15px;
-   padding-right: 50px;
-   line-height:30px
+background: #444242;
+color: #fff;
+font-family: 'Open Sans', sans-serif;
+text-align: right;
+padding-bottom: 10px;
+padding-top: 15px;
+padding-right: 50px;
+line-height:30px
 }
 
 #thanks hgroup h2 {
-        margin: auto;
-        width: 500px;
+margin: auto;
+width: 500px;
 }
 
 #container-email {
-        background: #F7F7F8;
-        font-family: 'Open Sans', sans-serif;
-        margin: auto;
-        padding-bottom: 20px;
-        padding-top: 20px;
-        width: 900px;
+background: #F7F7F8;
+font-family: 'Open Sans', sans-serif;
+margin: auto;
+padding-bottom: 20px;
+padding-top: 20px;
+width: 900px;
 }
 
 #container-head {
-        background: #FFF;
-        margin: auto;
-        padding: 15px;
-        width: 585px;
+background: #FFF;
+margin: auto;
+padding: 15px;
+width: 585px;
 }
 
 #social-networks {
-        color: #727176;
-        display: inline-block;
-        float: right;
+color: #727176;
+display: inline-block;
+float: right;
 }
 
 #social-networks ul {
-        display: inline-block;
-        list-style: none;
-        vertical-align: middle;
+display: inline-block;
+list-style: none;
+vertical-align: middle;
 }
 
 #social-networks ul li {
-        display: inline-block;
+display: inline-block;
 }
 
 #logo {
-        width: 147px;
+width: 147px;
 }
 
 #container-head > h2 {
-        font-size: 18px;
-        margin: auto;
-        margin-top: 30px;
-        text-align: center;
+font-size: 18px;
+margin: auto;
+margin-top: 30px;
+text-align: center;
 }
 
 #container-head > h2 > span {
-        font-size: 28px;
+font-size: 28px;
 }
 
 #container-body {
-        background: #FFF;
-        margin: auto;
-        width: 615px;
-        font-size: 18px;
-        margin-top: 20px;
-        padding-bottom: 0px;
-        height: 210px;
+background: #FFF;
+margin: auto;
+width: 615px;
+font-size: 18px;
+margin-top: 20px;
+padding-bottom: 0px;
+height: 210px;
 }
 
 #message div {
-        float: left;
-        font-family: 'Open Sans', sans-serif;
-        font-size: 18px;
-        padding: 25px;
-        padding-top: 15px;
-        width: 260px;
+float: left;
+font-family: 'Open Sans', sans-serif;
+font-size: 18px;
+padding: 25px;
+padding-top: 15px;
+width: 260px;
 }
 
 #container-body img {
-        float: right;
+float: right;
 }
