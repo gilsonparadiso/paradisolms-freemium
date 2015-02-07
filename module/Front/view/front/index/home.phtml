@@ -100,6 +100,42 @@ $com = $this->Communicator();
     {
         $loader.css("visibility", 'hidden');
     }
+    
+    function blur_email()
+    {
+        $("#instance_label").attr("disabled", "disabled");
+            
+        var $self = $("#email");
+        var email = $self.val();
+        
+        email = email.toLowerCase();
+        $self.val(email);
+        
+        var exploded = email.split("@");
+        
+        if(2 == exploded.length)
+        {
+            exploded = exploded[1].split(".");
+            if(exploded.length > 1)
+            {
+                $("#instance").val(exploded[0]);
+                $("#instance_label").val(exploded[0]);
+                $("#edit_instance").show();
+            }
+            else
+            {
+                $("#edit_instance").hide();
+                $("#instance").val('');
+                $("#instance_label").val('');
+            }
+        }
+        else
+        {
+            $("#edit_instance").hide();
+            $("#instance").val('');
+            $("#instance_label").val('');
+        }
+    }
 
     jQuery(function() {
     
@@ -139,42 +175,7 @@ $com = $this->Communicator();
 
         });
         
-        
-        $("#email").blur(function() {
-        
-            $("#instance_label").attr("disabled", "disabled");
-            
-            var $self = $(this);
-            var email = $self.val();
-            
-            email = email.toLowerCase();
-            $self.val(email);
-            
-            var exploded = email.split("@");
-            
-            if(2 == exploded.length)
-            {
-                exploded = exploded[1].split(".");
-                if(exploded.length > 1)
-                {
-                    $("#instance").val(exploded[0]);
-                    $("#instance_label").val(exploded[0]);
-                    $("#edit_instance").show();
-                }
-                else
-                {
-                    $("#edit_instance").hide();
-                    $("#instance").val('');
-                    $("#instance_label").val('');
-                }
-            }
-            else
-            {
-                $("#edit_instance").hide();
-                $("#instance").val('');
-                $("#instance_label").val('');
-            }
-        });
+        $("#email").blur(blur_email);
         
         
         $("#form").submit(function() {
@@ -184,7 +185,7 @@ $com = $this->Communicator();
     });
 
     <?php if($this->is_post) : ?>
-    $("#email").trigger("blur");
+        blur_email();
     <?php endif; ?>
     
     <?php if($this->is_post && !$com->isSuccess()) : ?>
