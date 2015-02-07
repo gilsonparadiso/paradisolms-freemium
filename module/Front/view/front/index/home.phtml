@@ -186,6 +186,7 @@ $com = $this->Communicator();
     
     <?php if($this->is_post && !$com->isSuccess()) : ?>
         $("#alert").show();
+        $("#email").blur();
     <?php endif; ?>
     
     
