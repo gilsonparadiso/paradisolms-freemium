@@ -183,10 +183,12 @@ $com = $this->Communicator();
         })
     });
 
+    <?php if($this->is_post) : ?>
+    $("#email").trigger("blur");
+    <?php endif; ?>
     
     <?php if($this->is_post && !$com->isSuccess()) : ?>
         $("#alert").show();
-        $("#email").blur();
     <?php endif; ?>
     
     
