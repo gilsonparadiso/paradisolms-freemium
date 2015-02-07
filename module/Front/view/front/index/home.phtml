@@ -30,13 +30,19 @@ $com = $this->Communicator();
             <?php $com->printFieldErrors('email'); ?>
          </div>
          
+         
          <div id="instance_container" class="form-control-2 required <?php $com->printErrorClass('instance'); ?>">
             <label><?php echo $this->translate('Instance name')?>*</label>
-            <input disabled="disabled" 
+            
+            <input 
+                class="form-control" 
+                disabled="disabled"
                 type="text" 
-                id="instance" 
-                name="instance" 
+                id="instance_label" 
+                name="instance_label" 
                 value="<?php echo $this->escapeHtml($this->instance) ?>" >.paradisolms.com 
+                
+                <input type="hidden" id="instance" name="instance" value="<?php echo $this->escapeHtml($this->instance) ?>" >
             
             <img id="edit_instance" 
                 src="<?php echo $this->basePath('img/edit.png') ?>" 
@@ -72,7 +78,7 @@ $com = $this->Communicator();
          </div>
 
          <div class="form-control-2" id="submit" style="margin-top:10px">
-            <input type="submit" value="<?php echo $this->translate('Create account')?>">
+            <input type="submit" id="submit" value="<?php echo $this->translate('Create account')?>">
             <button type="button" onclick="window.history.back();"><?php echo $this->translate('Cancel')?></button>
          </div>
 
@@ -118,12 +124,12 @@ $com = $this->Communicator();
                 
                 if(response.success)
                 {
-                    $("#instance").removeAttr("disabled");
+                    $("#instance_label").removeAttr("disabled");
                     $("#instance").focus();
                 }
                 else
                 {
-                    $("#instance").attr("disabled", "disabled");
+                    $("#instance_label").attr("disabled", "disabled");
                     
                     var $div = $alert.find("div.alert");
                     $div.html("Sorry, you can't edit the instance name.").css("padding", "0px 10px");
@@ -136,7 +142,7 @@ $com = $this->Communicator();
         
         $("#email").blur(function() {
         
-            $("#instance").attr("disabled", "disabled");
+            $("#instance_label").attr("disabled", "disabled");
             
             var $self = $(this);
             var email = $self.val();
@@ -152,20 +158,29 @@ $com = $this->Communicator();
                 if(exploded.length > 1)
                 {
                     $("#instance").val(exploded[0]);
+                    $("#instance_label").val(exploded[0]);
                     $("#edit_instance").show();
                 }
                 else
                 {
                     $("#edit_instance").hide();
                     $("#instance").val('');
+                    $("#instance_label").val('');
                 }
             }
             else
             {
                 $("#edit_instance").hide();
                 $("#instance").val('');
+                $("#instance_label").val('');
             }
         });
+        
+        
+        $("#form").submit(function() {
+            var v = $("#instance_label").val();
+            $("#instance").val(v);
+        })
     });
 
     
