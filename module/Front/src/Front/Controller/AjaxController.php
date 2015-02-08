@@ -18,6 +18,7 @@ class AjaxController extends Com\Controller\AbstractController
         if($request->isPost())
         {
             $uri = $request->getPost('website');
+            #$uri = 'http://paradisosolutions7824008.paradisolms.com';
             
             $client = new Zend\Http\Client();
             $client->setUri($uri);
@@ -31,8 +32,11 @@ class AjaxController extends Com\Controller\AbstractController
                     // analizamos el cuerpo de la pagina para buscar si esta intentando redireccionar
                     // a la pagina por defecto de cpanel
                     $body = $response->getBody();
-                    $pos = stripos($body, '/cgi-sys/defaultwebpage.cgi');
-                    if(false === $pos)
+                    if(false === stripos($body, '/cgi-sys/defaultwebpage.cgi'))
+                    {
+                        $com->setSuccess();
+                    }
+                    elseif(false === stripos($body, '<!-- /freemium -->'))
                     {
                         $com->setSuccess();
                     }

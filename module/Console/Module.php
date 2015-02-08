@@ -24,10 +24,10 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface, Co
       return array(
       
          // Describe available commands
-         'create-databases <number>' => 'Create <number> databases',
+         'create-databases' => 'Create databases',
          
          // Describe expected parameters
-         array( '<number>', 'amount of databaes to be created. Should be a number >= 1' )
+         // array( '<number>', 'amount of databaes to be created. Should be a number >= 1' )
       );
    }
 

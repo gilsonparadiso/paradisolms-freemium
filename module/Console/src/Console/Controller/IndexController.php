@@ -20,27 +20,20 @@ class IndexController extends Com\Controller\AbstractController
             throw new \RuntimeException('You can only use this action from a console!');
         }
 
-        
-        $number = $request->getParam('number');
-        
         try
         {
             $sl = $this->getServiceLocator();
+            
+            $dbDatabase = $sl->get('App\Db\Database');
             $config = $sl->get('config');
             
             $console = Console::getInstance();
             
-            if(is_null($number))
+            $min = $config['freemium']['min_databases'];
+            $count = $dbDatabase->countFree();
+            if($count > $min)
             {
-                $msg = "Need the number of databases to be created";
-                $console->writeLine($msg, 10);
-                exit;
-            }
-
-            $min = $config['freemium']['max_databases'];
-            if((abs((int)$number) != $number) || ($number <= 0) || ($number > $min))
-            {
-                $msg = "<number> parameter has to be an integer value between 1 and $min";
+                $msg = "No need to create more databases, currenlty there are $count databases";
                 $console->writeLine($msg, 10);
                 exit;
             }
@@ -60,14 +53,13 @@ class IndexController extends Com\Controller\AbstractController
             }
 
             //
+            $number = $config['freemium']['max_databases'];
+            
             
             $dbClient = $sl->get('App\Db\Client');
             $dbDatabase = $sl->get('App\Db\Database');
             
-            $config = $sl->get('config');
-            
             $topDomain = $config['freemium']['top_domain'];
-            $scriptsPath = $config['freemium']['path']['scripts'];
             $mDataPath = $config['freemium']['path']['mdata'];
             $mDataMasterPath = $config['freemium']['path']['mdata_master'];
             $masterSqlFile = $config['freemium']['path']['master_sql_file'];
@@ -76,10 +68,10 @@ class IndexController extends Com\Controller\AbstractController
             $cpanelUser = $config['freemium']['cpanel']['username'];
             $cpanelPass = $config['freemium']['cpanel']['password'];
             
-            $dbPrefix =  $config['freemium']['db']['prefix'];
-            $dbUser =  $config['freemium']['db']['user'];
-            $dbHost =  $config['freemium']['db']['host'];
-            $dbPassword =  $config['freemium']['db']['password'];
+            $dbPrefix = $config['freemium']['db']['prefix'];
+            $dbUser = $config['freemium']['db']['user'];
+            $dbHost = $config['freemium']['db']['host'];
+            $dbPassword = $config['freemium']['db']['password'];
 
             //
             $msg = "-----------------------------------";
@@ -188,6 +180,7 @@ class IndexController extends Com\Controller\AbstractController
    protected function _isLocked($methodName)
    {
       $methodName = str_replace('\\', '.', $methodName);
+      $methodName = str_replace(':', '-', $methodName);
       
       $fileName = "data/tmp/$methodName.lock";
       return file_exists($fileName);
@@ -196,6 +189,7 @@ class IndexController extends Com\Controller\AbstractController
    protected function _lock($methodName)
    {
       $methodName = str_replace('\\', '.', $methodName);
+      $methodName = str_replace(':', '-', $methodName);
       
       $fileName = "data/tmp/$methodName.lock";
       $handler = fopen($fileName, 'w') or die("can't open file");
@@ -205,6 +199,7 @@ class IndexController extends Com\Controller\AbstractController
    protected function _unlock($methodName)
    {
       $methodName = str_replace('\\', '.', $methodName);
+      $methodName = str_replace(':', '-', $methodName);
       
       $fileName = "data/tmp/$methodName.lock";
       unlink($fileName);

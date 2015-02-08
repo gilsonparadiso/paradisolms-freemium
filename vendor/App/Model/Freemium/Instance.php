@@ -122,6 +122,7 @@ class Instance extends Com\Model\AbstractModel
                 {
                     if($isParadisoDomain)
                     {
+                        $rowClient = null;
                         do
                         {
                             $str = str_replace('.com', '', $params->instance);
@@ -142,7 +143,7 @@ class Instance extends Com\Model\AbstractModel
                 $logoExtension = null;
                 
                 // we only allow logo if is a new instance name
-                if($rowClient)
+                if(!$rowClient)
                 {
                     if($params->logo)
                     {
@@ -257,6 +258,7 @@ class Instance extends Com\Model\AbstractModel
                     if(!$rowDb)
                     {
                         $this->getCommunicator()->addError($this->_('unexpected_error'));
+                        $this->_createDatabasesScript();
                         return false;
                     }
                     else
@@ -274,7 +276,7 @@ class Instance extends Com\Model\AbstractModel
                         $password = hash_internal_user_password($params->password);
             
                         $sql = "
-                        UPDATE {$dbName}.mdl_user SET 
+                        UPDATE mdl_user SET 
                             `password` = '$password'
                             ,`email` = '{$params->email}'
                             ,`username` = '{$params->email}'
@@ -283,7 +285,10 @@ class Instance extends Com\Model\AbstractModel
                             ,`confirmed` = 0
                         WHERE `username` = 'admin'
                         ";
-                        $this->getDbAdapter()->query($sql)->execute();
+                        
+                        mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
+                        mysql_select_db($dbName);
+                        mysql_query($sql);
 
                         //
                         $mDataPath = $config['freemium']['path']['mdata'];
@@ -342,20 +347,23 @@ class Instance extends Com\Model\AbstractModel
                     $where = array();
                     $where['client_id = ?'] = $rowClient->id;
                     
-                    $rowDb = $dbClientHasDb->findBy($where, array(), null, 1)->current();
-
+                    $rowDb = $dbDatabase->findDatabaseByClientId($rowClient->id)->current();
+                    
                     // add as a new user into the existing instance
                     $dbName = $rowDb->db_name;
                     $password = hash_internal_user_password($params->password);
         
-                    $sql = "INSERT INTO {$dbName}.mdl_user (`username`, `password`, `firstname`, `lastname`, `email`) VALUES
+                    $sql = "INSERT INTO mdl_user (`username`, `password`, `firstname`, `lastname`, `email`) VALUES
                     ('{$params->email}', '$password', '{$params->fist_name}', '{$params->last_name}', '$email')";
-                    $this->getDbAdapter()->query($sql)->execute();
+                    
+                    mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
+                    mysql_select_db($dbName);
+                    mysql_query($sql);
                 }
                 
                 // ok, we are done
                 $this->getCommunicator()
-                    ->setSuccess($this->_('freemium_account_created', array($website)))
+                    ->setSuccess($this->_('freemium_account_created', array("$website/logo.php", 'Go to your instance')))
                     ->addData($website, 'website');
                     
                     
@@ -396,22 +404,10 @@ class Instance extends Com\Model\AbstractModel
                 $message->setTo($params->email);
 
                 // prepare de mail transport and send the message
-                $transport = $mailer->getTransport($message, 'smtp1');
+                $transport = $mailer->getTransport($message, 'smtp1', 'sales');
                 $transport->send($message);
                 
-                // final step.
-                // Lets check how many free databases we have
-                // If we have few databases it's time to create more
-                $min = $config['freemium']['min_databases_trigger'];
-                if($dbDatabase->countFree() < $min)
-                {
-                    $max = $config['freemium']['max_databases'];
-                    
-                    $publicDir = PUBLIC_DIRECTORY;
-                    $command = "php {$publicDir}/index.php create-databases $max";
-                    
-                    shell_exec(sprintf('%s > /dev/null 2>&1 &', $command));
-                }
+                $this->_createDatabasesScript();
             }
         }
         catch(\Exception $e)
@@ -423,6 +419,7 @@ class Instance extends Com\Model\AbstractModel
    }
    
    
+    
     
     
     /**
@@ -526,6 +523,7 @@ class Instance extends Com\Model\AbstractModel
                 $where['email = ?'] = $params->email;
                 
                 $dbClient = $sl->get('App\Db\Client');
+                $dbDatabase = $sl->get('App\Db\Database');
                 
                 $row = $dbClient->findBy($where)->current();
                 if(! $row)
@@ -534,7 +532,7 @@ class Instance extends Com\Model\AbstractModel
                 }
                 elseif($row->email_verified)
                 {
-                    $this->getCommunicator()->addError($this->_('account_already_verified', array("http://{$row->domain}")));
+                    $this->getCommunicator()->addError($this->_('account_already_verified', array("http://{$row->domain}/logo.php")));
                 }
                 else
                 {
@@ -549,6 +547,7 @@ class Instance extends Com\Model\AbstractModel
             //
             if($this->isSuccess())
             {
+                
                 $row->email_verified = 1;
                 $row->email_verified_on = date('Y-m-d H:i:s');
                 
@@ -557,17 +556,24 @@ class Instance extends Com\Model\AbstractModel
                 
                 $dbClient->doUpdate($row->toArray(), $where);
                 
-                
                 //
-                $sql = "
-                UPDATE {$dbName}.mdl_user SET 
-                    `confirmed` = 1
-                WHERE `email` = '{$params->email}'
-                ";
-                $this->getDbAdapter()->query($sql)->execute();
-                //
+                $rowset = $dbDatabase->findDatabaseByClientId($row->id);
+                if($rowset->count())
+                {
+                    $rowDb = $rowset->current();
+                    
+                    $sql = "
+                    UPDATE mdl_user SET 
+                        `confirmed` = 1
+                    WHERE `email` = '{$params->email}'
+                    ";
+                    
+                    $cnn = mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
+                    mysql_select_db($rowDb->db_name, $cnn);
+                    mysql_query($sql, $cnn);
+                }
                 
-                $this->getCommunicator()->setSuccess($this->_('account_verified', array("http://{$row->domain}")));
+                $this->getCommunicator()->setSuccess($this->_('account_verified', array("http://{$row->domain}/logo.php")));
             }
         }
         catch(\Exception $e)
@@ -578,6 +584,14 @@ class Instance extends Com\Model\AbstractModel
         return $this->isSuccess();
     }
    
+   
+    protected function _createDatabasesScript()
+    {
+        // final step, lets run the cron
+        $publicDir = PUBLIC_DIRECTORY;
+        $command = "/usr/local/bin/php {$publicDir}/index.php create-databases > data/log/create-databases.cron.log 2>&1 &";
+        shell_exec($command);
+    }
    
     
     protected function _isParadisoDomain($email)

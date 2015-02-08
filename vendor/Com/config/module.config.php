@@ -34,7 +34,7 @@ return array(
    
       'top_domain' => 'paradisolms.com',
       
-      'min_databases_trigger' => 10, // we this value to know if i'ts time to create more databases
+      'min_databases' => 10, // we this value to know if i'ts time to create more databases
       'max_databases' => 10, // this is the amount of databases to be
       
       'path' => array(
@@ -155,7 +155,7 @@ return array(
                 'email' => 'noreply@paradisosolutions.com' 
             ),
             'sales' => array(
-                'name' => 'Sales',
+                'name' => 'Paradiso Solutions - Sales',
                 'email' => 'sales@paradisosolutions.com' 
             ) 
         ) 

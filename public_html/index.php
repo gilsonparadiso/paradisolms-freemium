@@ -1,7 +1,5 @@
 <?php
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
 define('REQUEST_MICROTIME', microtime(true));
 
 defined('DS') || define('DS', DIRECTORY_SEPARATOR);

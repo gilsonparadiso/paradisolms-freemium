@@ -185,7 +185,7 @@ $com = $this->Communicator();
     });
 
     <?php if($this->is_post) : ?>
-        blur_email();
+        $("#edit_instance").show();
     <?php endif; ?>
     
     <?php if($this->is_post && !$com->isSuccess()) : ?>
@@ -221,13 +221,10 @@ $com = $this->Communicator();
             
             if (done) 
             {
-                show_loader();
+                hide_loader();
                 $alert.show();
                 
                 $("#form_element :input").prop("disabled", false);
-                
-                // setup the logo
-                $.post("<?php echo $this->website?>/logo.php");
                 
                 return true;
             }
@@ -238,6 +235,8 @@ $com = $this->Communicator();
                 ,data: { website : "<?php echo $this->website?>" }
                 ,success: function(data)
                 {
+                    console.log(data.success);
+                    
                     if(!calls)
                     {
                         calls = 1;
@@ -253,7 +252,7 @@ $com = $this->Communicator();
         }
 
         jQuery(function() {
-            check_instance_created();
+            check_instance_created(false, 1);
         });
 
     <?php endif; ?>

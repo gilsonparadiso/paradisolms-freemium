@@ -42,7 +42,7 @@ class Database extends Com\Db\AbstractDb
         //
         $predicate = new Zend\Db\Sql\Predicate\Literal('chd.client_id IS NULL');
         $select->where($predicate);
-
+        
         //
         return $this->executeCustomSelect($select)->current()->c;
     }
@@ -68,7 +68,7 @@ class Database extends Com\Db\AbstractDb
         ));
 
         // join 
-        $select->join(array('chd' => $dbClientHasDb->getTable()), 'chd.database_id = d.id', array());
+        $select->join(array('chd' => $dbClientHasDb->getTable()), 'chd.database_id = d.id', array(), 'LEFT');
 
         //
         $predicate = new Zend\Db\Sql\Predicate\Literal('chd.client_id IS NULL');
@@ -76,8 +76,36 @@ class Database extends Com\Db\AbstractDb
         
         //
         $select->limit(1);
-
+        
         //
         return $this->executeCustomSelect($select)->current();
+    }
+    
+    
+    function findDatabaseByClientId($clientId)
+    {
+        $sl = $this->getServiceLocator();
+       
+        $dbDatabase = $this;
+        $dbClientHasDb = $sl->get('App\Db\Client\HasDatabase');
+
+        //
+        $select = new Zend\Db\Sql\Select();
+
+        // tabla 
+        $select->from(array(
+            'd' => $dbDatabase->getTable()
+        ));
+
+        // join 
+        $select->join(array('chd' => $dbClientHasDb->getTable()), 'chd.database_id = d.id', array());
+
+        //
+        $where = array();
+        $where['chd.client_id = ?'] = $clientId;
+        $select->where($where);
+        
+        //
+        return $this->executeCustomSelect($select);
     }
 }
