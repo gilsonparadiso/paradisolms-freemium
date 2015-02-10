@@ -16,7 +16,10 @@ return array(
     
     // 
     ,'confirm_your_email_address_subject' => 'Please confirm your email address'
-    ,'confirm_your_email_address_body' => 'Please click the link below to activate your account.<br> <a href="%s">Activate Account</a> <br><br> If you have any question or comments, please call us at<br> +1 800 513 5902 or email us at sales@paradisosolutions.com'
+    ,'confirm_your_email_address_body' => 'Please click the link below to activate your account.<br> <a href="%s">Activate Account</a> 
+    <br><b>Username:</b> %s<br>
+    <b>Password:</b> %s<br>
+    <br> If you have any question or comments, please call us at<br> +1 800 513 5902 or email us at sales@paradisosolutions.com'
     ,'follow_us' => 'Follow Us'
     ,'invalid_verification_code' => 'The verification code is invalid'
     ,'account_already_verified' => "Account alrady verified.<br>  <a href='%s' target='_blank'>Click here</a> to go to your instance."

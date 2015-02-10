@@ -110,6 +110,16 @@ class Instance extends Com\Model\AbstractModel
                 }
             }
             
+            // find the a free database
+            $rowDb = $dbDatabase->findFreeDatabase();                        
+            // ups, no free database found
+            if(!$rowDb)
+            {
+                $this->getCommunicator()->addError($this->_('unexpected_error'));
+                $this->_createDatabasesScript();
+                return false;
+            }
+            
             
             //
             if($this->isSuccess())
@@ -252,93 +262,85 @@ class Instance extends Com\Model\AbstractModel
                 // new domain so we assign a dababase
                 if(!$rowClient)
                 {
-                    $rowDb = $dbDatabase->findFreeDatabase();                        
-                        
-                    // ups, no free database found
-                    if(!$rowDb)
+                    // ok reserve the database
+                    $data = array(
+                        'client_id' => $clientId
+                        ,'database_id' => $rowDb->id
+                    );
+                    
+                    $dbClientHasDb->doInsert($data);
+
+                    // update credentials and user information in the lms instance
+                    $dbName = $rowDb->db_name;
+                    $password = hash_internal_user_password($params->password);
+        
+                    mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
+                    mysql_select_db($dbName);
+                    
+                    $firstNname = mysql_real_escape_string($params->first_name);
+                    $lastNname = mysql_real_escape_string($params->last_name);
+                    
+                    $sql = "
+                    UPDATE mdl_user SET 
+                        `password` = '$password'
+                        ,`email` = '{$params->email}'
+                        ,`username` = '{$params->email}'
+                        ,`firstname` = '{$firstNname}'
+                        ,`lastname` = '{$lastNname}'
+                        ,`confirmed` = 0
+                    WHERE `username` = 'admin'
+                    ";
+                    
+                    mysql_query($sql);
+
+                    //
+                    $mDataPath = $config['freemium']['path']['mdata'];
+                    $mDataMasterPath = $config['freemium']['path']['master_mdata'];
+                    $masterSqlFile = $config['freemium']['path']['master_sql_file'];
+                    $configPath = $config['freemium']['path']['config'];
+
+                    $cpanelUser = $config['freemium']['cpanel']['username'];
+                    $cpanelPass = $config['freemium']['cpanel']['password'];
+
+                    $dbPrefix =  $config['freemium']['db']['prefix'];
+                    $dbUser =  $config['freemium']['db']['user'];
+                    $dbHost =  $config['freemium']['db']['host'];
+                    $dbPassword =  $config['freemium']['db']['password'];
+
+                    //create mdata folder
+                    $newUmask = 0777;
+                    $oldUmask = umask($newUmask);
+
+                    mkdir("$mDataPath/$domain", $newUmask, true);
+                    chmod("$mDataPath/$domain", $newUmask);
+
+                    // Copying from master data folder
+                    exec("cp -Rf {$mDataMasterPath}/* {$mDataPath}/$domain/");
+
+                    // Changing owner for the data folder
+                    exec("chown -R {$cpanelUser}:{$cpanelUser} {$mDataPath}/{$domain} -R");
+                    exec("chmod 777 {$mDataPath}/{$domain} -R");
+
+                    // creating config file
+                    $configStr = file_get_contents('data/config.template');
+                    $configStr = str_replace('{$dbHost}', $dbHost, $configStr);
+                    $configStr = str_replace('{$dbName}', $dbName, $configStr);
+                    $configStr = str_replace('{$dbUser}', $dbUser, $configStr);
+                    $configStr = str_replace('{$dbPassword}', $dbPassword, $configStr);
+                    $configStr = str_replace('{$domain}', $domain, $configStr);
+                    $configStr = str_replace('{$dataPath}', "{$mDataPath}/{$domain}", $configStr);
+
+                    $configFilename = "{$configPath}/{$domain}.php";
+                    $handlder = fopen($configFilename, 'w');
+                    fwrite($handlder, $configStr);
+                    fclose($handlder);
+        
+                    exec("chown {$cpanelUser}:{$cpanelUser} $configFilename & chmod 755 $configFilename");
+                    
+                    // move the logo to the mdata folder
+                    if($logoFile)
                     {
-                        $this->getCommunicator()->addError($this->_('unexpected_error'));
-                        $this->_createDatabasesScript();
-                        return false;
-                    }
-                    else
-                    {
-                        // ok reserve the database
-                        $data = array(
-                            'client_id' => $clientId
-                            ,'database_id' => $rowDb->id
-                        );
-                        
-                        $dbClientHasDb->doInsert($data);
-
-                        // update credentials and user information in the lms instance
-                        $dbName = $rowDb->db_name;
-                        $password = hash_internal_user_password($params->password);
-            
-                        $sql = "
-                        UPDATE mdl_user SET 
-                            `password` = '$password'
-                            ,`email` = '{$params->email}'
-                            ,`username` = '{$params->email}'
-                            ,`firstname` = '{$params->first_name}'
-                            ,`lastname` = '{$params->last_name}'
-                            ,`confirmed` = 0
-                        WHERE `username` = 'admin'
-                        ";
-                        
-                        mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
-                        mysql_select_db($dbName);
-                        mysql_query($sql);
-
-                        //
-                        $mDataPath = $config['freemium']['path']['mdata'];
-                        $mDataMasterPath = $config['freemium']['path']['master_mdata'];
-                        $masterSqlFile = $config['freemium']['path']['master_sql_file'];
-                        $configPath = $config['freemium']['path']['config'];
-
-                        $cpanelUser = $config['freemium']['cpanel']['username'];
-                        $cpanelPass = $config['freemium']['cpanel']['password'];
-
-                        $dbPrefix =  $config['freemium']['db']['prefix'];
-                        $dbUser =  $config['freemium']['db']['user'];
-                        $dbHost =  $config['freemium']['db']['host'];
-                        $dbPassword =  $config['freemium']['db']['password'];
-
-                        //create mdata folder
-                        $newUmask = 0777;
-                        $oldUmask = umask($newUmask);
-
-                        mkdir("$mDataPath/$domain", $newUmask, true);
-                        chmod("$mDataPath/$domain", $newUmask);
-
-                        // Copying from master data folder
-                        exec("cp -Rf {$mDataMasterPath}/* {$mDataPath}/$domain/");
-
-                        // Changing owner for the data folder
-                        exec("chown -R {$cpanelUser}:{$cpanelUser} {$mDataPath}/{$domain} -R");
-                        exec("chmod 777 {$mDataPath}/{$domain} -R");
-
-                        // creating config file
-                        $configStr = file_get_contents('data/config.template');
-                        $configStr = str_replace('{$dbHost}', $dbHost, $configStr);
-                        $configStr = str_replace('{$dbName}', $dbName, $configStr);
-                        $configStr = str_replace('{$dbUser}', $dbUser, $configStr);
-                        $configStr = str_replace('{$dbPassword}', $dbPassword, $configStr);
-                        $configStr = str_replace('{$domain}', $domain, $configStr);
-                        $configStr = str_replace('{$dataPath}', "{$mDataPath}/{$domain}", $configStr);
-
-                        $configFilename = "{$configPath}/{$domain}.php";
-                        $handlder = fopen($configFilename, 'w');
-                        fwrite($handlder, $configStr);
-                        fclose($handlder);
-            
-                        exec("chown {$cpanelUser}:{$cpanelUser} $configFilename & chmod 755 $configFilename");
-                        
-                        // move the logo to the mdata folder
-                        if($logoFile)
-                        {
-                            move($logoFile, "$mDataPath/logo.{$logoExtension}");
-                        }
+                        rename($logoFile, "$mDataPath/{$domain}/logo.{$logoExtension}");
                     }
                 }
                 else
@@ -352,12 +354,16 @@ class Instance extends Com\Model\AbstractModel
                     // add as a new user into the existing instance
                     $dbName = $rowDb->db_name;
                     $password = hash_internal_user_password($params->password);
-        
-                    $sql = "INSERT INTO mdl_user (`username`, `password`, `firstname`, `lastname`, `email`) VALUES
-                    ('{$params->email}', '$password', '{$params->fist_name}', '{$params->last_name}', '$email')";
-                    
+
                     mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
                     mysql_select_db($dbName);
+                    
+                    $firstNname = mysql_real_escape_string($params->first_name);
+                    $lastNname = mysql_real_escape_string($params->last_name);
+                    
+                    $sql = "INSERT INTO mdl_user (`username`, `password`, `firstname`, `lastname`, `email`) VALUES
+                    ('{$params->email}', '$password', '{$firstNname}', '{$lastNname}', '$email')";
+                    
                     mysql_query($sql);
                 }
                 
@@ -389,7 +395,7 @@ class Instance extends Com\Model\AbstractModel
                 // preparing some replacement values
                 $data = array();
                 $data['follow_us'] = $this->_('follow_us');
-                $data['body'] = $this->_('confirm_your_email_address_body', array($url));
+                $data['body'] = $this->_('confirm_your_email_address_body', array($url, $params->email, $params->password));
                 $data['header'] = '';
 
                 // load the email template and replace values
@@ -589,7 +595,9 @@ class Instance extends Com\Model\AbstractModel
     {
         // final step, lets run the cron
         $publicDir = PUBLIC_DIRECTORY;
-        $command = "/usr/local/bin/php {$publicDir}/index.php create-databases > data/log/create-databases.cron.log 2>&1 &";
+        $coreDir = CORE_DIRECTORY;
+        
+        $command = "/usr/local/bin/php {$publicDir}/index.php create-databases > {$coreDir}/data/log/create-databases.cron.log 2>&1 &";
         shell_exec($command);
     }
    

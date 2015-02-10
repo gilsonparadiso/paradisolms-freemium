@@ -28,7 +28,7 @@ INSERT INTO email_template(`name`, `subject`, `body`, `description`) VALUES
 </div>
 <div id="container-body" style="background:#FFF;margin:auto;width:615px;font-size:18px;margin-top:20px;padding-bottom:0px;height:210px;">
 <div id="message">
-<div style="float:left;font-family:\'Open Sans\',sans-serif;font-size:18px;padding:25px;padding-top:15px;width:260px;">
+<div style="float:left;font-family:\'Open Sans\',sans-serif;font-size:12px;padding:25px;padding-top:15px;width:260px;">
 {{body}}
 </div>
 </div>
