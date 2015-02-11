@@ -24,4 +24,14 @@ class Client extends Com\Db\AbstractDb
         
         return $this->count($where);
     }
+    
+    
+    
+    function findByDomain($domain)
+    {
+        $where = array();
+        $where['domain = ?'] = $domain;
+        
+        return $this->findBy($where);
+    }
 }

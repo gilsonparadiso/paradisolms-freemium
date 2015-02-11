@@ -12,7 +12,7 @@ class IndexController extends Com\Controller\AbstractController
     function createDatabasesAction()
     {
         $request = $this->getRequest();
-    
+
         // Make sure that we are running in a console and the user has not tricked our
         // application into running this action from a public web server.
         if (!$request instanceof ConsoleRequest)
@@ -174,34 +174,150 @@ class IndexController extends Com\Controller\AbstractController
         {
             $this->_unlock(__method__);
         }
-   }
+    }
    
    
-   protected function _isLocked($methodName)
-   {
-      $methodName = str_replace('\\', '.', $methodName);
-      $methodName = str_replace(':', '-', $methodName);
-      
-      $fileName = "data/tmp/$methodName.lock";
-      return file_exists($fileName);
-   }
    
-   protected function _lock($methodName)
-   {
-      $methodName = str_replace('\\', '.', $methodName);
-      $methodName = str_replace(':', '-', $methodName);
-      
-      $fileName = "data/tmp/$methodName.lock";
-      $handler = fopen($fileName, 'w') or die("can't open file");
-      fclose($handler);
-   }
+    function deleteDomainAction()
+    {
+        $request = $this->getRequest();
+
+        // Make sure that we are running in a console and the user has not tricked our
+        // application into running this action from a public web server.
+        if (!$request instanceof ConsoleRequest)
+        {
+            throw new \RuntimeException('You can only use this action from a console!');
+        }
+        
+        try
+        {
+            $sl = $this->getServiceLocator();
+            
+            $dbDatabase = $sl->get('App\Db\Database');
+            $config = $sl->get('config');
+            
+            $console = Console::getInstance();
+            
+            $dbClient = $sl->get('App\Db\Client');
+            $dbDatabase = $sl->get('App\Db\Database');
+            
+            $topDomain = $config['freemium']['top_domain'];
+            $mDataPath = $config['freemium']['path']['mdata'];
+            $mDataMasterPath = $config['freemium']['path']['mdata_master'];
+            $masterSqlFile = $config['freemium']['path']['master_sql_file'];
+            $configPath = $config['freemium']['path']['config'];
+            
+            $cpanelUser = $config['freemium']['cpanel']['username'];
+            $cpanelPass = $config['freemium']['cpanel']['password'];
+            
+            $dbPrefix = $config['freemium']['db']['prefix'];
+            $dbUser = $config['freemium']['db']['user'];
+            $dbHost = $config['freemium']['db']['host'];
+            $dbPassword = $config['freemium']['db']['password'];
+
+            //
+            $msg = "-----------------------------------";
+            $console->writeLine($msg, 11);
+            
+            $domain = $request->getParam('domain');
+            
+            $rowset = $dbClient->findByDomain($domain);
+            $count = $rowset->count();
+            if($count > 1)
+            {
+                $msg = "Ups, $count records found with the domain name $domain, please have a look first.";
+                $console->writeLine($msg, 10);
+                exit;
+            }
+            elseif(0 == $count)
+            {
+                $msg = "$count records found with the domain name $domain, please have a look first.";
+                $console->writeLine($msg, 10);
+                exit;
+            }
+            
+            $rowClient = $rowset->current();
+            $clientId = $rowClient->id;
+            
+            //
+            $rowset = $dbDatabase->findDatabaseByClientId($clientId);
+            $count = $rowset->count();
+            if($count > 1)
+            {
+                $msg = "Ups, $count databases found relaed to the domain name $domain, please have a look first.";
+                $console->writeLine($msg, 10);
+                exit;
+            }
+            else
+            {
+                $msg = "$count databases found related to the domain name $domain, please have a look first.";
+                $console->writeLine($msg, 10);
+                exit;
+            }
+            
+            $rowDatabase = $rowset->current();
+            $dbName = $rowDatabase->db_name;
+            $dbNameNoPrefix = str_replace($dbPrefix, '', $dbName);
+            
+            
+            $cp = $sl->get('cPanelApi');
+
+            /*************************************/
+            // create the database
+            /*************************************/
+            $response = $cp->api2_query($cpanelUser, 'MysqlFE', 'createdb', array(
+                'db' => $dbNameNoPrefix,
+            ));
+
+            if(isset($response['error']) || isset($response['event']['error']))
+            {
+                $this->_unlock(__method__);
+
+                $err = isset($response['error']) ? $response['error'] : $response['event']['error'];
+                throw new \RuntimeException($err);
+            }
+            
+            
+            
+            
+        }
+        catch (RuntimeException $e)
+        {
+            ;
+        }
+    }
    
-   protected function _unlock($methodName)
-   {
-      $methodName = str_replace('\\', '.', $methodName);
-      $methodName = str_replace(':', '-', $methodName);
-      
-      $fileName = "data/tmp/$methodName.lock";
-      unlink($fileName);
-   }
+   
+    
+    protected function _isLocked($methodName)
+    {
+        $methodName = str_replace('\\', '.', $methodName);
+        $methodName = str_replace(':', '-', $methodName);
+        
+        $fileName = "data/tmp/$methodName.lock";
+        return file_exists($fileName);
+    }
+    
+    
+    
+    protected function _lock($methodName)
+    {
+        $methodName = str_replace('\\', '.', $methodName);
+        $methodName = str_replace(':', '-', $methodName);
+        
+        $fileName = "data/tmp/$methodName.lock";
+        $handler = fopen($fileName, 'w') or die("can't open file");
+        fclose($handler);
+    }
+    
+    
+    
+    protected function _unlock($methodName)
+    {
+        $methodName = str_replace('\\', '.', $methodName);
+        $methodName = str_replace(':', '-', $methodName);
+        
+        $fileName = "data/tmp/$methodName.lock";
+        unlink($fileName);
+    }
 }

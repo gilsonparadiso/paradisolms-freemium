@@ -11,6 +11,7 @@ return array(
     'console' => array(
         'router' => array(
             'routes' => array(
+            
                 'create-databases' => array(
                     'options' => array(
                         'route' => 'create-databases',
@@ -18,6 +19,17 @@ return array(
                             '__NAMESPACE__' => 'Console\Controller',
                             'controller' => 'Index',
                             'action' => 'create-databases'
+                        ),
+                    ),
+                ),
+                
+                'delete-domain' => array(
+                    'options' => array(
+                        'route' => 'delete-domain <domain>',
+                        'defaults' => array(
+                            '__NAMESPACE__' => 'Console\Controller',
+                            'controller' => 'Index',
+                            'action' => 'delete-domain'
                         ),
                     ),
                 ),

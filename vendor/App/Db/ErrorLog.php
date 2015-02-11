@@ -1,7 +1,9 @@
 <?php
 namespace App\Db;
 
-class ErrorLog extends AbstractDb
+use Com;
+
+class ErrorLog extends Com\Db\AbstractDb
 {
     /**
      *

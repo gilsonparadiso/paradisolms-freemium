@@ -25,6 +25,7 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface, Co
       
          // Describe available commands
          'create-databases' => 'Create databases',
+         'delete-domain' => '',
          
          // Describe expected parameters
          // array( '<number>', 'amount of databaes to be created. Should be a number >= 1' )

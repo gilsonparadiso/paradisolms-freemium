@@ -255,7 +255,7 @@ class Instance extends Com\Model\AbstractModel
                 $data['first_name'] = $params->first_name;
                 $data['last_name'] = $params->last_name;
                 $data['created_on'] = date('Y-m-d H:i:s');
-                $data['email_verified'] = 0;
+                $data['email_verified'] = $isTrial ? 1 : 0;
                 $data['type'] = $params->type;
                 
                 $dbClient->doInsert($data);
@@ -287,6 +287,8 @@ class Instance extends Com\Model\AbstractModel
                     $firstNname = mysql_real_escape_string($params->first_name);
                     $lastNname = mysql_real_escape_string($params->last_name);
                     
+                    $confirmed = $isTrial ? 1 : 0
+                    
                     $sql = "
                     UPDATE mdl_user SET 
                         `password` = '$password'
@@ -294,7 +296,7 @@ class Instance extends Com\Model\AbstractModel
                         ,`username` = '{$params->email}'
                         ,`firstname` = '{$firstNname}'
                         ,`lastname` = '{$lastNname}'
-                        ,`confirmed` = 0
+                        ,`confirmed` = $confirmed
                     WHERE `username` = '2'
                     ";
                     
@@ -363,6 +365,8 @@ class Instance extends Com\Model\AbstractModel
                 }
                 else
                 {
+                    $confirmed = $isTrial ? 1 : 0
+                    
                     // find the database name, we get the information from the previous registered user
                     $where = array();
                     $where['client_id = ?'] = $rowClient->id;
@@ -379,8 +383,8 @@ class Instance extends Com\Model\AbstractModel
                     $firstNname = mysql_real_escape_string($params->first_name);
                     $lastNname = mysql_real_escape_string($params->last_name);
                     
-                    $sql = "INSERT INTO mdl_user (`username`, `password`, `firstname`, `lastname`, `email`) VALUES
-                    ('{$params->email}', '$password', '{$firstNname}', '{$lastNname}', '$email')";
+                    $sql = "INSERT INTO mdl_user (`username`, `password`, `firstname`, `lastname`, `email`, ,`confirmed`) VALUES
+                    ('{$params->email}', '$password', '{$firstNname}', '{$lastNname}', '$email', $confirmed)";
                     
                     mysql_query($sql);
                 }
@@ -420,16 +424,21 @@ class Instance extends Com\Model\AbstractModel
                 $mTemplate = $sl->get('App\Model\EmailTemplate');
                 $arr = $mTemplate->loadAndParse('common', $data);
                 
-                //
-                $mailer = new Com\Mailer();
-                
-                // prepare the message to be send
-                $message = $mailer->prepareMessage($arr['body'], null, $this->_('confirm_your_email_address_subject'));
-                $message->setTo($params->email);
+                if(!$isTrial)
+                {
+                    // TODO add gilson email
+                    //
+                    $mailer = new Com\Mailer();
+                    
+                    // prepare the message to be send
+                    $message = $mailer->prepareMessage($arr['body'], null, $this->_('confirm_your_email_address_subject'));
+                    $message->setTo($params->email);
 
-                // prepare de mail transport and send the message
-                $transport = $mailer->getTransport($message, 'smtp1', 'sales');
-                $transport->send($message);
+                    // prepare de mail transport and send the message
+                    $transport = $mailer->getTransport($message, 'smtp1', 'sales');
+                    $transport->send($message);
+                }
+                
                 
                 $this->_createDatabasesScript();
             }
