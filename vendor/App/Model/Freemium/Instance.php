@@ -18,6 +18,7 @@ class Instance extends Com\Model\AbstractModel
    * @var string instance
    * @var string first_name
    * @var string last_name
+   * @var type string
    * @var array logo
    *
    * @return bool
@@ -44,6 +45,11 @@ class Instance extends Com\Model\AbstractModel
             $dbDatabase = $sl->get('App\Db\Database');
             $dbBlacklistDomain = $sl->get('App\Db\BlacklistDomain');
             $config = $sl->get('config');
+            
+            if($params->type != 'freemium' || $params->type != 'trial')
+                $params->type = 'freemium';
+
+            $isTrial = ('trial' == $params->type);
             
             $params->email = strtolower($params->email);
             $params->instance = trim($params->instance);
@@ -250,6 +256,7 @@ class Instance extends Com\Model\AbstractModel
                 $data['last_name'] = $params->last_name;
                 $data['created_on'] = date('Y-m-d H:i:s');
                 $data['email_verified'] = 0;
+                $data['type'] = $params->type;
                 
                 $dbClient->doInsert($data);
                 $clientId = $dbClient->getLastInsertValue();
@@ -294,6 +301,17 @@ class Instance extends Com\Model\AbstractModel
                     mysql_query($sql);
 
                     //
+                    if($isTrial)
+                    {
+                        $mDataMasterPath = $config['freemium']['path']['master_mdata_trial'];
+                        $masterSqlFile = $config['freemium']['path']['master_sql_file_trial'];
+                    }
+                    else
+                    {
+                        $mDataMasterPath = $config['freemium']['path']['master_mdata'];
+                        $masterSqlFile = $config['freemium']['path']['master_sql_file'];
+                    }
+                    
                     $mDataPath = $config['freemium']['path']['mdata'];
                     $mDataMasterPath = $config['freemium']['path']['master_mdata'];
                     $masterSqlFile = $config['freemium']['path']['master_sql_file'];

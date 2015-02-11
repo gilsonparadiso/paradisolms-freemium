@@ -9,13 +9,16 @@ class IndexController extends Com\Controller\AbstractController
     function homeAction()
     {
         $request = $this->getRequest();
-      
+        
         $sl = $this->getServiceLocator();
-
+        $type = $this->params()->fromQuery('type', 'freemium');
+        
         if($request->isPost())
         {
             $post = array_merge_recursive($request->getPost()->toArray(), $request->getFiles()->toArray());
             $params = new Zend\Stdlib\Parameters($post);
+            
+            $params->type = $type;
             
             $mInstance = $sl->get('App\Model\Freemium\Instance');
             $flag = $mInstance->doCreate($params);
@@ -35,6 +38,8 @@ class IndexController extends Com\Controller\AbstractController
             $this->setCommunicator($com);
             $this->assign('is_post', true);
         }
+        
+        $this->assign('type', $type);
 
         return $this->viewVars;
     }

@@ -40,8 +40,10 @@ return array(
       'path' => array(
          'mdata' => '/home/paradisolms/mdata',
          'master_mdata' => '/home/paradisolms/mdata/master_data',
+         'master_mdata_trial' => '/home/paradisolms/trial/mdata/master_data',
          'config' => '/home/paradisolms/clients/config',
-         'master_sql_file' => '/home/paradisolms/db/master_freemium.sql',
+         'master_sql_file' => '/home/paradisolms/repo/db/master_freemium.sql',
+         'master_sql_file_trial' => '/home/paradisolms/repo/db/master_trial.sql',
       ),
       
       'db' => array(
