@@ -288,7 +288,7 @@ class Instance extends Com\Model\AbstractModel
                         ,`firstname` = '{$firstNname}'
                         ,`lastname` = '{$lastNname}'
                         ,`confirmed` = 0
-                    WHERE `username` = 'admin'
+                    WHERE `username` = '2'
                     ";
                     
                     mysql_query($sql);
@@ -399,7 +399,7 @@ class Instance extends Com\Model\AbstractModel
                 $data['header'] = '';
 
                 // load the email template and replace values
-                $mTemplate = $sl->get('Com\Model\EmailTemplate');
+                $mTemplate = $sl->get('App\Model\EmailTemplate');
                 $arr = $mTemplate->loadAndParse('common', $data);
                 
                 //

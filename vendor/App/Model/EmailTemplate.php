@@ -1,12 +1,9 @@
 <?php
+namespace App\Model;
 
-namespace Com\Model;
+use Com, Zend;
 
-use Com;
-use Zend;
-
-
-class EmailTemplate extends AbstractModel
+class EmailTemplate extends Com\Model\AbstractModel
 {
 
     /**
@@ -30,7 +27,7 @@ class EmailTemplate extends AbstractModel
     {
         if(! isset($this->data[$name]))
         {
-            $dbTemplate = $this->getServiceLocator()->get('Com\Db\EmailTemplate');
+            $dbTemplate = $this->getServiceLocator()->get('App\Db\EmailTemplate');
             
             $where = array();
             $where['name = ?'] = $name;

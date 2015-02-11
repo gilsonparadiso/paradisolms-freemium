@@ -245,7 +245,7 @@ class Module
             
             $serviceManager = $event->getApplication()->getServiceManager();
             
-            $mErrorLog = $serviceManager->get('Com\Model\ErrorLog');
+            $mErrorLog = $serviceManager->get('App\Model\ErrorLog');
             $mErrorLog->logError($type, $message, $file, $line);
         }
     }

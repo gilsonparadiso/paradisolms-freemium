@@ -39,54 +39,14 @@ class InitController extends Com\Controller\AbstractController
 
         if ($identity)
         {
-            
-            $mUser = $sl->get('Com\Model\User');
-            
-            $identity = $mUser->setInitGroup();
-            
-            $redirects[Com\Model\Enums\Group::ALEKIA] = 'dashboard-backend';
-            $redirects[Com\Model\Enums\Group::COMPANY] = 'dashboard-company';
-            $redirects[Com\Model\Enums\Group::JOB_SEEKER] = 'job-seeker';
-            $redirects[Com\Model\Enums\Group::ADVERTISER] = 'dashboard-advertiser';
-            
-            if(isset($identity['group_id']))
+            if ($back)
             {
-                $groupId = $identity['group_id'];
-                
-                if(Com\Model\Enums\Group::COMPANY == $groupId)
-                {
-                    $mCompany = $sl->get('Com\Model\Company\Company');
-                    $identity = $mCompany->setInitCompany();
-                }
-                
-                if(isset($redirects[$groupId]))
-                {
-                    if ($back)
-                    {
-                        $session->back = null;
-                        return $this->redirect()->toUrl($back);
-                    }
-                    
-                    return $this->redirect()->toRoute($redirects[$groupId]);
-                }
-                else
-                {
-                    if ($back)
-                    {
-                        $session->back = null;
-                        return $this->redirect()->toUrl($back);
-                    }
-                    
-                    // TODO
-                    // verificar a donde redireccionar al usuario en caso de no encontrar ruta definida
-                    throw new \Exception('Ups!!!!!');
-                }
+                $session->back = null;
+                return $this->redirect()->toUrl($back);
             }
             else
             {
-                // Por alguna razon el usuario no pertenece a ningun grupo.
-                // No deberia iniciar session,
-                $this->redirect()->toRoute('logout');
+                return $this->redirect()->toRoute('dashboard-backend');
             }
         }
         else

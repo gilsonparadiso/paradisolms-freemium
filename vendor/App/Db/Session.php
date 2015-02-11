@@ -1,7 +1,9 @@
 <?php
-namespace Com\Db;
+namespace App\Db;
 
-class Session extends AbstractDb
+use Com;
+
+class Session extends Com\Db\AbstractDb
 {
     /**
      *

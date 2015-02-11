@@ -59,7 +59,7 @@ class Adapter extends Zend\Authentication\Adapter\AbstractAdapter
         }
         
         $where['email = ?'] = $identity;
-        $where['deleted = ?'] = 0;
+        $where['status = ?'] = 'enabled';
         
         try
         {
@@ -69,42 +69,10 @@ class Adapter extends Zend\Authentication\Adapter\AbstractAdapter
             {
                 $code = Zend\Authentication\Result::FAILURE_CREDENTIAL_INVALID; // -3
                 
-                if('bumeran' == $row->password_type)
+                $password = new Com\Crypt\Password();
+                if($password->validate($credential, $row->password))
                 {
-                    $encoded = md5('ROCCO_' . $credential . '_SAUCO');
-                    
-                    if($encoded == $row->password)
-                    {
-                        $code = Zend\Authentication\Result::SUCCESS; // 1
-                    }
-                }
-                elseif('curriculum' == $row->password_type)
-                {
-                    $salt = explode(':', $row->password);
-                    $encoded = md5($credential . $salt[1]) . ':' . $salt[1];
-                    
-                    if($encoded == $row->password)
-                    {
-                        $code = Zend\Authentication\Result::SUCCESS; // 1
-                    }
-                }
-                elseif('trabajopolis' == $row->password_type)
-                {
-                    $encoded = md5($credential);
-                    
-                    if($encoded == $row->password)
-                    {
-                        $code = Zend\Authentication\Result::SUCCESS; // 1
-                    }
-                }
-                elseif('standard' == $row->password_type)
-                {
-                    $password = new Com\Crypt\Password();
-                    
-                    if($password->validate($credential, $row->password))
-                    {
-                        $code = Zend\Authentication\Result::SUCCESS; // 1
-                    }
+                    $code = Zend\Authentication\Result::SUCCESS; // 1
                 }
             }
             else

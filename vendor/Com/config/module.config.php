@@ -245,7 +245,7 @@ return array(
                             $sessionOptions = new Zend\Session\SaveHandler\DbTableGatewayOptions($session['config']['save_handler']);
                             
                             // crate the TableGateway object specifying the table name
-                            $dbSession = new Com\Db\Session();
+                            $dbSession = new App\Db\Session();
                             $dbSession->setAdapter($dbAdapter);
                             $sessionSaveHandler = new Zend\Session\SaveHandler\DbTableGateway($dbSession, $sessionOptions);
                         }

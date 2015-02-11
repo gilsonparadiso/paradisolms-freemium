@@ -1,6 +1,6 @@
 <?php
 
-namespace Com\Db;
+namespace App\Db;
 
 use Com;
 

@@ -366,7 +366,7 @@ abstract class AbstractModel
             
             $message = $e->getMessage() . " ($e->getCode()) " . PHP_EOL . $e->getTraceAsString();
             
-            $mErrorLog = $sl->get('Com\Model\ErrorLog');
+            $mErrorLog = $sl->get('App\Model\ErrorLog');
             $mErrorLog->logError('exception', $message, $e->getFile(), $e->getLine());
             
             $message = 'There was an unexpected error, please try again.';

@@ -1,5 +1,5 @@
 <?php
-namespace Com\Db;
+namespace App\Db;
 
 class ErrorLog extends AbstractDb
 {

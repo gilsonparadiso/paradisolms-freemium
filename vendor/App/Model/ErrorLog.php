@@ -1,16 +1,12 @@
 <?php
-namespace Com\Model;
+namespace App\Model;
 
-use Com;
-use Zend;
+use Com, Zend;
 
-class ErrorLog extends AbstractModel
+class ErrorLog extends Com\Model\AbstractModel
 {
 
 
-    /**
-     *
-    */
     function logError($type, $message, $file, $line)
     {
 
@@ -77,7 +73,7 @@ class ErrorLog extends AbstractModel
             $data['ip_address'] = $ipAdress->getIpAddress();
             $data['fixed'] = 0;
 
-            $dbErrorLog = $sl->get('Com\Db\ErrorLog');
+            $dbErrorLog = $sl->get('App\Db\ErrorLog');
             $dbErrorLog->insert($data);
         }
         catch(\Exception $e)

@@ -3,9 +3,11 @@ $com = $this->Communicator();
 ?>
 
 <div class="row">
+    <div class="col-lg-12"><?php $com->printMessage() ?></div>
+    
     <div class="col-lg-4">
 
-    	<?php $com->printMessage() ?>
+    	
 
     	<form method="post" action="<?php echo $this->url('auth', array('action' => 'login')) ?>">
     	

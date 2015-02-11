@@ -33,7 +33,7 @@ class AuthController extends Com\Controller\AbstractController
                 
                 $params = $request->getPost();
                 
-                $mUser = $sl->get('Com\Model\User');
+                $mUser = $sl->get('App\Model\User');
                 $flag = $mUser->login($params);
                 
                 if($flag)
