@@ -19,6 +19,8 @@ class IndexController extends Com\Controller\AbstractController
             $params = new Zend\Stdlib\Parameters($post);
             
             $params->type = $type;
+            #ini_set('display_errors', 1);
+            #error_reporting(E_ALL);
             
             $mInstance = $sl->get('App\Model\Freemium\Instance');
             $flag = $mInstance->doCreate($params);

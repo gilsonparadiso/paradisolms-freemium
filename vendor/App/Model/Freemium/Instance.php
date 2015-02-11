@@ -287,7 +287,7 @@ class Instance extends Com\Model\AbstractModel
                     $firstNname = mysql_real_escape_string($params->first_name);
                     $lastNname = mysql_real_escape_string($params->last_name);
                     
-                    $confirmed = $isTrial ? 1 : 0
+                    $confirmed = $isTrial ? 1 : 0;
                     
                     $sql = "
                     UPDATE mdl_user SET 
@@ -297,7 +297,7 @@ class Instance extends Com\Model\AbstractModel
                         ,`firstname` = '{$firstNname}'
                         ,`lastname` = '{$lastNname}'
                         ,`confirmed` = $confirmed
-                    WHERE `username` = '2'
+                    WHERE `id` = '2'
                     ";
                     
                     mysql_query($sql);
@@ -365,7 +365,7 @@ class Instance extends Com\Model\AbstractModel
                 }
                 else
                 {
-                    $confirmed = $isTrial ? 1 : 0
+                    $confirmed = $isTrial ? 1 : 0;
                     
                     // find the database name, we get the information from the previous registered user
                     $where = array();
