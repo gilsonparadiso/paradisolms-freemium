@@ -193,13 +193,13 @@ class IndexController extends Com\Controller\AbstractController
         {
             $sl = $this->getServiceLocator();
             
-            $dbDatabase = $sl->get('App\Db\Database');
             $config = $sl->get('config');
             
             $console = Console::getInstance();
             
             $dbClient = $sl->get('App\Db\Client');
             $dbDatabase = $sl->get('App\Db\Database');
+            $dbClientDatabase = $sl->get('App\Db\Client\HasDatabase');
             
             $topDomain = $config['freemium']['top_domain'];
             $mDataPath = $config['freemium']['path']['mdata'];
@@ -298,6 +298,33 @@ class IndexController extends Com\Controller\AbstractController
             /*************************************/
             $configFilename = "{$configPath}/{$domain}.php";
             exec("rm $configFilename");
+            
+            
+            // delete database from database database ;-)
+            $where = array();
+            $where['client_id = ?'] = $rowClient->id;
+            $rowset = $dbClientDatabase->findBy($where);
+            foreach($rowset as $row)
+            {
+                $where = array();
+                $where['id = ?'] = $row->database_id;
+                $dbDatabase->doDelete($where);
+            }
+            
+            $where = array();
+            $where['client_id = ?'] = $rowClient->id;
+            $dbClientDatabase->doDelete($where);
+            
+            
+            // update client email and domain 
+            $where = array();
+            $where['id = ?'] = $rowClient->id;
+            
+            $data = array(
+                'email' => ".{$rowClient->email}."
+                ,'domain' => ".{$rowClient->domain}."
+            );
+            $dbClient->doUpdate($data, $where);
         }
         catch (RuntimeException $e)
         {
