@@ -219,12 +219,35 @@ class Instance extends Com\Model\AbstractModel
                 }
                 
                 
+                $cp = $sl->get('cPanelApi');
+                
+                //
+                if($isTrial)
+                {
+                    $mDataMasterPath = $config['freemium']['path']['master_mdata_trial'];
+                    $masterSqlFile = $config['freemium']['path']['master_sql_file_trial'];
+                }
+                else
+                {
+                    $mDataMasterPath = $config['freemium']['path']['master_mdata'];
+                    $masterSqlFile = $config['freemium']['path']['master_sql_file'];
+                }
+                
+                $mDataPath = $config['freemium']['path']['mdata'];
+                $configPath = $config['freemium']['path']['config'];
+
+                $cpanelUser = $config['freemium']['cpanel']['username'];
+                $cpanelPass = $config['freemium']['cpanel']['password'];
+
+                $dbPrefix =  $config['freemium']['db']['prefix'];
+                $dbUser =  $config['freemium']['db']['user'];
+                $dbHost =  $config['freemium']['db']['host'];
+                $dbPassword =  $config['freemium']['db']['password'];
+                
                 // if is a client from an already registered domain then we should add the client as a user of the existing instance.
                 // if is a client and the domain is not registered then we procced to create a new instance
                 if(!$rowClient)
                 {
-                    $cp = $sl->get('cPanelApi');
-                    
                     $cpUser = $cp->get_user();
                     $result = $cp->park($cpUser, $domain, null);
                 
@@ -269,6 +292,68 @@ class Instance extends Com\Model\AbstractModel
                 // new domain so we assign a dababase
                 if(!$rowClient)
                 {
+                    if($isTrial)
+                    {
+                        // is trial user
+                        // we need to load different database
+                        $response = $cp->api2_query($cpanelUser, 'MysqlFE', 'deletedb', array(
+                            'db' => $rowDb->db_name,
+                        ));
+                        
+                        if(isset($response['error']) || isset($response['event']['error']))
+                        {
+                            $err = isset($response['error']) ? $response['error'] : $response['event']['error'];
+                            throw new \Exception($err);
+                        }
+                        
+                        
+                        /*************************************/
+                        // create the database
+                        /*************************************/
+                        $response = $cp->api2_query($cpanelUser, 'MysqlFE', 'createdb', array(
+                            'db' => $rowDb->db_name,
+                        ));
+
+                        if(isset($response['error']) || isset($response['event']['error']))
+                        {
+                            $err = isset($response['error']) ? $response['error'] : $response['event']['error'];
+                            throw new \Exception($err);
+                        }
+                        
+                        
+                        /*******************************/
+                        // update database schema
+                        /*******************************/
+                        $adapter = $sl->get('adapter');
+                        $sql = "ALTER SCHEMA `{$rowDb->db_name}`  DEFAULT CHARACTER SET utf8  DEFAULT COLLATE utf8_general_ci \n";
+                        $statement = $adapter->query($sql, 'execute');
+                        
+                        /*******************************/
+                        // Assign user to db
+                        /*******************************/
+                        $dbUserName = 'user';
+                        $response = $cp->api2_query(CPANEL_USER, 
+                            'MysqlFE', 'setdbuserprivileges',
+                            array(
+                                'privileges' => 'ALL_PRIVILEGES',
+                                'db' => $rowDb->db_name,
+                                'dbuser' => $dbUserName,
+                            )
+                        );
+                        
+                        if(isset($response['error']) || isset($response['event']['error']))
+                        {
+                            $err = isset($response['error']) ? $response['error'] : $response['event']['error'];
+                            throw new \Exception($err);
+                        }
+                        
+                        /*******************************/
+                        // RESTORING database
+                        /*******************************/
+                        exec("mysql -u{$cpanelUser} -p{$cpanelPass} $rowDb->db_name < $masterSqlFile");
+                    }
+                
+                
                     // ok reserve the database
                     $data = array(
                         'client_id' => $clientId
@@ -302,30 +387,7 @@ class Instance extends Com\Model\AbstractModel
                     
                     mysql_query($sql);
 
-                    //
-                    if($isTrial)
-                    {
-                        $mDataMasterPath = $config['freemium']['path']['master_mdata_trial'];
-                        $masterSqlFile = $config['freemium']['path']['master_sql_file_trial'];
-                    }
-                    else
-                    {
-                        $mDataMasterPath = $config['freemium']['path']['master_mdata'];
-                        $masterSqlFile = $config['freemium']['path']['master_sql_file'];
-                    }
                     
-                    $mDataPath = $config['freemium']['path']['mdata'];
-                    $mDataMasterPath = $config['freemium']['path']['master_mdata'];
-                    $masterSqlFile = $config['freemium']['path']['master_sql_file'];
-                    $configPath = $config['freemium']['path']['config'];
-
-                    $cpanelUser = $config['freemium']['cpanel']['username'];
-                    $cpanelPass = $config['freemium']['cpanel']['password'];
-
-                    $dbPrefix =  $config['freemium']['db']['prefix'];
-                    $dbUser =  $config['freemium']['db']['user'];
-                    $dbHost =  $config['freemium']['db']['host'];
-                    $dbPassword =  $config['freemium']['db']['password'];
 
                     //create mdata folder
                     $newUmask = 0777;

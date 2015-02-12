@@ -136,7 +136,7 @@ class IndexController extends Com\Controller\AbstractController
                 // Assign user to db
                 /*******************************/
                 $dbUserName = 'user';
-                $grant_user = $cp->api2_query(CPANEL_USER, 
+                $response = $cp->api2_query(CPANEL_USER, 
                     'MysqlFE', 'setdbuserprivileges',
                     array(
                         'privileges' => 'ALL_PRIVILEGES',
