@@ -321,8 +321,8 @@ class IndexController extends Com\Controller\AbstractController
             $where['id = ?'] = $rowClient->id;
             
             $data = array(
-                'email' => ".{$rowClient->email}."
-                ,'domain' => ".{$rowClient->domain}."
+                'email' => "-{$rowClient->email}-"
+                ,'domain' => "-{$rowClient->domain}-"
             );
             $dbClient->doUpdate($data, $where);
         }
