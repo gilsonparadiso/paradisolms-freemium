@@ -178,7 +178,7 @@ class IndexController extends Com\Controller\AbstractController
    
    
    
-    function deleteDomainAction()
+    function deleteAccountAction()
     {
         $request = $this->getRequest();
 
@@ -248,7 +248,7 @@ class IndexController extends Com\Controller\AbstractController
                 $console->writeLine($msg, 10);
                 exit;
             }
-            else
+            elseif(0 == $count)
             {
                 $msg = "$count databases found related to the domain name $domain, please have a look first.";
                 $console->writeLine($msg, 10);
@@ -259,27 +259,45 @@ class IndexController extends Com\Controller\AbstractController
             $dbName = $rowDatabase->db_name;
             $dbNameNoPrefix = str_replace($dbPrefix, '', $dbName);
             
-            
             $cp = $sl->get('cPanelApi');
 
             /*************************************/
-            // create the database
+            // delete the database
             /*************************************/
-            $response = $cp->api2_query($cpanelUser, 'MysqlFE', 'createdb', array(
-                'db' => $dbNameNoPrefix,
+            $response = $cp->api2_query($cpanelUser, 'MysqlFE', 'deletedb', array(
+                'db' => $dbName,
             ));
-
+            
             if(isset($response['error']) || isset($response['event']['error']))
             {
-                $this->_unlock(__method__);
-
+                $err = isset($response['error']) ? $response['error'] : $response['event']['error'];
+                throw new \RuntimeException($err);
+            }
+            
+            /*************************************/
+            // delete the domain
+            /*************************************/
+            $response = $cp->unpark($cpanelUser, $domain);
+             
+            if(isset($response['error']) || isset($response['event']['error']))
+            {
                 $err = isset($response['error']) ? $response['error'] : $response['event']['error'];
                 throw new \RuntimeException($err);
             }
             
             
+            /*************************************/
+            // delete mdata folder
+            /*************************************/
+            "rm {$mDataPath}/$domain/ -Rf";
+            exec("rm {$mDataPath}/$domain/ -Rf");
             
             
+            /*************************************/
+            // delete config file
+            /*************************************/
+            $configFilename = "{$configPath}/{$domain}.php";
+            exec("rm $configFilename");
         }
         catch (RuntimeException $e)
         {

@@ -23,13 +23,13 @@ return array(
                     ),
                 ),
                 
-                'delete-domain' => array(
+                'delete-account' => array(
                     'options' => array(
-                        'route' => 'delete-domain <domain>',
+                        'route' => 'delete-account <domain>',
                         'defaults' => array(
                             '__NAMESPACE__' => 'Console\Controller',
                             'controller' => 'Index',
-                            'action' => 'delete-domain'
+                            'action' => 'delete-account'
                         ),
                     ),
                 ),
