@@ -46,7 +46,7 @@ class Instance extends Com\Model\AbstractModel
             $dbBlacklistDomain = $sl->get('App\Db\BlacklistDomain');
             $config = $sl->get('config');
             
-            if($params->type != 'freemium' || $params->type != 'trial')
+            if($params->type != 'freemium' && $params->type != 'trial')
                 $params->type = 'freemium';
 
             $isTrial = ('trial' == $params->type);
