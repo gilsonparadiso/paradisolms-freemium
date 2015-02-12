@@ -13,24 +13,24 @@ use Zend\ModuleManager\Feature\AutoloaderProviderInterface,
 class Module implements AutoloaderProviderInterface, ConfigProviderInterface, ConsoleUsageProviderInterface
 {
 
-   function getConfig()
-   {
-      return include __DIR__ . '/config/module.config.php';
-   }
+    function getConfig()
+    {
+        return include __DIR__ . '/config/module.config.php';
+    }
     
     
-   public function getConsoleUsage(Console $console)
-   {
+    public function getConsoleUsage(Console $console)
+    {
       return array(
       
-         // Describe available commands
-         'create-databases' => 'Create databases',
-         'delete-account <domain-name>' => 'Delete a user account',
+            // Describe available commands
+            'create-databases' => 'Create databases',
+            'delete-account <domain-name>' => 'Delete a user account',
          
-         // Describe expected parameters
-         array('<domain-name>', 'The domain name to be deleted')
-      );
-   }
+            // Describe expected parameters
+            array('<domain-name>', 'The domain name to be deleted')
+        );
+    }
 
 
     function getAutoloaderConfig()
