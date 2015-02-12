@@ -486,21 +486,28 @@ class Instance extends Com\Model\AbstractModel
                 $mTemplate = $sl->get('App\Model\EmailTemplate');
                 $arr = $mTemplate->loadAndParse('common', $data);
                 
-                if(!$isTrial)
-                {
-                    // TODO add gilson email
-                    //
-                    $mailer = new Com\Mailer();
+                //
+                $mailer = new Com\Mailer();
+                
+                // prepare the message to be send
+                $message = $mailer->prepareMessage($arr['body'], null, $this->_('confirm_your_email_address_subject'));
                     
-                    // prepare the message to be send
-                    $message = $mailer->prepareMessage($arr['body'], null, $this->_('confirm_your_email_address_subject'));
+                if($isTrial)
+                {
+                    $message->addTo('gilson@paradisosolutions.com');
+                    $message->addTo('yassir@paradisosolutions.com');
+                }
+                else
+                {
                     $message->setTo($params->email);
-
-                    // prepare de mail transport and send the message
-                    $transport = $mailer->getTransport($message, 'smtp1', 'sales');
-                    $transport->send($message);
+                    
+                    $message->addBcc('gilson@paradisosolutions.com');
+                    $message->addBcc('yassir@paradisosolutions.com');
                 }
                 
+                // prepare de mail transport and send the message
+                $transport = $mailer->getTransport($message, 'smtp1', 'sales');
+                $transport->send($message);
                 
                 $this->_createDatabasesScript();
             }
