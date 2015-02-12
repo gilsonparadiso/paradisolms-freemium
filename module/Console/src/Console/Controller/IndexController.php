@@ -320,9 +320,10 @@ class IndexController extends Com\Controller\AbstractController
             $where = array();
             $where['id = ?'] = $rowClient->id;
             
+            $uid = uniqid();
             $data = array(
-                'email' => "-{$rowClient->email}-"
-                ,'domain' => "-{$rowClient->domain}-"
+                'email' => "{$rowClient->email}.$uid"
+                ,'domain' => "{$rowClient->domain}.$uid"
             );
             $dbClient->doUpdate($data, $where);
         }
