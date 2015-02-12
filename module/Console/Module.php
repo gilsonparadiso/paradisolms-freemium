@@ -25,10 +25,10 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface, Co
       
          // Describe available commands
          'create-databases' => 'Create databases',
-         'delete-account' => '',
+         'delete-account <domain-name>' => 'Delete a user account',
          
          // Describe expected parameters
-         // array( '<number>', 'amount of databaes to be created. Should be a number >= 1' )
+         array('<domain-name>', 'The domain name to be deleted')
       );
    }
 
