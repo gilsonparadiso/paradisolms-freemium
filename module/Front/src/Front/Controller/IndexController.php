@@ -31,6 +31,10 @@ class IndexController extends Com\Controller\AbstractController
             {
                 $data = $com->getData();
                 $this->assign($data);
+                
+                $view = new Zend\View\Model\ViewModel($this->viewVars);
+                $view->setTemplate('front/index/thanks');
+                return $view;
             }
             else
             {
@@ -49,6 +53,11 @@ class IndexController extends Com\Controller\AbstractController
     
     function testAction()
     {
+        $view = new Zend\View\Model\ViewModel($this->viewVars);
+        $view->setTemplate('front/index/thanks');
+        return $view;
+        
+        /*
         $sl = $this->getServiceLocator();
         
         $cp = $sl->get('cPanelApi');
@@ -61,5 +70,6 @@ class IndexController extends Com\Controller\AbstractController
         print_r($result);
     
         exit;
+        */
     }
 }

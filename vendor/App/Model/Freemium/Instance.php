@@ -174,8 +174,8 @@ class Instance extends Com\Model\AbstractModel
                         {
                             $this->fileMimeType = Com\Func\File::getMimeType($postedFile->getTmpName());
                             
-                            $allowedExtensions = array('jpg', 'jpeg', 'png', 'gif');
-                            $allowedTypes = array('image/jpeg', 'image/png', 'image/gif');
+                            $allowedExtensions = array('jpg', 'jpeg', 'png', 'gif', 'svg');
+                            $allowedTypes = array('image/jpeg', 'image/png', 'image/gif', 'image/svg+xml');
                             
                             // verificar la extension del archivo
                             if(! $this->_checkExtensionAndType($allowedExtensions, $allowedTypes, $postedFile))

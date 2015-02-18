@@ -12,7 +12,7 @@ return array(
     ,'domain_name_already_registered' => 'The choosen domain name is not avaiable.'
     ,'instance_name_already_registered' => 'The choosen instance name is not avaiable.'
     ,'invalid_characters_instance_name' => 'Invalid characters in the instance name'
-    ,'freemium_account_created' => "We've sent you a message to your email address with instructions to access your account."
+    ,'freemium_account_created' => "You are almost done. Please check your email for a link to activate your LMS instance."
     
     // 
     ,'confirm_your_email_address_subject' => 'Please confirm your email address'
