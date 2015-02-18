@@ -19,9 +19,13 @@
 .dropdown-submenu.pull-left>.dropdown-menu{left:-100%;margin-left:10px;-webkit-border-radius:6px 0 6px 6px;-moz-border-radius:6px 0 6px 6px;border-radius:6px 0 6px 6px;}
 /** MULTI LEVEL DROPDOWN END **/
 
+html {
+    height: 100%;
+}
 
 body, html {
 background: #fff;
+min-height: 100%;
 margin: 0px;
 padding: 0px;
 }
@@ -59,7 +63,7 @@ text-decoration: none;
 background: #fff;
 width: 1138px;
 margin: auto;
-padding-bottom: 20px;
+padding-bottom: 80px;
 }
 
 #form h1, #thanks h1 {
@@ -202,8 +206,16 @@ text-align: right;
 padding-bottom: 10px;
 padding-top: 15px;
 padding-right: 50px;
-line-height:30px
+line-height:30px;
 }
+
+/*@media (max-height: 667px){*/
+    footer {
+        bottom: 0px;
+        position: fixed;
+        width: 100%;
+    }
+/*}*/
 
 #thanks hgroup h2 {
 margin: auto;
