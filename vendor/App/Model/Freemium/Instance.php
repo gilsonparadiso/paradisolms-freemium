@@ -238,7 +238,7 @@ class Instance extends Com\Model\AbstractModel
                 
                 
                 $cp = $sl->get('cPanelApi');
-                exit;
+                
                 //
                 if($isTrial)
                 {
