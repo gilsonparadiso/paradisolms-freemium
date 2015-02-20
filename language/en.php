@@ -7,7 +7,7 @@ return array(
     ,'user_email_already_exist' => 'Already exist a user with the given email address'
     ,'email_address_not_allowed' => 'The given email address is not allowed to create accounts'
     ,'invalid_email_address' => 'Invalid email address'
-    ,'invalid_image_type_for_logo' => 'For the logo we only allow images in formats (jpg, png, gif)'
+    ,'invalid_image_type_for_logo' => 'For the logo we only support jpg, png, gif formats'
     ,'error_uploading_logo' => 'There was an error trying to upload your logo'
     ,'domain_name_already_registered' => 'The choosen domain name is not avaiable.'
     ,'instance_name_already_registered' => 'The choosen instance name is not avaiable.'
@@ -27,6 +27,13 @@ return array(
     ,'please_wait' => 'Please wait...'
     ,'edit_instance_name'=> 'Edit instance name'
     ,'not_allowed_to_edit_instance_name' => 'You are not allowed to provide an instance name'
-
-   
+    ,'resize_logo_label' => 'After upload, resize my logo to fit the recommended size.'
+    ,'recommended_size' => 'Recommended size: width 300px, height 79px'
+    ,'supported_formats' => 'Only jpg, png, gif formats'
+    ,'resizing_recommendation_title' => ''
+    ,'resizing_recommendation' => 'Although we will do the best we can to resize your logo, we recommend that you resize your logo before uploading. <br>You can use an online tool like <a href="http://www.resize-photos.com" target="_blank">http://www.resize-photos.com</a>'
+    ,'no_logo_to_rezise' => "You've not uploaded a logo to resize."
+    ,'fix_the_below_error' => 'Please fix the below error.'
+    
+  
 );

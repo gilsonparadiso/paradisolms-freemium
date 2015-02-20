@@ -72,7 +72,28 @@ $com = $this->Communicator();
          <div class="form-control-2 required <?php $com->printErrorClass('logo'); ?>">
             <label><?php echo $this->translate('Logo')?></label>
             <input type="file" name="logo" />
-            <div style="font-size:12px;margin;margin-left:170px">Only jpg, png, svg formats</div>
+            <div id="supported_formats_label">
+                <?php echo $this->translate('supported_formats')?><br>
+            </div>
+            
+            <div id="recommended_size_label">
+                <?php echo $this->translate('recommended_size')?><br>
+                <label>
+                    <input type="checkbox" name="resize_logo" value="1" <?php echo $this->resize_logo ? 'checked="checked"' : '' ?>>
+                    <?php echo $this->translate('resize_logo_label')?>
+                </label>
+                <a 
+                    tabindex="0" 
+                    class="help" 
+                    role="button" 
+                    data-toggle="popover" 
+                    data-trigger="focus" 
+                    
+                    data-content='<?php echo $this->translate('resizing_recommendation')?>'>
+                    <i class="fa fa-question-circle"></i>
+                </a>
+            </div>
+            
             <?php $com->printFieldErrors('logo'); ?>
          </div>
 
@@ -89,7 +110,7 @@ $com = $this->Communicator();
 <script type="text/javascript">
     var $alert = null;
     var $loader = null;
-        
+    $('.help').popover({html:true});
     function show_loader()
     {
         $loader.css("visibility", 'visible');

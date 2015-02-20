@@ -20,6 +20,7 @@ class Instance extends Com\Model\AbstractModel
    * @var string last_name
    * @var type string
    * @var array logo
+   * @var bool resize_logo
    *
    * @return bool
    */
@@ -170,6 +171,13 @@ class Instance extends Com\Model\AbstractModel
                         $error = isset($params->logo['error']) ? $params->logo['error']: null;
                         
                         $postedFile = new Com\PostedFile($name, $type, $size, $tmpName, $error);
+                        if($params->resize_logo && !$postedFile->hasFile())
+                        {
+                            $this->getCommunicator()->addError($this->_('fix_the_below_error'));
+                            $this->getCommunicator()->addError($this->_('no_logo_to_rezise'), 'logo');
+                            return false;
+                        }
+                        
                         if($postedFile->hasFile())
                         {
                             $this->fileMimeType = Com\Func\File::getMimeType($postedFile->getTmpName());
@@ -180,6 +188,7 @@ class Instance extends Com\Model\AbstractModel
                             // verificar la extension del archivo
                             if(! $this->_checkExtensionAndType($allowedExtensions, $allowedTypes, $postedFile))
                             {
+                                $this->getCommunicator()->addError($this->_('fix_the_below_error'));
                                 $this->getCommunicator()->addError($this->_('invalid_image_type_for_logo'), 'logo');
                                 return false;
                             }
@@ -200,19 +209,28 @@ class Instance extends Com\Model\AbstractModel
                                 if($filename)
                                 {
                                     $logoFile = "{$fileSaver->getFullPathToUpload()}/$filename";
+                                    if($params->resize_logo)
+                                    {
+                                        $this->_resizeLogo($logoFile);
+                                    }
                                     
                                     $pathinfo = pathinfo($logoFile);
                                     $logoExtension = $pathinfo['extension'];
                                 }
                                 else
                                 {
+                                    $this->getCommunicator()->addError($this->_('fix_the_below_error'));
                                     $this->getCommunicator()->addError($this->_('error_uploading_logo'), 'logo');
+                                    return false;
                                 }
                             }
                             else
                             {
+                                $this->getCommunicator()->addError($this->_('fix_the_below_error'));
+                                
                                 $errorMessage = $fileSaver->getCommunicator()->getErrors();
                                 $this->getCommunicator()->addError($errorMessage[0], 'logo');
+                                return false;
                             }
                         }
                     }
@@ -220,7 +238,7 @@ class Instance extends Com\Model\AbstractModel
                 
                 
                 $cp = $sl->get('cPanelApi');
-                
+                exit;
                 //
                 if($isTrial)
                 {
@@ -710,12 +728,135 @@ class Instance extends Com\Model\AbstractModel
    
    
    
-   protected function _isValidDomainName($domainName)
-   {
-      return (preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $domainName) //valid chars check
+    protected function _isValidDomainName($domainName)
+    {
+        return (preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $domainName) //valid chars check
          && preg_match("/^.{1,253}$/", $domainName) //overall length check
          && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $domainName)   ); //length of each label
-   }
+    }
+   
+   
+    protected function _resizeLogo($logoFile)
+    {
+        // get image size
+        $size = getimagesize($logoFile);
+        $width = $size[0];
+        $height = $size[1];
+        $mime = $size['mime'];
+        
+        // Ratio cropping
+        $offsetX = 0;
+        $offsetY = 0;
+
+        // define image max size
+        $maxWidth = 300;
+        $maxHeight = 79;
+        
+        // Determine the quality of the output image
+        $quality = 100;
+        
+        // Setting up the ratios needed for resizing. We will compare these below to determine how to
+        // resize the image (based on height or based on width)
+        $xRatio = $maxWidth / $width;
+        $yRatio = $maxHeight / $height;
+        
+        if ($xRatio * $height < $maxHeight)
+        {
+            // Resize the image based on width
+            $tnHeight = ceil($xRatio * $height);
+            $tnWidth = $maxWidth;
+        }
+        else // Resize the image based on height
+        {
+            $tnWidth = ceil($yRatio * $width);
+            $tnHeight = $maxHeight;
+        }
+        
+        // We don't want to run out of memory
+        ini_set('memory_limit', "-1");
+        
+        // Set up a blank canvas for our resized image (destination)
+        $dst = imagecreatetruecolor($tnWidth, $tnHeight);
+        
+        // Set up the appropriate image handling functions based on the original image's mime type
+        switch ($mime) 
+        {
+            case 'image/gif':
+            {
+                // We will be converting GIFs to PNGs to avoid transparency issues when resizing GIFs
+                // This is maybe not the ideal solution, but IE6 can suck it
+                $creationFunction = 'ImageCreateFromGif';
+                $outputFunction = 'ImagePng';
+                $mime = 'image/png'; // We need to convert GIFs to PNGs
+                $doSharpen = false;
+                $quality = round(10 - ($quality / 10)); // We are converting the GIF to a PNG and PNG needs a compression level of 0 (no compression) through 9
+                break;
+            }
+
+
+            case 'image/x-png':
+            case 'image/png':
+            {
+                $creationFunction = 'ImageCreateFromPng';
+                $outputFunction = 'ImagePng';
+                $doSharpen = false;
+                $quality = round(10 - ($quality / 10)); // PNG needs a compression level of 0 (no compression) through 9
+                break;
+            }
+
+            default:
+            {
+                $creationFunction = 'ImageCreateFromJpeg';
+                $outputFunction = 'ImageJpeg';
+                $doSharpen = true;
+                break;
+            }
+        }
+        
+        // Read in the original image
+        $src = $creationFunction($logoFile);
+        if (in_array($mime, array('image/gif','image/png')))
+        {
+            // If this is a GIF or a PNG, we need to set up transparency
+            imagealphablending($dst, false);
+            imagesavealpha($dst, true);
+        }
+        
+        // Resample the original image into the resized canvas we set up earlier
+        imagecopyresampled($dst, $src, 0, 0, $offsetX, $offsetY, $tnWidth, $tnHeight, $width, $height);
+        if ($doSharpen)
+        {
+            // Sharpen the image based on two things:
+            // (1) the difference between the original size and the final size
+            // (2) the final size
+            $sharpness = $this->_findSharp($width, $tnWidth);
+            $sharpenMatrix = array(array(- 1,- 2,- 1), array(- 2, $sharpness + 12, - 2), array(- 1, - 2, - 1));
+            
+            $divisor = $sharpness;
+            $offset = 0;
+            imageconvolution($dst, $sharpenMatrix, $divisor, $offset);
+        }
+        
+        // Write the resized image to the cache
+        $outputFunction($dst, $logoFile, $quality);
+        
+        // Clean up the memory
+        ImageDestroy($src);
+        ImageDestroy($dst);
+    }
+    
+    
+    protected function _findSharp($orig, $final) // function from Ryan Rud (http://adryrun.com)
+    {
+        $final = $final * (750.0 / $orig);
+        $a = 52;
+        $b = - 0.27810650887573124;
+        $c = .00047337278106508946;
+        
+        $result = $a + $b * $final + $c * $final * $final;
+        
+        return max(round($result), 0);
+    }
    
    
    /**
