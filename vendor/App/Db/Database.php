@@ -73,6 +73,7 @@ class Database extends Com\Db\AbstractDb
         //
         $predicate = new Zend\Db\Sql\Predicate\Literal('chd.client_id IS NULL');
         $select->where($predicate);
+        $select->order('d.id ASC');
         
         //
         $select->limit(1);
