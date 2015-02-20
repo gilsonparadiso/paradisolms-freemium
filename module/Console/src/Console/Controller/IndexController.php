@@ -31,7 +31,7 @@ class IndexController extends Com\Controller\AbstractController
             
             $min = $config['freemium']['min_databases'];
             $count = $dbDatabase->countFree();
-            if($count > $min)
+            if($count <= $min)
             {
                 $msg = "No need to create more databases, currenlty there are $count databases";
                 $console->writeLine($msg, 10);
