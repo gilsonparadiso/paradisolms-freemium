@@ -37,11 +37,13 @@ class Database extends Com\Db\AbstractDb
         $select->columns(array($count));
 
         // join 
-        $select->join(array('chd' => $dbClientHasDb->getTable()), 'chd.database_id = d.id', array());
+        $select->join(array('chd' => $dbClientHasDb->getTable()), 'chd.database_id = d.id', array(), 'left');
 
         //
         $predicate = new Zend\Db\Sql\Predicate\Literal('chd.client_id IS NULL');
         $select->where($predicate);
+        
+        // $this->debugSql($select);
         
         //
         return $this->executeCustomSelect($select)->current()->c;
