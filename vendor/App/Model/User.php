@@ -86,8 +86,6 @@ class User extends Com\Model\AbstractModel
                 $auth->getAuthService()
                     ->getStorage()
                     ->write($identity);
-                
-                $this->registerCurrentUserLogin();
             }
         }
         catch(\Exception $e)

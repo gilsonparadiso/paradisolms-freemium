@@ -11,7 +11,7 @@ class AuthController extends Com\Controller\AbstractController
 
     function loginAction()
     {
-        $this->layout('backend');
+        $this->layout('layout/backend');
         
         $request = $this->getRequest();
         
@@ -22,7 +22,7 @@ class AuthController extends Com\Controller\AbstractController
         if($auth->hasIdentity())
         {
             // lets redirect to auth-init
-            return $this->redirect()->toRoute('init');
+            return $this->redirect()->toRoute('auth', array('action' => 'init'));
         }
         else
         {
@@ -38,10 +38,11 @@ class AuthController extends Com\Controller\AbstractController
                 
                 if($flag)
                 {
-                    return $this->redirect()->toRoute('init');
+                    return $this->redirect()->toRoute('auth', array('action' => 'init'));
                 }
                 else
                 {
+                    $this->assign($params);
                     $com = $mUser->getCommunicator();
                     $this->setCommunicator($com);
                 }
@@ -57,7 +58,7 @@ class AuthController extends Com\Controller\AbstractController
         $auth = new Com\Auth\Authentication();
         $auth->clearIdentity();
         
-        return $this->redirect()->toRoute('login');
+        return $this->redirect()->toRoute('auth', array('action' => 'login'));
     }
 
 
@@ -74,6 +75,37 @@ class AuthController extends Com\Controller\AbstractController
         $this->setCommunicator($com);
         
         return $this->viewVars;
+    }
+    
+    
+    /**
+     * @see https://app.asana.com/0/14725105905099/15626302371149
+     */
+    function initAction()
+    {
+        $sl = $this->getServiceLocator();
+        
+        $session = $sl->get('session');
+        $back = $session->back;
+        
+        $identity = $this->getUserIdentity();
+
+        if ($identity)
+        {
+            if ($back)
+            {
+                $session->back = null;
+                return $this->redirect()->toUrl($back);
+            }
+            else
+            {
+                return $this->redirect()->toRoute('backend');
+            }
+        }
+        else
+        {
+            return $this->redirect()->toRoute('auth', array('action' => 'login'));
+        }
     }
 
 }

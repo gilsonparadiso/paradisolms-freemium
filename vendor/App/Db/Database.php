@@ -111,4 +111,50 @@ class Database extends Com\Db\AbstractDb
         //
         return $this->executeCustomSelect($select);
     }
+    
+    
+    function findAllWithClientInfo()
+    {
+        $sl = $this->getServiceLocator();
+       
+        $dbDatabase = $this;
+        $dbClientHasDb = $sl->get('App\Db\Client\HasDatabase');
+        $dbClient = $sl->get('App\Db\Client');
+
+        
+        $literal = function($str)
+        {
+            return new Zend\Db\Sql\Literal($str);
+        };
+        
+        //
+        $select = new Zend\Db\Sql\Select();
+
+        // tabla 
+        $select->from(array(
+            'd' => $dbDatabase->getTable()
+        ));
+        
+        //
+        $cols = array();
+        $cols['db_name'] = $literal('d.db_name');
+        $cols['domain'] = $literal("IF(ISNULL(c.domain), '', CONCAT(' - ', c.domain))");
+        $cols['email'] = $literal('c.email');
+        $cols['first_name'] = $literal('c.first_name');
+        $cols['last_name'] = $literal('c.last_name');
+
+        $select->columns($cols);
+        
+        //
+        $select->join(array('chd' => $dbClientHasDb->getTable()), 'chd.database_id = d.id', array(), 'LEFT');
+        
+        //
+        $select->join(array('c' => $dbClient->getTable()), 'c.id = chd.client_id', array(), 'LEFT');
+        
+        //
+        $select->order('d.id ASC');
+        
+        //
+        return $this->executeCustomSelect($select);
+    }
 }
