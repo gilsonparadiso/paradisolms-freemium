@@ -78,14 +78,18 @@ class SqlController extends Com\Controller\BackendController
     {
         $sl = $this->getServiceLocator();
         $config = $sl->get('config');
-    
+        
+        $username = $config['freemium']['cpanel']['username'];
+        $password = $config['freemium']['cpanel']['password'];
+        $host = $config['freemium']['db']['host'];
+
         $adapter = new Zend\Db\Adapter\Adapter(array(
             'driver' => 'mysqli',
             'database' => $database,
-            'username' => $config['freemium']['db']['user'],
-            'password' => $config['freemium']['db']['password'], //
-            'hostname' => $config['freemium']['db']['host'],
-            'profiler' => true,
+            'username' => $username,
+            'password' => $password, //
+            'hostname' => $host,
+            'profiler' => false,
             'charset' => 'UTF8',
             'options' => array(
                 'buffer_results' => true 
