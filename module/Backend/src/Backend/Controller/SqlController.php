@@ -97,10 +97,6 @@ class SqlController extends Com\Controller\BackendController
             ) 
         );
         
-        #echo '<pre>';
-        #print_r($config);
-        #echo '</pre>';
-
         $adapter = new Zend\Db\Adapter\Adapter($config);
         
         $driver = $adapter->getDriver();

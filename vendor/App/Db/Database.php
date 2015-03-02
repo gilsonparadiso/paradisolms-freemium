@@ -155,6 +155,12 @@ class Database extends Com\Db\AbstractDb
         $select->order('d.id ASC');
         
         //
+        $select->where(array('c.deleted = ?' => 0));
+        
+        //
+        #$this->debugSql($select);
+        
+        //
         return $this->executeCustomSelect($select);
     }
 }
