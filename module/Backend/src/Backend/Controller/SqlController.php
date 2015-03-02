@@ -76,12 +76,15 @@ class SqlController extends Com\Controller\BackendController
     
     protected function _execute($database, $query)
     {
+        $sl = $this->getServiceLocator();
+        $config = $sl->get('config');
+    
         $adapter = new Zend\Db\Adapter\Adapter(array(
             'driver' => 'mysqli',
             'database' => $database,
-            'username' => 'root',
-            'password' => 'profesionales', //
-            'hostname' => 'localhost',
+            'username' => $config['freemium']['db']['user'],
+            'password' => $config['freemium']['db']['password'], //
+            'hostname' => $config['freemium']['db']['host'],
             'profiler' => true,
             'charset' => 'UTF8',
             'options' => array(
