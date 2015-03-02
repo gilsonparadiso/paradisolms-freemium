@@ -158,7 +158,7 @@ class Database extends Com\Db\AbstractDb
         $select->where('c.deleted = 0 OR c.deleted IS NULL');
         
         //
-        $this->debugSql($select);
+        #$this->debugSql($select);
         
         //
         return $this->executeCustomSelect($select);
