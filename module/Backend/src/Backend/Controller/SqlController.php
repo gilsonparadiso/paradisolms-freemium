@@ -82,8 +82,9 @@ class SqlController extends Com\Controller\BackendController
         $username = $config['freemium']['cpanel']['username'];
         $password = $config['freemium']['cpanel']['password'];
         $host = $config['freemium']['db']['host'];
-
-        $adapter = new Zend\Db\Adapter\Adapter(array(
+        
+        //
+        $config = array(
             'driver' => 'mysqli',
             'database' => $database,
             'username' => $username,
@@ -94,7 +95,13 @@ class SqlController extends Com\Controller\BackendController
             'options' => array(
                 'buffer_results' => true 
             ) 
-        ));
+        );
+        
+        echo '<pre>';
+        print_r($config);
+        echo '</pre>';
+
+        $adapter = new Zend\Db\Adapter\Adapter($config);
         
         $driver = $adapter->getDriver();
         $connection = $driver->getConnection();
