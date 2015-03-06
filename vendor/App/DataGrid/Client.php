@@ -24,7 +24,7 @@ class Client extends Com\DataGrid\AbstractDataGrid
             $urlDelete = $obj->url()->fromRoute('backend/wildcard', array(
                 'controller' => 'instance',
                 'action' => 'delete',
-                'id' => $row['c_id']
+                'domain' => $row['c_domain']
             ));
             
             $text_return = <<<xxx

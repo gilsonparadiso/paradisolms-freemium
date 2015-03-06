@@ -17,7 +17,17 @@ jQuery(function() {
         }
     });
     
-    $(".iframe").colorbox();
+    $(".iframe").click(function(e) {
+        var $self = $(this);
+        e.preventDefault();
+        
+        $.colorbox({
+            href: $self.attr("href")
+            ,iframe: true
+            ,width: 600
+            ,height: 200
+        });
+    });
     
 });
 </script>
