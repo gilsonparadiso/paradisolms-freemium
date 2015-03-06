@@ -78,7 +78,6 @@ xxx;
         
         // 
         $col = new ZfcDatagrid\Column\Select('first_name', 'c');
-        $col->setSortDefault(1, 'ASC');
         $col->setLabel('First name');
         $this->addColumn($col);
         
@@ -108,6 +107,7 @@ xxx;
         
         $col = new ZfcDatagrid\Column\Select('domain', 'c');
         $col->setLabel('Instance');
+        $col->setSortDefault(1, 'ASC');
         $col->setFormatter($formatter);
         $this->addColumn($col);
         
