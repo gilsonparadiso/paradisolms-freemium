@@ -27,14 +27,13 @@ class Instance extends ZfcDatagrid\Column\Formatter\AbstractFormatter
             
         if($dbName)
         {
-            $dbName = "<div style='font-size:12px'><i class='fa fa-database'></i> <span class='text-muted'>$dbName</span></div>";
+            $dbName = " - <span style='font-size:12px'><i class='fa fa-database'></i> <span class='text-muted'>$dbName</span></span>";
         }
         
         $r  = '';
         $r .= "<div style='font-size:12px'><i class='fa fa-server'></i> <a href='http://$domain' target='_blank'>{$domain}</a></div>";
         $r .= "<div class='text-muted' style='font-size:12px'><i class='fa fa-calendar'></i> {$date}</div>";
-        $r .= "<div class='text-muted' style='font-size:12px'><i class='fa fa-user-plus'></i> {$count}</div>";
-        $r .= $dbName;
+        $r .= "<div class='text-muted' style='font-size:12px'><i class='fa fa-user-plus'></i> {$count} $dbName</div>";
         
         return $r;
     }
