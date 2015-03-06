@@ -119,6 +119,7 @@ class InstanceController extends Com\Controller\BackendController
                 $data = array(
                     'email' => "{$rowClient->email}.$uid"
                     ,'domain' => "{$rowClient->domain}.$uid"
+                    ,'deleted' => 1
                 );
                 $dbClient->doUpdate($data, $where);
             }
