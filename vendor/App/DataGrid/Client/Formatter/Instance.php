@@ -20,6 +20,7 @@ class Instance extends ZfcDatagrid\Column\Formatter\AbstractFormatter
         $row = $this->getRowData();
         $dbName = $row['d_db_name'];
         $domain = $row['c_domain'];
+        $count = $row['count'];
         
         $time = strtotime($row['c_created_on']);
         $date = date('F d, Y @ h:i a', $time);
@@ -32,6 +33,7 @@ class Instance extends ZfcDatagrid\Column\Formatter\AbstractFormatter
         $r  = '';
         $r .= "<div style='font-size:12px'><i class='fa fa-server'></i> <a href='http://$domain' target='_blank'>{$domain}</a></div>";
         $r .= "<div class='text-muted' style='font-size:12px'><i class='fa fa-calendar'></i> {$date}</div>";
+        $r .= "<div class='text-muted' style='font-size:12px'><i class='fa fa-user-plus'></i> {$count}</div>";
         $r .= $dbName;
         
         return $r;

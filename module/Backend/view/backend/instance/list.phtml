@@ -9,7 +9,18 @@ $this->headLink()->appendStylesheet($this->basePath('/js/colorbox/1/colorbox.css
 jQuery(function() {
 
     $(".delete").click(function(e) {
-        var f = confirm("Please confirm that you want to delete the selected record.\n This action can't be undone.");
+        var $self = $(this);
+        
+        var users = $self.attr("data-users");
+        
+        if(users > 1)
+        {
+            var f = confirm("Please confirm that you want to delete the selected instance and the " + users + " related users.\n This action can't be undone.");
+        }
+        else
+        {
+            var f = confirm("Please confirm that you want to delete the selected instance.\n This action can't be undone.");
+        }
         
         if(!f)
         {

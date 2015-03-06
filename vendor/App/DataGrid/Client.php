@@ -34,7 +34,7 @@ class Client extends Com\DataGrid\AbstractDataGrid
         <span class="caret"></span>
     </button>
     <ul class="dropdown-menu" role="menu">
-        <li><a class="delete" href="$urlDelete">Delete</a></li>
+        <li><a data-users="{$row['count']}" class="delete" href="$urlDelete">Delete</a></li>
     </ul>
 </div>
 xxx;
@@ -70,7 +70,14 @@ xxx;
             $col->setHidden();
             $this->addColumn($col);
             
+            //
             $col = new ZfcDatagrid\Column\Select('created_on', 'c');
+            $col->setHidden();
+            $this->addColumn($col);
+            
+            //
+            $literal = new Zend\Db\Sql\Literal('COUNT(*)');
+            $col = new ZfcDatagrid\Column\Select($literal, 'count');
             $col->setHidden();
             $this->addColumn($col);
         }
@@ -136,6 +143,9 @@ xxx;
         
         //
         $select->where(array('deleted' => 0));
+        
+        //
+        $select->group('c.domain');
 
         //
         $this->dataSource = $select;
