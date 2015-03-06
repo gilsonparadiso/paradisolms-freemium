@@ -467,6 +467,15 @@ class Instance extends Com\Model\AbstractModel
                     ('{$params->email}', '$password', '{$firstNname}', '{$lastNname}', '$email', $confirmed)";
                     
                     mysql_query($sql);
+                    
+                    
+                    // ok reserve the database
+                    $data = array(
+                        'client_id' => $rowClient->id
+                        ,'database_id' => $rowDb->id
+                    );
+                    
+                    $dbClientHasDb->doInsert($data);
                 }
                 
                 // ok, we are done
