@@ -471,7 +471,7 @@ class Instance extends Com\Model\AbstractModel
                     
                     // ok reserve the database
                     $data = array(
-                        'client_id' => $rowClient->id
+                        'client_id' => $clientId
                         ,'database_id' => $rowDb->id
                     );
                     
