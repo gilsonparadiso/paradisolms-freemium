@@ -1,0 +1,23 @@
+<?php
+
+$this->headScript()->appendFile($this->basePath('/js/colorbox/colorbox.js'));
+$this->headLink()->appendStylesheet($this->basePath('/js/colorbox/1/colorbox.css'));
+
+?>
+
+<script>
+jQuery(function() {
+
+    $(".delete").click(function(e) {
+        var f = confirm("Please confirm that you want to delete the selected record.\n This action can't be undone.");
+        
+        if(!f)
+        {
+            e.preventDefault();
+        }
+    });
+    
+    $(".iframe").colorbox();
+    
+});
+</script>

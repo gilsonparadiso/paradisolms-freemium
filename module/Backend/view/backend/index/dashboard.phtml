@@ -9,6 +9,9 @@ $userId = $this->GlobalVars('identity.id', 0);
             <li>
                 <a href="<?php echo $this->url('backend', array('controller' => 'sql', 'action' => 'index')); ?>">SQL</a>
             </li>
+            <li>
+                <a href="<?php echo $this->url('backend', array('controller' => 'instance', 'action' => 'list')); ?>">Instances</a>
+            </li>
         </ul>
     </div>
 </div>

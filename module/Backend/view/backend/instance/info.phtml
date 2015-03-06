@@ -1,0 +1,14 @@
+<?php
+$com = $this->Communicator();
+?>
+
+<div style="width:400px;height:80px">
+    <?php $com->printMessage() ?>
+
+    <?php if($com->isSuccess()) : ?>
+
+        <div>Total active users <span class="badge"><?php echo $this->active?></span></div>
+        <div>Total inactive users <span class="badge"><?php echo $this->inactive?></span></div>
+
+    <?php endif; ?>
+</div>

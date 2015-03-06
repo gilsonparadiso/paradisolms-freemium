@@ -10,7 +10,7 @@ $modules = array(
    'App',
    'Console',
    'Backend',
-   // 'ZfcDatagrid',
+   'ZfcDatagrid',
    'Front',
 );
 
