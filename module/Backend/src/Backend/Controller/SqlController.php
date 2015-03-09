@@ -99,8 +99,6 @@ class SqlController extends Com\Controller\BackendController
         
         $client->setServerUri("http://{$domain}/services/index.php");
         $response = $client->request('purge_cache');
-        
-        $response->debug();
     }
     
     
