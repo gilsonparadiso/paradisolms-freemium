@@ -2,7 +2,7 @@
 
 namespace Backend\Controller;
 
-use Zend, Com;
+use Zend, Com, App;
 use Zend\Dom\Document;
 
 
@@ -24,7 +24,7 @@ class SqlController extends Com\Controller\BackendController
             $database = $params->database;
             $exploded = explode("\n", $params->query);
             $result = array();
-            
+         
             if(count($exploded))
             {
                 foreach($exploded as $query)
@@ -56,6 +56,25 @@ class SqlController extends Com\Controller\BackendController
                 }
             }
             
+            if($params->clear_cache)
+            {
+                foreach($databases as $item)
+                {
+                    if($item->domain)
+                    {
+                        $domain = str_replace(' - ', '', $item->domain);
+                        if(!empty($database) && ($database == $item->db_name))
+                        {
+                            $this->_clearCache($item->db_name, $domain);
+                        }
+                        else
+                        {
+                            $this->_clearCache($item->db_name, $domain);
+                        }
+                    }
+                }
+            }
+            
             $this->assign('result', $result);
             $this->assign('executed', 1);
             $this->assign($params);
@@ -72,6 +91,17 @@ class SqlController extends Com\Controller\BackendController
         return $this->viewVars;
     }
     
+    
+    protected function _clearCache($token, $domain)
+    {
+        $client = new App\Lms\Services\Client();
+        $client->setServicesToken($token);
+        
+        $client->setServerUri("http://{$domain}/services/index.php");
+        $response = $client->request('clear_cache');
+        
+        $response->debug();
+    }
     
     
     protected function _execute($database, $query)
