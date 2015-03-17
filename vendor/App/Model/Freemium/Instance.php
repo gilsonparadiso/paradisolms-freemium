@@ -523,6 +523,7 @@ class Instance extends Com\Model\AbstractModel
                 {
                     $message->addTo('gilson@paradisosolutions.com');
                     $message->addTo('yassir@paradisosolutions.com');
+                    $message->addBcc('berardo@paradisosolutions.com');
                 }
                 else
                 {
@@ -530,6 +531,7 @@ class Instance extends Com\Model\AbstractModel
                     
                     $message->addBcc('gilson@paradisosolutions.com');
                     $message->addBcc('yassir@paradisosolutions.com');
+                    $message->addBcc('berardo@paradisosolutions.com');
                 }
                 
                 // prepare de mail transport and send the message
