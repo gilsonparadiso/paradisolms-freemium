@@ -35,15 +35,25 @@ class Module
         
         $config = $serviceManager->get('config');
         
+        $this->_setupDebug($event);
         $this->_setupPhpSettings($config);
-        $this->_setupTranslator($serviceManager);
         $this->_setupTablePrefix($serviceManager, $event, $eventManager, $config);
         $this->_setupSession($serviceManager);
+        $this->_setupTranslator($serviceManager);
         $this->_setupAuthorisation($eventManager);
         $this->_setupGlobalVariables($event);
         $this->_setupLayout($event);
     }
-
+    
+    
+    protected function _setupDebug()
+    {
+        if(APP_ENV == APP_DEVELOPMENT)
+        {
+            new \Kint();
+        }
+    }
+    
 
     protected function _setupPhpSettings($config)
     {
@@ -60,7 +70,63 @@ class Module
 
     protected function _setupTranslator($serviceManager)
     {
+        // cookie expiration = now + 1 year
+        $expiration = time() + 365 * 60 * 60 * 24;
+        $request = $serviceManager->get('request');
+        $response = $serviceManager->get('response');
+        $cookie = $request->getCookie();
+   
+        $lang = null;
+        $changeLanguage = false;
+        
+        // first we have to check if the user is trying to change language
+        if(isset($_GET['lang']))
+        {
+            $lang = $_GET['lang'];
+            $changeLanguage = true;
+        }
+        else
+        {
+            // if not trying to change the language, then check if the language was already set in the session variable
+            // if not session was set then we try to get the language from the browser
+            if(!$cookie->lang)
+            {
+                // get language from browser preferences
+                $request = $serviceManager->get('request');
+                $headers = $request->getHeaders();
+                if($headers->has('Accept-Language'))
+                {
+                    $languages = $headers->get('Accept-Language');
+                    $locales = $languages->getPrioritized();
+                    if($locales)
+                    {
+                        $first = array_shift($locales);
+                        $lang = $first->getPrimaryTag();
+                        
+                        $changeLanguage = true;
+                    }
+                }
+            }
+            else
+            {
+                // language already set in the session
+                $lang = $cookie->lang;
+            }
+        }
+        
+        
+        // change language
+        if($changeLanguage)
+        {
+            $setCookie = new Zend\Http\Header\SetCookie('lang', $lang, $expiration);
+            $headers = $response->getHeaders();
+            $headers->addHeader($setCookie);
+        }
+        
+        //
         $translator = $serviceManager->get('translator');
+        $translator->setLocale($lang)
+            ->setFallbackLocale('en');
         
         \Zend\Validator\AbstractValidator::setDefaultTranslator($translator);
     }
@@ -228,7 +294,12 @@ class Module
                 'namespaces' => array(
                     __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__ 
                 ) 
-            ) 
+            ),
+            'Zend\Loader\ClassMapAutoloader' => array(
+                array(
+                    'Kint' => 'vendor/3rdParty/Kint/Kint.class.php',
+                ),
+            ),    
         );
     }
 

@@ -3,6 +3,11 @@
 return array(
     'unexpected_error' => 'There was an unexpected error, please try again in a few minutes.'
     
+    ,'Create Account' => 'Create Account'
+    ,'fill_in_required_fields' => 'Please fill in all required fields *'
+    ,'Email address' => 'Email address'
+    ,'welcome_message' => 'Welcome to Paradiso LMS'
+    ,'tag_line_1' => 'Once you complete this form, we will create an account for you. Please specify a correct email address.'
     ,'provide_valid_email' => 'Please provide a valid email address'
     ,'user_email_already_exist' => 'Already exist a user with the given email address'
     ,'email_address_not_allowed' => 'The given email address is not allowed to create accounts'

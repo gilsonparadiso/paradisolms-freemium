@@ -325,7 +325,7 @@ return array(
             array(
                 'type' => 'phpArray',
                 'base_dir' => 'language',
-                'pattern' => 'en.php',
+                'pattern' => '%s.php',
                 'text_domain' => 'default' 
             ),
             /*array(
