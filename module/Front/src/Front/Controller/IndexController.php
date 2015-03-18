@@ -11,14 +11,13 @@ class IndexController extends Com\Controller\AbstractController
         $request = $this->getRequest();
         
         $sl = $this->getServiceLocator();
-        $type = $this->params()->fromQuery('type', 'freemium');
         
         if($request->isPost())
         {
             $post = array_merge_recursive($request->getPost()->toArray(), $request->getFiles()->toArray());
             $params = new Zend\Stdlib\Parameters($post);
             
-            $params->type = $type;
+            $params->type = 'freemium';
             #ini_set('display_errors', 1);
             #error_reporting(E_ALL);
             
@@ -45,8 +44,6 @@ class IndexController extends Com\Controller\AbstractController
             $this->assign('is_post', true);
         }
         
-        $this->assign('type', $type);
-
         return $this->viewVars;
     }
     

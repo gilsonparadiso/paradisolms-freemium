@@ -1,8 +1,9 @@
 <?php
 
 return array(
-    'unexpected_error' => 'Se produjo un error inesperado, por favor vuelva a intentarlo.'
-    
+    'unexpected_error' => 'Se produjo un error inesperado, por favor vuelva a intentarlo o contáctenos a support@paradisosolutions.com'
+
+    ,'can_not_edit_instance' => "Lo sentimos, no puede editar el nombre de la instancia."
     ,'Create Account' => 'Crear Cuenta'
     ,'Create account' => 'Crear Cuenta'
     ,'Cancel' => 'Cancelar'
@@ -23,7 +24,7 @@ return array(
     ,'domain_name_already_registered' => 'El dominio seleccionado no está disponible.'
     ,'instance_name_already_registered' => 'El nombre de instancia especificado no está disponible.'
     ,'invalid_characters_instance_name' => 'Hay algunos caracteres inválidos en el nombre de la instancia'
-    ,'freemium_account_created' => "Útimo paso. Por favor reviste su correo, le enviamos un link para ativar su instancia."
+    ,'freemium_account_created' => "Útimo paso. Por favor revise su correo, le hemos enviado un link para ativar su cuenta."
     
     //
     ,'confirm_your_email_address_subject' => 'Por favor confirme su dirección de coreo.'
@@ -33,7 +34,7 @@ return array(
     <br> Si tiene alguna pregunta o comentario, puede llamarnos al teléfono <br> +1 800 513 5902, tambinén nos puede escribir al correo sales@paradisosolutions.com'
     ,'follow_us' => 'Síguenos'
     ,'invalid_verification_code' => 'El código de verificación no es válido.'
-    ,'account_already_verified' => "La cuenta de usuario ya está verificada.<br>  <a href='%s' target='_blank'>Haga click aquí</a> para ir a su instancia."
+    ,'account_already_verified' => "La cuenta de usuario ya está verificada.<br>  <a href='%s' target='_blank'>Haga click aquí</a> para ir a su cuenta."
     ,'account_verified' => 'Gracias!, Su cuenta de usuario fue verificada, <a href="%s">haga click aquí</a> para ir a su cuenta.'
     ,'please_wait' => 'Por favor espere...'
     ,'edit_instance_name'=> 'Editar el nombre de la instancia'

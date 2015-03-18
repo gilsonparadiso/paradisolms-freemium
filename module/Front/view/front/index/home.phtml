@@ -17,7 +17,7 @@ $com = $this->Communicator();
    
       <h2><?php echo $this->translate('Create Account')?> <span><?php echo $this->translate('fill_in_required_fields') ?></span></h2>
       
-      <form method="post" action="<?php echo $this->url('home') ?>?type=<?php echo $this->type?>" id="form_element" enctype="multipart/form-data">
+      <form method="post" action="<?php echo $this->url('home') ?>" id="form_element" enctype="multipart/form-data">
       
          <div id="alert"><?php $com->printMessage() ?></div>
          <div id="loader"><img src="<?php echo $this->basePath('img/loader.gif') ?>"> 
@@ -188,11 +188,10 @@ $com = $this->Communicator();
                     $("#instance_label").attr("disabled", "disabled");
                     
                     var $div = $alert.find("div.alert");
-                    $div.html("Sorry, you can't edit the instance name.").css("padding", "0px 10px");
+                    $div.html("<?php echo $this->translate('can_not_edit_instance')?>").css("padding", "0px 10px");
                     $alert.show();
                 }
             });
-
         });
         
         $("#email").blur(blur_email);
@@ -231,7 +230,7 @@ $com = $this->Communicator();
                 hide_loader();
                 
                 var $div = $alert.find("div.alert");
-                $div.html("There was an unexpected error, please try again or contact support@paradisosolutions.com").css("padding", "0px 10px");
+                $div.html("<?php echo $this->translate('unexpected_error')?>").css("padding", "0px 10px");
                 $alert.show();
                 
                 $("#form_element :input").prop("disabled", false);

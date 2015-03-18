@@ -1,8 +1,9 @@
 <?php
 
 return array(
-    'unexpected_error' => 'There was an unexpected error, please try again in a few minutes.'
+    'unexpected_error' => 'There was an unexpected error, please try again or contact support@paradisosolutions.com'
     
+    ,'can_not_edit_instance' => "Sorry, you can't edit the instance name."
     ,'Create Account' => 'Create Account'
     ,'fill_in_required_fields' => 'Please fill in all required fields *'
     ,'Email address' => 'Email address'
