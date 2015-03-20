@@ -114,11 +114,11 @@ class Module
             }
         }
         
-        
         // change language
         if($changeLanguage)
         {
-            $setCookie = new Zend\Http\Header\SetCookie('lang', $lang, $expiration);
+            $setCookie = new Zend\Http\Header\SetCookie('lang', $lang, $expiration, '/');
+            
             $headers = $response->getHeaders();
             $headers->addHeader($setCookie);
         }
