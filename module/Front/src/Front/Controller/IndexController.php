@@ -43,6 +43,8 @@ class IndexController extends Com\Controller\AbstractController
             $this->assign('is_post', true);
         }
         
+        $this->assign('route_name', 'home');
+        
         return $this->viewVars;
     }
     
@@ -83,6 +85,9 @@ class IndexController extends Com\Controller\AbstractController
             $this->setCommunicator($com);
             $this->assign('is_post', true);
         }
+        
+        $this->assign('internal', 1);
+        $this->assign('route_name', 'internal');
         
         $view = new Zend\View\Model\ViewModel($this->viewVars);
         $view->setTemplate('front/index/home');
