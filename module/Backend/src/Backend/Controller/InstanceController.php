@@ -241,6 +241,7 @@ class InstanceController extends Com\Controller\BackendController
                     /*************************************/
                     // delete the database
                     /*************************************/
+                    /*
                     $response = $cp->api2_query($cpanelUser, 'MysqlFE', 'deletedb', array(
                         'db' => $dbName,
                     ));
@@ -250,8 +251,10 @@ class InstanceController extends Com\Controller\BackendController
                         $errorMessage = isset($response['error']) ? $response['error'] : $response['event']['error'];
                         return $this->_redirectToListWithMessage($errorMessage, true);
                     }
+                    */
                     
                     // delete database from database database ;-)
+                    /*
                     $where = array();
                     $where['id = ?'] = $rowDatabase->id;
                     $dbDatabase->doDelete($where);
@@ -260,6 +263,7 @@ class InstanceController extends Com\Controller\BackendController
                     $where = array();
                     $where['database_id = ?'] = $rowDatabase->id;
                     $dbClientDatabase->doDelete($where);
+                    */
                 }
                 
                 // update client email and domain 
@@ -290,15 +294,15 @@ class InstanceController extends Com\Controller\BackendController
             /*************************************/
             // delete mdata folder
             /*************************************/
-            "rm {$mDataPath}/$domain/ -Rf";
-            exec("rm {$mDataPath}/$domain/ -Rf");
+            #"rm {$mDataPath}/$domain/ -Rf";
+            #exec("rm {$mDataPath}/$domain/ -Rf");
             
             
             /*************************************/
             // delete config file
             /*************************************/
-            $configFilename = "{$configPath}/{$domain}.php";
-            exec("rm $configFilename");
+            #$configFilename = "{$configPath}/{$domain}.php";
+            #exec("rm $configFilename");
             
             $message = "Domain $domain successfull removed.";
             return $this->_redirectToListWithMessage($message, false);

@@ -107,7 +107,6 @@ class Instance extends Com\Model\AbstractModel
                 {
                     if(!$this->canEditInstanceName($params->email) && $this->instanceNameEdited($params->email, $params->instance))
                     {
-                        exit;
                         $this->getCommunicator()->addError($this->_('not_allowed_to_edit_instance_name'), 'instance');
                     }
                 }
@@ -215,7 +214,7 @@ class Instance extends Com\Model\AbstractModel
             
             $isParadisoDomain = $this->_isParadisoDomain($params->email);
             
-            // check if already exist registered users with the domain name
+            // check if already exifst registered users with the domain name
             
             if($isParadisoDomain)
             {
