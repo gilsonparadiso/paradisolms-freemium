@@ -16,6 +16,19 @@ return array(
                 ) 
             ),
             
+            
+            'internal' => array(
+                'type' => 'Zend\Mvc\Router\Http\Literal',
+                'options' => array(
+                    'route' => '/internal',
+                    'defaults' => array(
+                        '__NAMESPACE__' => 'Front\Controller',
+                        'controller' => 'Index',
+                        'action' => 'internal',
+                    ) 
+                ) 
+            ),
+            
             'test' => array(
                 'type' => 'Zend\Mvc\Router\Http\Literal',
                 'options' => array(

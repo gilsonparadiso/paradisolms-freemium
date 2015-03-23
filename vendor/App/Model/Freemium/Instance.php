@@ -8,6 +8,633 @@ class Instance extends Com\Model\AbstractModel
 
     protected $fileMimeType;
     
+    protected $mailTo = array(
+        'yassir@paradisosolutions.com'
+        #,'gilson@paradisosolutions.com'
+        #,'berardo@paradisosolutions.com'
+    );
+    
+    
+    /**
+    *
+    * @param Zend\Stdlib\Parameters $params
+    * @var string email
+    * @var string password
+    * @var string instance
+    * @var string first_name
+    * @var string last_name
+    * @var type string
+    * @var array logo
+    * @var bool resize_logo
+    *
+    * @return bool
+    */
+    function canReserve(Zend\Stdlib\Parameters $params)
+    {
+        // check required fields
+        $fields = array(
+            'email',
+            'password',
+            'instance',
+            'first_name',
+            'last_name',
+        );
+        
+        $this->hasEmptyValues($fields, $params);
+        
+        $sl = $this->getServiceLocator();
+        
+        try
+        {
+            $dbClient = $sl->get('App\Db\Client');
+            $dbClientHasDb = $sl->get('App\Db\Client\HasDatabase');
+            $dbDatabase = $sl->get('App\Db\Database');
+            $dbBlacklistDomain = $sl->get('App\Db\BlacklistDomain');
+            $config = $sl->get('config');
+            
+            $params->email = strtolower($params->email);
+            $params->instance = trim($params->instance);
+            
+            // check if the email field looks like a real email address
+            $vEmail = new Zend\Validator\EmailAddress();
+            if(!$vEmail->isValid($params->email))
+            {
+                $this->getCommunicator()->addError($this->_('provide_valid_email'), 'email');
+            }
+            else
+            {
+                // check if already exist registered users with the given email address
+                $where = array();
+                $where['email = ?'] = $params->email;
+                if($dbClient->count($where))
+                {
+                    $this->getCommunicator()->addError($this->_('user_email_already_exist'), 'email');
+                }
+            }
+            
+            // all good so far, now we continue with the validations
+            // Here we check stuff related to the domain and instance name
+            if($this->isSuccess())
+            {
+                if(!preg_match('/^[A-Za-z0-9\-]+$/', $params->instance))
+                {
+                    $this->getCommunicator()->addError($this->_('invalid_characters_instance_name'), 'instance');
+                    return false;
+                }
+                
+                //
+                $isParadisoDomain = $this->_isParadisoDomain($params->email);
+                    
+                // check if the domain of the email is allowed to create account
+                $exploded = explode('@', $params->email);
+                $emailDomain = $exploded[1];
+        
+                $where = array();
+                $where['domain = ?'] = $emailDomain;
+                if($dbBlacklistDomain->count($where))
+                {
+                    $this->getCommunicator()->addError($this->_('email_address_not_allowed'), 'email');
+                    return false;
+                }
+                
+                // check if the user can provide a custom instance name
+                // Have in mind that paradiso people can provide instance names
+                
+                $topDomain = $config['freemium']['top_domain'];
+                $domain = "{$params->instance}.$topDomain";
+                
+                if(!$isParadisoDomain)
+                {
+                    if(!$this->canEditInstanceName($params->email) && $this->instanceNameEdited($params->email, $params->instance))
+                    {
+                        exit;
+                        $this->getCommunicator()->addError($this->_('not_allowed_to_edit_instance_name'), 'instance');
+                    }
+                }
+                
+                // check if the domain name is good
+                if(!$this->_isValidDomainName($domain))
+                {
+                    $this->getCommunicator()->addError($this->_('invalid_characters_instance_name'), 'instance');
+                }
+            }
+            
+            // find the a free database
+            $rowDb = $dbDatabase->findFreeDatabase();                        
+            // ups, no free database found
+            if(!$rowDb)
+            {
+                $this->getCommunicator()->addError($this->_('unexpected_error'));
+                $this->_createDatabasesScript();
+                return false;
+            }
+            
+            //
+            if($this->isSuccess())
+            {
+                if($params->logo)
+                {
+                    $name = isset($params->logo['name']) ? $params->logo['name'] : null;
+                    $type = isset($params->logo['type']) ? $params->logo['type'] : null;
+                    $size = isset($params->logo['size']) ? $params->logo['size'] : null;
+                    $tmpName = isset($params->logo['tmp_name']) ? $params->logo['tmp_name'] : null;
+                    $error = isset($params->logo['error']) ? $params->logo['error']: null;
+                    
+                    $postedFile = new Com\PostedFile($name, $type, $size, $tmpName, $error);
+                    if($params->resize_logo && !$postedFile->hasFile())
+                    {
+                        $this->getCommunicator()->addError($this->_('fix_the_below_error'));
+                        $this->getCommunicator()->addError($this->_('no_logo_to_rezise'), 'logo');
+                        return false;
+                    }
+                    
+                    if($postedFile->hasFile())
+                    {
+                        $this->fileMimeType = Com\Func\File::getMimeType($postedFile->getTmpName());
+                        
+                        $allowedExtensions = array('jpg', 'jpeg', 'png', 'gif', 'svg');
+                        $allowedTypes = array('image/jpeg', 'image/png', 'image/gif', 'image/svg+xml');
+                        
+                        // verificar la extension del archivo
+                        if(! $this->_checkExtensionAndType($allowedExtensions, $allowedTypes, $postedFile))
+                        {
+                            $this->getCommunicator()->addError($this->_('fix_the_below_error'));
+                            $this->getCommunicator()->addError($this->_('invalid_image_type_for_logo'), 'logo');
+                            return false;
+                        }
+                        
+                        $fileSaver = $this->_getFileSaver($postedFile);
+                        if(!$fileSaver->check())
+                        {
+                            $this->getCommunicator()->addError($this->_('fix_the_below_error'));
+                                
+                            $errorMessage = $fileSaver->getCommunicator()->getErrors();
+                            $this->getCommunicator()->addError($errorMessage[0], 'logo');
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        catch(\Exception $e)
+        {
+            $this->setException($e);
+        }
+        
+        return $this->isSuccess();
+    }
+    
+    
+    
+    /**
+    *
+    * @param Zend\Stdlib\Parameters $params
+    * @var string email
+    * @var string password
+    * @var string instance
+    * @var string first_name
+    * @var string last_name
+    * @var type string
+    * @var array logo
+    * @var bool resize_logo
+    *
+    * @return bool
+    */
+    function doReserve(Zend\Stdlib\Parameters $params)
+    {
+        
+        try
+        {
+            $sl = $this->getServiceLocator();
+            
+            $dbClient = $sl->get('App\Db\Client');
+            $config = $sl->get('config');
+            
+            $topDomain = $config['freemium']['top_domain'];
+            $domain = "{$params->instance}.$topDomain";
+            
+            $isParadisoDomain = $this->_isParadisoDomain($params->email);
+            
+            // check if already exist registered users with the domain name
+            
+            if($isParadisoDomain)
+            {
+                $where = array();
+                $where['domain = ?'] = $domain;
+                $rowClient = $dbClient->findBy($where, array(), null, 1)->current();
+                do
+                {
+                    $str = str_replace('.com', '', $params->instance);
+                    $str .= mt_rand(1, 9000000);
+                    
+                    $domain = "$str.$topDomain";
+                    $website = "http://{$domain}";
+                    
+                    $where = array();
+                    $where['domain = ?'] = $domain;
+                }
+                while($dbClient->count($where) > 0);
+                
+            }
+            
+            
+            $logoFile = null;
+            
+            if($params->logo)
+            {
+                $name = isset($params->logo['name']) ? $params->logo['name'] : null;
+                $type = isset($params->logo['type']) ? $params->logo['type'] : null;
+                $size = isset($params->logo['size']) ? $params->logo['size'] : null;
+                $tmpName = isset($params->logo['tmp_name']) ? $params->logo['tmp_name'] : null;
+                $error = isset($params->logo['error']) ? $params->logo['error']: null;
+                
+                $postedFile = new Com\PostedFile($name, $type, $size, $tmpName, $error);
+                $fileSaver = $this->_getFileSaver($postedFile);
+                if($postedFile->hasFile())
+                {
+                    $filename = $fileSaver->saveAs();
+                    if($filename)
+                    {
+                        $logoFile = "{$fileSaver->getFullPathToUpload()}/$filename";
+                        if($params->resize_logo)
+                        {
+                            $this->_resizeLogo($logoFile);
+                        }
+                    }
+                    else
+                    {
+                        $this->getCommunicator()->addError($this->_('fix_the_below_error'));
+                        $this->getCommunicator()->addError($this->_('error_uploading_logo'), 'logo');
+                        return false;
+                    }
+                }
+            }
+            
+            // time to add the client information
+            $data = array();
+            $data['email'] = $params->email;
+            $data['password'] = $params->password;
+            $data['domain'] = $domain;
+            $data['first_name'] = $params->first_name;
+            $data['last_name'] = $params->last_name;
+            $data['created_on'] = date('Y-m-d H:i:s');
+            $data['deleted'] = 0;
+            $data['approved'] = 0;
+            $data['email_verified'] = 0;
+            $data['logo'] = $logoFile;
+            
+            // cookie
+            $request = $sl->get('request');
+            $cookie = $request->getCookie();
+            if($cookie->lang)
+            {
+                $data['lang'] = $cookie->lang;
+            }
+
+            $dbClient->doInsert($data);
+            $clientId = $dbClient->getLastInsertValue();
+            
+            // send the confirmation email to the user
+            $request = $sl->get('request');
+            $uri = $request->getUri();
+    
+            $serverUrl = "{$uri->getScheme()}://{$uri->getHost()}";
+            
+            $viewRenderer = $sl->get('ViewRenderer');
+            $url = $serverUrl . $viewRenderer->url('backend', array());
+            
+            // preparing some replacement values
+            $data = array();
+            $data['follow_us'] = $this->_('follow_us');
+            $data['body'] = $this->_('new_accocunt_to_approve', array(
+                $url
+                , $url
+                , "{$params->first_name} {$params->last_name}"
+                , $params->email
+                , $domain
+            ));
+            $data['header'] = '';
+
+            // load the email template and replace values
+            $mTemplate = $sl->get('App\Model\EmailTemplate');
+            $arr = $mTemplate->loadAndParse('common', $data);
+            
+            //
+            $mailer = new Com\Mailer();
+            
+            // prepare the message to be send
+            $message = $mailer->prepareMessage($arr['body'], null, $this->_('new_accocunt_to_approve_subject', array($uri->getHost())));
+                
+            $message->setTo($this->mailTo[0]);
+            unset($this->mailTo[0]);
+            
+            foreach($this->mailTo as $mail)
+            {
+                $message->addTo($mail);
+            }
+            
+            // prepare de mail transport and send the message
+            $transport = $mailer->getTransport($message, 'smtp1', 'sales');
+            $transport->send($message);
+        }
+        catch(\Exception $e)
+        {
+            $this->setException($e);
+        }
+        
+        return $this->isSuccess();
+    }
+    
+    
+    /**
+    *
+    * @param array $ids
+    */
+    function doApprove(array $ids)
+    {
+        $sl = $this->getServiceLocator();
+        
+        try
+        {
+            $dbClient = $sl->get('App\Db\Client');
+            $dbClientHasDb = $sl->get('App\Db\Client\HasDatabase');
+            $dbDatabase = $sl->get('App\Db\Database');
+            
+            $predicateSet = new Zend\Db\Sql\Predicate\PredicateSet();
+            $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\In('id', $ids));
+            $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('approved', '=', 0));
+            
+            $rowset = $dbClient->findBy($predicateSet);
+            if(!$rowset->count())
+            {
+                $this->getCommunicator()->addError("You've selected $countSelected rows, there were found $countFound");
+                return false;
+            }
+            
+            $toApprove = array();
+            foreach($rowset as $row)
+            {
+                $toApprove[] = $row;
+                
+                // find if there are another accounts with the same domain
+                $predicateSet = new Zend\Db\Sql\Predicate\PredicateSet();
+                $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('deleted', '=', 0));
+                $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('domain', '=', $row->domain));
+                $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('approved', '=', 0));
+                $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('id', '!=', $row->id));
+                $rowset2 = $dbClient->findBy($predicateSet);
+                
+                if($rowset2->count())
+                {
+                    foreach($rowset2 as $row2)
+                    {
+                        $toApprove[] = $row2;
+                    }
+                }
+            }
+            
+            
+            if(count($toApprove))
+            {
+                require_once 'vendor/3rdParty/moodle/moodlelib.php';
+                require_once 'vendor/3rdParty/moodle/password.php';
+                
+                $cp = $sl->get('cPanelApi');
+                
+                $mDataMasterPath = $config['freemium']['path']['master_mdata'];
+                $masterSqlFile = $config['freemium']['path']['master_sql_file'];
+                $mDataPath = $config['freemium']['path']['mdata'];
+                $configPath = $config['freemium']['path']['config'];
+
+                $cpanelUser = $config['freemium']['cpanel']['username'];
+                $cpanelPass = $config['freemium']['cpanel']['password'];
+
+                $dbPrefix =  $config['freemium']['db']['prefix'];
+                $dbUser =  $config['freemium']['db']['user'];
+                $dbHost =  $config['freemium']['db']['host'];
+                $dbPassword =  $config['freemium']['db']['password'];
+                    
+                foreach($toApprove as $row)
+                {
+                    
+                    // find the a free database
+                    $rowDb = $dbDatabase->findFreeDatabase();
+                    // ups, no free database found
+                    if(!$rowDb)
+                    {
+                        $this->getCommunicator()->addError($this->_('unexpected_error'));
+                        $this->_createDatabasesScript();
+                        return false;
+                    }
+                    
+                    $topDomain = $config['freemium']['top_domain'];
+                    $domain = $row->domain;
+                    $website = "http://{$domain}";
+                
+                
+                    // check if we already have an approved user from the sae domain
+                    $predicateSet = new Zend\Db\Sql\Predicate\PredicateSet();
+                    $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('deleted', '=', 0));
+                    $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('domain', '=', $row->domain));
+                    $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('approved', '=', 1));
+                    $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('id', '!=', $row->id));
+                    $rowset2 = $dbClient->findBy($predicateSet);
+                    
+                    if($rowset2->count())
+                    {
+                        // already exist a user with the same domain so we need to add this one as user of the existing system
+                        $rowClient = $rowset2->current();
+                        
+                        // find the database name, we get the information from the previous registered user
+                        $where = array();
+                        $where['client_id = ?'] = $rowClient->id;
+                        
+                        $rowDb = $dbDatabase->findDatabaseByClientId($rowClient->id)->current();
+                        
+                        // add as a new user into the existing instance
+                        $dbName = $rowDb->db_name;
+                        $password = hash_internal_user_password($row->password);
+
+                        mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
+                        mysql_select_db($dbName);
+                        
+                        $firstNname = mysql_real_escape_string($row->first_name);
+                        $lastNname = mysql_real_escape_string($row->last_name);
+                        
+                        $sql = "INSERT INTO mdl_user (`username`, `password`, `firstname`, `lastname`, `email`, ,`confirmed`) VALUES
+                        ('{$row->email}', '$password', '{$firstNname}', '{$lastNname}', '$email', $confirmed)";
+                        
+                        mysql_query($sql);
+                        
+                        // ok reserve the database
+                        $data = array(
+                            'client_id' => $row->id
+                            ,'database_id' => $rowDb->id
+                        );
+                        
+                        $dbClientHasDb->doInsert($data);
+                    }
+                    else
+                    {
+                        $cpUser = $cp->get_user();
+                        $result = $cp->park($cpUser, $row->domain, null);
+                    
+                        $apiResponse = new App\Cpanel\ApiResponse($result);
+                        
+                        if($apiResponse->isError())
+                        {
+                            $err = $apiResponse->getError();
+                            if(stripos($err, 'already exists') !== false)
+                            {
+                                $this->getCommunicator()->addError($this->_('domain_name_already_registered'));
+                                return false;
+                            }
+                            else
+                            {
+                                $this->getCommunicator()->addError($err);
+                                return false;
+                            }
+                        }
+                        
+                        
+                        // reserve database
+                        $data = array(
+                            'client_id' => $row->id
+                            ,'database_id' => $rowDb->id
+                        );
+                        
+                        $dbClientHasDb->doInsert($data);
+
+                        // update credentials and user information in the lms instance
+                        $dbName = $rowDb->db_name;
+                        $password = hash_internal_user_password($params->password);
+            
+                        mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
+                        mysql_select_db($dbName);
+                        
+                        $firstNname = mysql_real_escape_string($params->first_name);
+                        $lastNname = mysql_real_escape_string($params->last_name);
+                        
+                        
+                        $sql = "
+                        UPDATE mdl_user SET 
+                            `password` = '$password'
+                            ,`email` = '{$row->email}'
+                            ,`username` = '{$row->email}'
+                            ,`firstname` = '{$firstNname}'
+                            ,`lastname` = '{$lastNname}'
+                            ,`confirmed` = 0
+                        WHERE `id` = '2'
+                        ";
+                        
+                        mysql_query($sql);
+                        
+                        //create mdata folder
+                        $newUmask = 0777;
+                        $oldUmask = umask($newUmask);
+
+                        mkdir("$mDataPath/$row->domain", $newUmask, true);
+                        chmod("$mDataPath/$row->domain", $newUmask);
+
+                        // Copying from master data folder
+                        exec("cp -Rf {$mDataMasterPath}/* {$mDataPath}/{$row->domain}/");
+
+                        // Changing owner for the data folder
+                        exec("chown -R {$cpanelUser}:{$cpanelUser} {$mDataPath}/{$row->domain} -R");
+                        exec("chmod 777 {$mDataPath}/{v} -R");
+
+                        // creating config file
+                        $configStr = file_get_contents('data/config.template');
+                        $configStr = str_replace('{$dbHost}', $dbHost, $configStr);
+                        $configStr = str_replace('{$dbName}', $dbName, $configStr);
+                        $configStr = str_replace('{$dbUser}', $dbUser, $configStr);
+                        $configStr = str_replace('{$dbPassword}', $dbPassword, $configStr);
+                        $configStr = str_replace('{$domain}', v, $configStr);
+                        $configStr = str_replace('{$dataPath}', "{$mDataPath}/{v}", $configStr);
+
+                        $configFilename = "{$configPath}/{v}.php";
+                        $handlder = fopen($configFilename, 'w');
+                        fwrite($handlder, $configStr);
+                        fclose($handlder);
+            
+                        exec("chown {$cpanelUser}:{$cpanelUser} $configFilename & chmod 755 $configFilename");
+                        
+                        // move the logo to the mdata folder
+                        if($row->logo)
+                        {
+                            $exploded = explode('.', $row->logo);
+                            $logoExtension = end($exploded);
+                            
+                            rename($row->logo, "$mDataPath/{$row->domain}/logo.{$logoExtension}");
+                        }
+                    }
+                    
+                    
+                    
+                    // ok, we are done
+                    $this->getCommunicator()
+                        ->setSuccess($this->_('freemium_account_created', array("$website/logo.php", 'Go to your instance')))
+                        ->addData($website, 'website');
+                        
+                        
+                    // send the confirmation email to the user
+                    $cPassword = new Com\Crypt\Password();
+                    $plain = $row->email;
+                    $code = $cPassword->encode($plain);
+
+                    //
+                    $request = $sl->get('request');
+                    $uri = $request->getUri();
+            
+                    $serverUrl = "{$uri->getScheme()}://{$uri->getHost()}";
+                    
+                    $routeParams = array();
+                    $routeParams['action'] = 'verify-account';
+                    $routeParams['code'] = $code;
+                    $routeParams['email'] = $row->email;
+                    
+                    $viewRenderer = $sl->get('ViewRenderer');
+                    $url = $serverUrl . $viewRenderer->url('auth/wildcard', $routeParams);
+                    
+                    // preparing some replacement values
+                    $data = array();
+                    $data['follow_us'] = $this->_('follow_us');
+                    $data['body'] = $this->_('confirm_your_email_address_body', array($url, $row->email, $row->password));
+                    $data['header'] = '';
+
+                    // load the email template and replace values
+                    $mTemplate = $sl->get('App\Model\EmailTemplate');
+                    $arr = $mTemplate->loadAndParse('common', $data);
+                    
+                    //
+                    $mailer = new Com\Mailer();
+                    
+                    // prepare the message to be send
+                    $message = $mailer->prepareMessage($arr['body'], null, $this->_('confirm_your_email_address_subject'));
+                        
+                    $message->setTo($row->email);
+                    
+                    foreach($this->mailTo as $mail)
+                    {
+                        $message->addBcc($mail);
+                    }
+                   
+                    // prepare de mail transport and send the message
+                    $transport = $mailer->getTransport($message, 'smtp1', 'sales');
+                    $transport->send($message);
+                    
+                    $this->_createDatabasesScript();
+                    
+                }
+            }
+        }
+        catch(\Exception $e)
+        {
+            $this->setException($e);
+        }
+        
+        return $this->isSuccess();
+    }
     
    
    /**
@@ -521,17 +1148,22 @@ class Instance extends Com\Model\AbstractModel
                     
                 if($isTrial)
                 {
-                    $message->addTo('gilson@paradisosolutions.com');
-                    $message->addTo('yassir@paradisosolutions.com');
-                    $message->addBcc('berardo@paradisosolutions.com');
+                    $message->setTo($this->mailTo[0]);
+                    unset($this->mailTo[0]);
+                    
+                    foreach($this->mailTo as $mail)
+                    {
+                        $message->addTo($mail);
+                    }
                 }
                 else
                 {
                     $message->setTo($params->email);
                     
-                    $message->addBcc('gilson@paradisosolutions.com');
-                    $message->addBcc('yassir@paradisosolutions.com');
-                    $message->addBcc('berardo@paradisosolutions.com');
+                    foreach($this->mailTo as $mail)
+                    {
+                        $message->addBcc($mail);
+                    }
                 }
                 
                 // prepare de mail transport and send the message
@@ -912,6 +1544,26 @@ class Instance extends Com\Model\AbstractModel
         }
         
         return $result;
+    }
+    
+    
+    /**
+    * 
+    * @return Com\FileSaver
+    */
+    protected function _getFileSaver(Com\PostedFile $postedFile)
+    {
+        $uploadPath = PUBLIC_DIRECTORY . '/uploads';
+                        
+        $fileSaver = new Com\FileSaver($postedFile);
+        $fileSaver->setEncloseWithDate(true);
+        $fileSaver->setUseRandFileName(true);
+        $fileSaver->setUploadPath($uploadPath);
+        $fileSaver->setContainerDirectory('img');
+        $fileSaver->setAllowImagesForWeb();
+        $fileSaver->setUseRandFileName(true);
+        
+        return $fileSaver;
     }
    
 }

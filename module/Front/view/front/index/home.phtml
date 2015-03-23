@@ -53,7 +53,7 @@ $com = $this->Communicator();
 
          <div class="form-control-2 required <?php $com->printErrorClass('password'); ?>">
             <label><?php echo $this->translate('Password')?>*</label>
-            <input type="password" name="password" required="required">
+            <input type="password" name="password" required="required" value="<?php echo $this->escapeHtml($this->password) ?>" >
             <?php $com->printFieldErrors('password'); ?>
          </div>
 
@@ -81,17 +81,18 @@ $com = $this->Communicator();
                 <label>
                     <input type="checkbox" name="resize_logo" value="1" <?php echo $this->resize_logo ? 'checked="checked"' : '' ?>>
                     <?php echo $this->translate('resize_logo_label')?>
+                    <a 
+                        tabindex="0" 
+                        class="help" 
+                        role="button" 
+                        data-toggle="popover" 
+                        data-trigger="focus" 
+                        
+                        data-content='<?php echo $this->translate('resizing_recommendation')?>'>
+                        <i class="fa fa-question-circle"></i>
+                    </a>
                 </label>
-                <a 
-                    tabindex="0" 
-                    class="help" 
-                    role="button" 
-                    data-toggle="popover" 
-                    data-trigger="focus" 
-                    
-                    data-content='<?php echo $this->translate('resizing_recommendation')?>'>
-                    <i class="fa fa-question-circle"></i>
-                </a>
+                
             </div>
             
             <?php $com->printFieldErrors('logo'); ?>
@@ -271,7 +272,7 @@ $com = $this->Communicator();
         }
 
         jQuery(function() {
-            check_instance_created(false, 1);
+            // check_instance_created(false, 1);
         });
 
     <?php endif; ?>

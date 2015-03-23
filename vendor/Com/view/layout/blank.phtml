@@ -19,7 +19,8 @@
                 ->prependStylesheet($this->basePath('/css/bootstrap.min.css'))
                 ->appendStylesheet($this->basePath('/css/font-awesome/css/font-awesome.min.css'))
         ?>
-
+        <?php echo $this->headStyle(); ?>
+        
         <!-- Scripts -->
         <?php 
         echo $this->headScript()

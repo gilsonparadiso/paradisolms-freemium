@@ -17,27 +17,26 @@ class IndexController extends Com\Controller\AbstractController
             $post = array_merge_recursive($request->getPost()->toArray(), $request->getFiles()->toArray());
             $params = new Zend\Stdlib\Parameters($post);
             
-            $params->type = 'freemium';
             #ini_set('display_errors', 1);
             #error_reporting(E_ALL);
             
             $mInstance = $sl->get('App\Model\Freemium\Instance');
-            $flag = $mInstance->doCreate($params);
+            $flag = $mInstance->canReserve($params);
             
             $com = $mInstance->getCommunicator();
+            $this->assign($params);
             
             if($flag)
             {
-                $data = $com->getData();
-                $this->assign($data);
+                $flag = $mInstance->doReserve($params);
+                $com = $mInstance->getCommunicator();
                 
-                $view = new Zend\View\Model\ViewModel($this->viewVars);
-                $view->setTemplate('front/index/thanks');
-                return $view;
-            }
-            else
-            {
-                $this->assign($params);
+                if($flag)
+                {
+                    $view = new Zend\View\Model\ViewModel($this->viewVars);
+                    $view->setTemplate('front/index/pending');
+                    return $view;
+                }
             }
                         
             $this->setCommunicator($com);
@@ -45,6 +44,49 @@ class IndexController extends Com\Controller\AbstractController
         }
         
         return $this->viewVars;
+    }
+    
+    
+    function internalAction()
+    {
+        $request = $this->getRequest();
+        
+        $sl = $this->getServiceLocator();
+        
+        if($request->isPost())
+        {
+            $post = array_merge_recursive($request->getPost()->toArray(), $request->getFiles()->toArray());
+            $params = new Zend\Stdlib\Parameters($post);
+            
+            #ini_set('display_errors', 1);
+            #error_reporting(E_ALL);
+            
+            $mInstance = $sl->get('App\Model\Freemium\Instance');
+            $flag = $mInstance->canReserve($params);
+            
+            $com = $mInstance->getCommunicator();
+            $this->assign($params);
+            
+            if($flag)
+            {
+                $flag = $mInstance->doCreate($params);
+                $com = $mInstance->getCommunicator();
+                
+                if($flag)
+                {
+                    $view = new Zend\View\Model\ViewModel($this->viewVars);
+                    $view->setTemplate('front/index/thanks');
+                    return $view;
+                }
+            }
+                        
+            $this->setCommunicator($com);
+            $this->assign('is_post', true);
+        }
+        
+        $view = new Zend\View\Model\ViewModel($this->viewVars);
+        $view->setTemplate('front/index/home');
+        return $view;
     }
     
     

@@ -10,6 +10,9 @@ $userId = $this->GlobalVars('identity.id', 0);
                 <a href="<?php echo $this->url('backend', array('controller' => 'sql', 'action' => 'index')); ?>">SQL</a>
             </li>
             <li>
+                <a href="<?php echo $this->url('backend', array('controller' => 'instance', 'action' => 'approval-pending')); ?>">Approval pending</a>
+            </li>
+            <li>
                 <a href="<?php echo $this->url('backend', array('controller' => 'instance', 'action' => 'list')); ?>">Instances</a>
             </li>
         </ul>

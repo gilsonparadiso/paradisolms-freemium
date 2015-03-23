@@ -19,8 +19,13 @@ class Verified extends ZfcDatagrid\Column\Formatter\AbstractFormatter
     {
         $row = $this->getRowData();
         $time = strtotime($row['c_email_verified_on']);
-        $date = date('Y.m.d', $time);
         
-        return $row['c_email_verified'] ? "<span class='label label-success'>Yes</span> <span style='font-size:10px'>$date</span>" : '<span class="label label-danger">No</span>';
+        if($row['c_email_verified'])
+        {
+            $date = date('Y.m.d', $time);
+            $date = "<br><span style='font-size:10px'>$date</span>";
+        }
+        
+        return $row['c_email_verified'] ? "<span class='label label-success'>Yes</span> $date" : '<span class="label label-danger">No</span>';
     }
 }

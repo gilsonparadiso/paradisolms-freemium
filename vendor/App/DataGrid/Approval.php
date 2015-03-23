@@ -5,7 +5,7 @@ namespace App\DataGrid;
 use Com, Zend, ZfcDatagrid, App;
 
 
-class Client extends Com\DataGrid\AbstractDataGrid
+class Approval extends Com\DataGrid\AbstractDataGrid
 {
 
 
@@ -15,21 +15,22 @@ class Client extends Com\DataGrid\AbstractDataGrid
         
         $formatter = new Com\DataGrid\Column\Formatter\Custom(function ($column, $row) use($obj)
         {
-            $urlInfo = $obj->url()->fromRoute('backend/wildcard', array(
+            $urlApprove = $obj->url()->fromRoute('backend/wildcard', array(
                 'controller' => 'instance',
-                'action' => 'info',
+                'action' => 'approve',
                 'id' => $row['c_id']
             ));
             
             $urlDelete = $obj->url()->fromRoute('backend/wildcard', array(
                 'controller' => 'instance',
                 'action' => 'delete',
-                'domain' => $row['c_domain']
+                'id' => $row['c_id']
             ));
             
             $text_return = <<<xxx
+<input type="checkbox" class="row" name="item[]" value="{$row['c_id']}" />
 <div class="btn-group">
-    <a href="$urlInfo" class="iframe btn btn-primary btn-xs info">Info</a>
+    <a href="$urlApprove" class="btn btn-primary btn-xs info">Approve</a>
     <button type="button" class="btn btn-primary btn-xs dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
         <span class="caret"></span>
     </button>
@@ -46,7 +47,7 @@ xxx;
         $col = new Com\DataGrid\Column\Action();
         $col->setFormatter($formatter);
         $col->setLabel('Actions');
-        $col->setWidth(1);
+        $col->setWidth(2);
         $this->addColumn($col);
         
         // 
@@ -61,11 +62,6 @@ xxx;
             $this->addColumn($col);
             
             // 
-            $col = new ZfcDatagrid\Column\Select('email_verified_on', 'c');
-            $col->setHidden();
-            $this->addColumn($col);
-            
-            // 
             $col = new ZfcDatagrid\Column\Select('db_name', 'd');
             $col->setHidden();
             $this->addColumn($col);
@@ -73,6 +69,7 @@ xxx;
             //
             $col = new ZfcDatagrid\Column\Select('created_on', 'c');
             $col->setHidden();
+            $col->setSortDefault(1, 'ASC');
             $this->addColumn($col);
             
             //
@@ -98,23 +95,12 @@ xxx;
         $col->setLabel('Email');
         $this->addColumn($col);
         
-        // 
-        $formatter = new App\DataGrid\Client\Formatter\Verified();
-        $options = array('1' => 'Yes', '0' => 'No');
-        
-        $col = new ZfcDatagrid\Column\Select('email_verified', 'c');
-        $col->setLabel('Verified');
-        $col->setFilterSelectOptions($options);
-        $col->setFormatter($formatter);
-        $this->addColumn($col);
-        
-        
         //
         $formatter = new App\DataGrid\Client\Formatter\Instance();
         
         $col = new ZfcDatagrid\Column\Select('domain', 'c');
-        $col->setLabel('Instance');
-        $col->setSortDefault(1, 'ASC');
+        $col->setLabel('Reserved domain');
+        
         $col->setFormatter($formatter);
         $this->addColumn($col);
         
@@ -142,7 +128,7 @@ xxx;
         $select->join(array('d' => $dbDatabase->getTable()), 'd.id = chd.database_id', array(), 'left');
         
         //
-        $select->where(array('deleted' => 0, 'approved' => 1));
+        $select->where(array('deleted' => 0, 'approved' => '0'));
         
         //
         $select->group('c.domain');

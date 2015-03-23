@@ -29,17 +29,168 @@ class InstanceController extends Com\Controller\BackendController
     
     
     
+    function approvalPendingAction()
+    {
+        $sl = $this->getServiceLocator();
+        
+        $this->loadCommunicator();
+
+        $grid = new App\DataGrid\Approval($sl, $this->viewVars);
+        $view = $grid->render();                
+        
+        $colorBoxView = new Zend\View\Model\ViewModel();
+        $colorBoxView->setTemplate('backend/instance/approval-pending.phtml');
+        
+        $view->addChild($colorBoxView, 'after_title');
+        
+        return $view;
+    }
+    
+    
+    
+    function approveAction()
+    {
+    
+        $sl = $this->getServiceLocator();
+        $request = $this->getRequest();
+        try
+        {
+            $ids = array();
+            
+            if($request->isPost())
+            {
+                $ids = (array)$request->getPost('item');
+            }
+            else
+            {
+                $ids[] = $this->_params('id', 0);
+            }
+            
+            $mInstance = $sl->get('App\Model\Freemium\Instance');
+            
+            $mInstance->doApprove($ids);
+            $com = $mInstance->getCommunicator();
+            
+            if($com->isSuccess())
+            {
+                $message = $com->getSuccessMessage();
+                $isError = false;
+            }
+            else
+            {
+                $isError = true;
+                $errors = $com->getGlobalErrors();
+                $message = $errors[0];
+            }
+            
+            return $this->_redirectToListWithMessage($message, $isError, 'approval-pending');
+        }
+        catch (\Exception $e)
+        {
+            $errorMessage = $e->getMessage();
+            return $this->_redirectToListWithMessage($errorMessage, true, 'approval-pending');
+        }
+    }
+    
+    
     function deleteAction()
     {
         $sl = $this->getServiceLocator();
-            
+
         try
         {
+            $dbClient = $sl->get('App\Db\Client');
+            
+            $request = $this->getRequest();
+            $id = $this->_params('id', '');
+            
+            if($request->isPost() || ($request->isGet() && $id))
+            {
+                if($request->isPost())
+                {
+                    $ids = (array)$request->getPost('item');
+                }
+                else
+                {
+                    $ids = array($id);
+                }
+
+                $predicateSet = new Zend\Db\Sql\Predicate\PredicateSet();
+                $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\In('id', $ids));
+                $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('deleted', '=', 0));
+                $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('approved', '=', 0));
+
+                try
+                {
+                    
+                    $rowset = $dbClient->findBy($predicateSet);
+                    $toDelete = array();
+                    
+                    foreach($rowset as $row)
+                    {
+                        $toDelete[] = $row;
+                        
+                        // find if there are another accounts with the same domain
+                        $predicateSet = new Zend\Db\Sql\Predicate\PredicateSet();
+                        $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('deleted', '=', 0));
+                        $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('domain', '=', $row->domain));
+                        $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('approved', '=', 0));
+                        $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('id', '!=', $row->id));
+                        $rowset2 = $dbClient->findBy($predicateSet);
+                        
+                        if($rowset2->count())
+                        {
+                            foreach($rowset2 as $row2)
+                            {
+                                $toDelete[] = $row2;
+                            }
+                        }
+                    }
+                    
+                    $count = 0;
+                    foreach($toDelete as $row)
+                    {
+                        //
+                        $where = array();
+                        $where['id = ?'] = $row->id;
+                        
+                        $data = array(
+                            'email' => "{$row->email}.{$row->id}"
+                            ,'domain' => "{$row->domain}.{$row->id}"
+                            ,'deleted' => 1
+                        );
+                        
+                        $dbClient->doUpdate($data, $where);
+                        
+                        if($row->logo)
+                        {
+                            @unlink($row->logo);
+                        }
+                        
+                        $count++;
+                    }
+                
+                    $com = $this->getCommunicator()->setSuccess("$count rows deleted");
+                
+                    $this->saveCommunicator($com);
+            
+                    return $this->redirect()->toRoute('backend/wildcard', array(
+                        'controller' => 'instance'
+                        ,'action' => 'approval-pending'
+                    ));
+                }
+                catch(\Exception $e)
+                {
+                    $errorMessage = $e->getMessage();
+                    return $this->_redirectToListWithMessage($errorMessage, true, 'approval-pending');
+                }
+            }
+            
             $domain = $this->_params('domain', '');
             
             $config = $sl->get('config');
             
-            $dbClient = $sl->get('App\Db\Client');
+            
             $dbDatabase = $sl->get('App\Db\Database');
             $dbClientDatabase = $sl->get('App\Db\Client\HasDatabase');
             
@@ -160,7 +311,7 @@ class InstanceController extends Com\Controller\BackendController
     }
     
     
-    protected function _redirectToListWithMessage($message, $isError)
+    protected function _redirectToListWithMessage($message, $isError, $list = 'list')
     {
         $com = $this->getCommunicator();
         
@@ -177,7 +328,7 @@ class InstanceController extends Com\Controller\BackendController
         
         return $this->redirect()->toRoute('backend/wildcard', array(
             'controller' => 'instance'
-            ,'action' => 'list'
+            ,'action' => $list
         ));
     }
     
@@ -192,11 +343,12 @@ class InstanceController extends Com\Controller\BackendController
         
         $dbClient = $sl->get('App\Db\Client');
         $dbDatabase = $sl->get('App\Db\Database');
+        $dbUser = $sl->get('App\Db\User');
         
         $rowClient = $dbClient->findByPrimaryKey($id);
         $result = $dbDatabase->findDatabaseByClientId($id);
         
-        if($rowClient && $result->count())
+        if($rowClient && $result->count() && $rowClient->approved)
         {
             $rowDb = $result->current();
             
@@ -213,6 +365,13 @@ class InstanceController extends Com\Controller\BackendController
             else
             {
                 $this->assign($response->getParams());
+                $this->assign('client', $rowClient);
+                
+                if($rowClient->approved_by)
+                {
+                    $row = $dbUser->findByPrimaryKey($rowClient->approved_by);
+                    $rowClient->approved_by = "{$row->first_name} {$row->last_name}";
+                }
             }
         }
         else
@@ -223,7 +382,14 @@ class InstanceController extends Com\Controller\BackendController
             }
             else
             {
-                $this->getCommunicator()->addError('The client do not have an assigned database.');
+                if(!$rowClient->approved)
+                {
+                    $this->getCommunicator()->addError('Instance not approved.');
+                }
+                else
+                {
+                    $this->getCommunicator()->addError('The client do not have an assigned database.');
+                }
             }
         }
         

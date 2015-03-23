@@ -25,6 +25,7 @@ return array(
     ,'instance_name_already_registered' => 'El nombre de instancia especificado no está disponible.'
     ,'invalid_characters_instance_name' => 'Hay algunos caracteres inválidos en el nombre de la instancia'
     ,'freemium_account_created' => "Útimo paso. Por favor revise su correo, le hemos enviado un link para ativar su cuenta."
+    ,'freemium_account_created_pending_approval' => "Su cuenta de usuario está pendiente de aprobación. Nos pondremos en contacto con usted lo más pronto posible."
     
     //
     ,'confirm_your_email_address_subject' => 'Por favor confirme su dirección de coreo.'
@@ -47,5 +48,13 @@ return array(
     
     ,'no_logo_to_rezise' => "No ha seleccionado un logo para que puda ser redimencionado."
     ,'fix_the_below_error' => 'Por favor corrija los errores especificados.'
+    
+    ,'new_accocunt_to_approve' => 'Nueva cuenta de usuario ha sido creada.<br /> <a href="%s">%s</a><br><br>
+    <strong>Client\'s info</strong><br>
+    Nombre: %s<br>
+    Email: %s<br>
+    Dominio: %s<br>
+    '
+    ,'new_accocunt_to_approve_subject' => 'Nueva cuenta de usuario ha sido creada %s'
   
 );

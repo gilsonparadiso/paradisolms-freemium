@@ -19,6 +19,7 @@ return array(
     ,'instance_name_already_registered' => 'The choosen instance name is not avaiable.'
     ,'invalid_characters_instance_name' => 'Invalid characters in the instance name'
     ,'freemium_account_created' => "You are almost done. Please check your email for a link to activate your LMS instance."
+    ,'freemium_account_created_pending_approval' => "Your account is pending for approval. We'll be in touch with you within the next 12 business hours."
     
     // 
     ,'confirm_your_email_address_subject' => 'Please confirm your email address'
@@ -41,5 +42,11 @@ return array(
     ,'no_logo_to_rezise' => "You've not uploaded a logo to resize."
     ,'fix_the_below_error' => 'Please fix the below error.'
     
-  
+    ,'new_accocunt_to_approve' => 'A new account has been created.<br /> To approve it go to <a href="%s">%s</a><br><br>
+    <strong>Client\'s info</strong><br>
+    Name: %s<br>
+    Email: %s<br>
+    Domain: %s<br>
+    '
+    ,'new_accocunt_to_approve_subject' => 'A new account has been created at %s'
 );

@@ -1,14 +1,52 @@
 <?php
 $com = $this->Communicator();
+$client = $this->client;
 ?>
+<?php $this->headStyle()->captureStart(); ?>
+.table{}
+.table td.td_label{font-weight:bold;width:140px;color:#000;font-size:12px}
+<?php $this->headStyle()->captureEnd(); ?>
 
-<div style="width:400px;height:80px">
+<div style="height:80px">
+
     <?php $com->printMessage() ?>
 
     <?php if($com->isSuccess()) : ?>
-
-        <div>Total active users <span class="badge"><?php echo $this->active?></span></div>
-        <div>Total inactive users <span class="badge"><?php echo $this->inactive?></span></div>
+        
+        <table class="table">
+            <tr>
+                <td class="td_label">Total active users</td>
+                <td><span class="badge"><?php echo $this->active?></span></td>
+            </tr>
+            <tr>
+                <td class="td_label">Total inactive users</td>
+                <td><span class="badge"><?php echo $this->inactive?></span></td>
+            </tr>
+            
+            <tr>
+                <td class="td_label">Approved on</td>
+                <td>
+                    <?php if($client->approved_on) : ?>
+                        <?php $time = strtotime($client->approved_on); ?>
+                        <?php echo date('F d, Y @ h:i a', $time);?>
+                    <?php else : ?>
+                        - 
+                    <?php endif;?>
+                </td>
+            </tr>
+            
+            <tr>
+                <td class="td_label">Approved by</td>
+                <td>
+                    <?php if($client->approved_by) : ?>
+                        <?php echo $client->approved_by ?>
+                    <?php else : ?>
+                        -
+                    <?php endif;?>
+                </td>
+            </tr>
+            
+        </table>
 
     <?php endif; ?>
 </div>
