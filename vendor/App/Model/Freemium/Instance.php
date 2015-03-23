@@ -921,6 +921,7 @@ class Instance extends Com\Model\AbstractModel
                 $data['password'] = $params->password;
                 $data['domain'] = $domain;
                 $data['first_name'] = $params->first_name;
+                $data['approved'] = 1;
                 $data['last_name'] = $params->last_name;
                 $data['created_on'] = date('Y-m-d H:i:s');
                 $data['email_verified'] = $isTrial ? 1 : 0;
@@ -1313,6 +1314,8 @@ class Instance extends Com\Model\AbstractModel
                 
                 $row->email_verified = 1;
                 $row->email_verified_on = date('Y-m-d H:i:s');
+                $row->approved_on = date('Y-m-d H:i:s');
+                $row->approved = 1;
                 
                 $where = array();
                 $where['id = ?'] = $row->id;
