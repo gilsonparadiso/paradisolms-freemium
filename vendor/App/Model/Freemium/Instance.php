@@ -570,6 +570,19 @@ class Instance extends Com\Model\AbstractModel
                     }
                     
                     
+                    //
+                    $data = array();
+                    $data['approved'] = 1;
+                    $data['approved_on'] = date('Y-m-d H:i:s');
+                    $data['approved_by'] = $this->getUserId();
+                    
+                    $where = array();
+                    $where['id = ?'] = $row->id;
+                    $dbClientHasDb->doUpdate($data, $where);
+                    
+                    
+                    
+                    //
                     
                     // ok, we are done
                     $this->getCommunicator()
