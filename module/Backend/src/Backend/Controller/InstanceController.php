@@ -50,7 +50,6 @@ class InstanceController extends Com\Controller\BackendController
     
     function approveAction()
     {
-    
         $sl = $this->getServiceLocator();
         $request = $this->getRequest();
         try
@@ -73,8 +72,8 @@ class InstanceController extends Com\Controller\BackendController
             
             if($com->isSuccess())
             {
-                $message = $com->getSuccessMessage();
                 $isError = false;
+                $message = 'Account successfull approved';
             }
             else
             {
@@ -188,8 +187,8 @@ class InstanceController extends Com\Controller\BackendController
             
             $domain = $this->_params('domain', '');
             
+            $cp = $sl->get('cPanelApi');
             $config = $sl->get('config');
-            
             
             $dbDatabase = $sl->get('App\Db\Database');
             $dbClientDatabase = $sl->get('App\Db\Client\HasDatabase');
@@ -207,7 +206,6 @@ class InstanceController extends Com\Controller\BackendController
             $dbHost = $config['freemium']['db']['host'];
             $dbPassword = $config['freemium']['db']['password'];
 
-            
             //
             $rowsetClient = $dbClient->findByDomain($domain);
             $countClient = $rowsetClient->count();
@@ -236,7 +234,7 @@ class InstanceController extends Com\Controller\BackendController
                     $dbName = $rowDatabase->db_name;
                     $dbNameNoPrefix = str_replace($dbPrefix, '', $dbName);
                     
-                    $cp = $sl->get('cPanelApi');
+                    
 
                     /*************************************/
                     // delete the database
@@ -294,15 +292,16 @@ class InstanceController extends Com\Controller\BackendController
             /*************************************/
             // delete mdata folder
             /*************************************/
-            #"rm {$mDataPath}/$domain/ -Rf";
             #exec("rm {$mDataPath}/$domain/ -Rf");
+            exec("mv {$mDataPath}/$domain/ {$mDataPath}/$domain.deleted");
             
             
             /*************************************/
             // delete config file
             /*************************************/
-            #$configFilename = "{$configPath}/{$domain}.php";
+            $configFilename = "{$configPath}/{$domain}.php";
             #exec("rm $configFilename");
+            exec("mv $configFilename $configFilename.deleted");
             
             $message = "Domain $domain successfull removed.";
             return $this->_redirectToListWithMessage($message, false);

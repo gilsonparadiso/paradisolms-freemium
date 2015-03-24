@@ -75,7 +75,7 @@ class Module
         $request = $serviceManager->get('request');
         $response = $serviceManager->get('response');
         
-        if(method_exists('getCookie', $request))
+        if(method_exists($request, 'getCookie'))
         {
             $cookie = $request->getCookie();
    
@@ -92,7 +92,7 @@ class Module
             {
                 // if not trying to change the language, then check if the language was already set in the session variable
                 // if not session was set then we try to get the language from the browser
-                if(!$cookie->lang)
+                if(!isset($cookie->lang))
                 {
                     // get language from browser preferences
                     $request = $serviceManager->get('request');

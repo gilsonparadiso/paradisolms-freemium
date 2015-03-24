@@ -10,8 +10,9 @@ class Instance extends Com\Model\AbstractModel
     
     protected $mailTo = array(
         'yassir@paradisosolutions.com'
-        #,'gilson@paradisosolutions.com'
-        #,'berardo@paradisosolutions.com'
+        ,'gilson@paradisosolutions.com'
+        ,'berardo@paradisosolutions.com'
+        ,'camilo@paradisosolutions.com'
     );
     
     
@@ -285,7 +286,7 @@ class Instance extends Com\Model\AbstractModel
             // cookie
             $request = $sl->get('request');
             $cookie = $request->getCookie();
-            if($cookie->lang)
+            if(isset($cookie->lang))
             {
                 $data['lang'] = $cookie->lang;
             }
@@ -363,10 +364,12 @@ class Instance extends Com\Model\AbstractModel
             $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\In('id', $ids));
             $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('approved', '=', 0));
             
-            $rowset = $dbClient->findBy($predicateSet);
+            $rowset = $dbClient->findBy($predicateSet, array(), 'id desc');
             if(!$rowset->count())
             {
-                $this->getCommunicator()->addError("You've selected $countSelected rows, there were found $countFound");
+                $countSelected = count($ids);
+                
+                $this->getCommunicator()->addError("You've selected $countSelected rows, there were found 0");
                 return false;
             }
             
@@ -381,7 +384,7 @@ class Instance extends Com\Model\AbstractModel
                 $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('domain', '=', $row->domain));
                 $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('approved', '=', 0));
                 $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('id', '!=', $row->id));
-                $rowset2 = $dbClient->findBy($predicateSet);
+                $rowset2 = $dbClient->findBy($predicateSet, array(), 'id desc');
                 
                 if($rowset2->count())
                 {
@@ -392,7 +395,6 @@ class Instance extends Com\Model\AbstractModel
                 }
             }
             
-            
             if(count($toApprove))
             {
                 require_once 'vendor/3rdParty/moodle/moodlelib.php';
@@ -400,6 +402,7 @@ class Instance extends Com\Model\AbstractModel
                 
                 $cp = $sl->get('cPanelApi');
                 
+                $config = $sl->get('config');
                 $mDataMasterPath = $config['freemium']['path']['master_mdata'];
                 $masterSqlFile = $config['freemium']['path']['master_sql_file'];
                 $mDataPath = $config['freemium']['path']['mdata'];
@@ -412,32 +415,20 @@ class Instance extends Com\Model\AbstractModel
                 $dbUser =  $config['freemium']['db']['user'];
                 $dbHost =  $config['freemium']['db']['host'];
                 $dbPassword =  $config['freemium']['db']['password'];
-                    
+                
                 foreach($toApprove as $row)
                 {
-                    
-                    // find the a free database
-                    $rowDb = $dbDatabase->findFreeDatabase();
-                    // ups, no free database found
-                    if(!$rowDb)
-                    {
-                        $this->getCommunicator()->addError($this->_('unexpected_error'));
-                        $this->_createDatabasesScript();
-                        return false;
-                    }
-                    
                     $topDomain = $config['freemium']['top_domain'];
                     $domain = $row->domain;
                     $website = "http://{$domain}";
-                
-                
-                    // check if we already have an approved user from the sae domain
+                                
+                    // check if we already have an approved user from the same domain
                     $predicateSet = new Zend\Db\Sql\Predicate\PredicateSet();
                     $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('deleted', '=', 0));
                     $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('domain', '=', $row->domain));
                     $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('approved', '=', 1));
                     $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('id', '!=', $row->id));
-                    $rowset2 = $dbClient->findBy($predicateSet);
+                    $rowset2 = $dbClient->findBy($predicateSet, array(), 'id desc');
                     
                     if($rowset2->count())
                     {
@@ -453,17 +444,26 @@ class Instance extends Com\Model\AbstractModel
                         // add as a new user into the existing instance
                         $dbName = $rowDb->db_name;
                         $password = hash_internal_user_password($row->password);
-
-                        mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
-                        mysql_select_db($dbName);
                         
-                        $firstNname = mysql_real_escape_string($row->first_name);
-                        $lastNname = mysql_real_escape_string($row->last_name);
+                        $db = new \PDO("mysql:host={$rowDb->db_host};dbname=$dbName;charset=utf8", $rowDb->db_user, $rowDb->db_password);
+                        $stmt = $db->prepare("INSERT INTO mdl_user(username, password, firstname, lastname, email, idnumber, confirmed, lang) VALUES(:username, :password, :firstname, :lastname, :email, :idnumber, :confirmed, :lang)");
                         
-                        $sql = "INSERT INTO mdl_user (`username`, `password`, `firstname`, `lastname`, `email`, ,`confirmed`) VALUES
-                        ('{$row->email}', '$password', '{$firstNname}', '{$lastNname}', '$email', $confirmed)";
+                        $result = $stmt->execute(array(
+                            ':username' => $row->email
+                            ,':password' => $password
+                            ,':firstname' => $row->first_name
+                            ,':lastname' => $row->last_name
+                            ,':email' => $row->email
+                            ,':idnumber' => $row->email
+                            ,':confirmed' => 0
+                            ,':lang' => $row->lang
+                        ));
                         
-                        mysql_query($sql);
+                        if(!$result)
+                        {
+                            // d($stmt->errorCode());
+                            // d($stmt->errorInfo());
+                        }
                         
                         // ok reserve the database
                         $data = array(
@@ -475,9 +475,20 @@ class Instance extends Com\Model\AbstractModel
                     }
                     else
                     {
-                        $cpUser = $cp->get_user();
-                        $result = $cp->park($cpUser, $row->domain, null);
+                        // find a free database
+                        $rowDb = $dbDatabase->findFreeDatabase();
+                        // ups, no free database found
+                        if(!$rowDb)
+                        {
+                            $this->getCommunicator()->addError($this->_('unexpected_error'));
+                            $this->_createDatabasesScript();
+                            return false;
+                        }
                     
+                        $cpUser = $cp->get_user();
+
+                        $result = $cp->park($cpUser, $row->domain, null);
+                        
                         $apiResponse = new App\Cpanel\ApiResponse($result);
                         
                         if($apiResponse->isError())
@@ -495,7 +506,6 @@ class Instance extends Com\Model\AbstractModel
                             }
                         }
                         
-                        
                         // reserve database
                         $data = array(
                             'client_id' => $row->id
@@ -506,41 +516,41 @@ class Instance extends Com\Model\AbstractModel
 
                         // update credentials and user information in the lms instance
                         $dbName = $rowDb->db_name;
-                        $password = hash_internal_user_password($params->password);
-            
-                        mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
-                        mysql_select_db($dbName);
-                        
-                        $firstNname = mysql_real_escape_string($params->first_name);
-                        $lastNname = mysql_real_escape_string($params->last_name);
-                        
-                        
+                        $password = hash_internal_user_password($row->password);
+                                                
                         $sql = "
                         UPDATE mdl_user SET 
-                            `password` = '$password'
-                            ,`email` = '{$row->email}'
-                            ,`username` = '{$row->email}'
-                            ,`firstname` = '{$firstNname}'
-                            ,`lastname` = '{$lastNname}'
-                            ,`confirmed` = 0
-                        WHERE `id` = '2'
-                        ";
+                            `password` = ?
+                            ,`email` = ?
+                            ,`username` = ?
+                            ,`firstname` = ?
+                            ,`lastname` = ?
+                            ,`confirmed` = ?
+                            ,`lang` = ?
+                        WHERE `id` = ?";
                         
-                        mysql_query($sql);
+                        $db = new \PDO("mysql:host={$rowDb->db_host};dbname=$dbName;charset=utf8", $rowDb->db_user, $rowDb->db_password);
+                        $stmt = $db->prepare($sql);
+                        
+                        $result = $stmt->execute(array($password, $row->email, $row->email, $row->first_name, $row->last_name, 0, $row->lang, 2));
                         
                         //create mdata folder
                         $newUmask = 0777;
                         $oldUmask = umask($newUmask);
-
-                        mkdir("$mDataPath/$row->domain", $newUmask, true);
-                        chmod("$mDataPath/$row->domain", $newUmask);
+                        
+                        if(!file_exists("$mDataPath/{$row->domain}"))
+                        {
+                            mkdir("$mDataPath/{$row->domain}", $newUmask, true);
+                        }
+                        
+                        chmod("$mDataPath/{$row->domain}", $newUmask);
 
                         // Copying from master data folder
                         exec("cp -Rf {$mDataMasterPath}/* {$mDataPath}/{$row->domain}/");
 
                         // Changing owner for the data folder
                         exec("chown -R {$cpanelUser}:{$cpanelUser} {$mDataPath}/{$row->domain} -R");
-                        exec("chmod 777 {$mDataPath}/{v} -R");
+                        exec("chmod 777 {$mDataPath}/{$row->domain} -R");
 
                         // creating config file
                         $configStr = file_get_contents('data/config.template');
@@ -548,15 +558,16 @@ class Instance extends Com\Model\AbstractModel
                         $configStr = str_replace('{$dbName}', $dbName, $configStr);
                         $configStr = str_replace('{$dbUser}', $dbUser, $configStr);
                         $configStr = str_replace('{$dbPassword}', $dbPassword, $configStr);
-                        $configStr = str_replace('{$domain}', v, $configStr);
-                        $configStr = str_replace('{$dataPath}', "{$mDataPath}/{v}", $configStr);
+                        $configStr = str_replace('{$domain}', $row->domain, $configStr);
+                        $configStr = str_replace('{$dataPath}', "{$mDataPath}/{$row->domain}", $configStr);
 
-                        $configFilename = "{$configPath}/{v}.php";
+                        $configFilename = "{$configPath}/{$row->domain}.php";
                         $handlder = fopen($configFilename, 'w');
                         fwrite($handlder, $configStr);
                         fclose($handlder);
-            
-                        exec("chown {$cpanelUser}:{$cpanelUser} $configFilename & chmod 755 $configFilename");
+                        
+                        exec("chown {$cpanelUser}:{$cpanelUser} $configFilename");
+                        exec("chmod 755 $configFilename");
                         
                         // move the logo to the mdata folder
                         if($row->logo)
@@ -564,10 +575,12 @@ class Instance extends Com\Model\AbstractModel
                             $exploded = explode('.', $row->logo);
                             $logoExtension = end($exploded);
                             
-                            rename($row->logo, "$mDataPath/{$row->domain}/logo.{$logoExtension}");
+                            if(file_exists($row->logo))
+                            {
+                                rename($row->logo, "$mDataPath/{$row->domain}/logo.{$logoExtension}");
+                            }
                         }
                     }
-                    
                     
                     //
                     $data = array();
@@ -577,17 +590,11 @@ class Instance extends Com\Model\AbstractModel
                     
                     $where = array();
                     $where['id = ?'] = $row->id;
-                    $dbClientHasDb->doUpdate($data, $where);
-                    
-                    
-                    
-                    //
+                    $dbClient->doUpdate($data, $where);
                     
                     // ok, we are done
                     $this->getCommunicator()
-                        ->setSuccess($this->_('freemium_account_created', array("$website/logo.php", 'Go to your instance')))
-                        ->addData($website, 'website');
-                        
+                        ->setSuccess('Account successfull approved');
                         
                     // send the confirmation email to the user
                     $cPassword = new Com\Crypt\Password();
@@ -604,7 +611,7 @@ class Instance extends Com\Model\AbstractModel
                     $routeParams['action'] = 'verify-account';
                     $routeParams['code'] = $code;
                     $routeParams['email'] = $row->email;
-                    
+
                     $viewRenderer = $sl->get('ViewRenderer');
                     $url = $serverUrl . $viewRenderer->url('auth/wildcard', $routeParams);
                     
@@ -630,13 +637,12 @@ class Instance extends Com\Model\AbstractModel
                     {
                         $message->addBcc($mail);
                     }
-                   
+
                     // prepare de mail transport and send the message
                     $transport = $mailer->getTransport($message, 'smtp1', 'sales');
                     $transport->send($message);
                     
                     $this->_createDatabasesScript();
-                    
                 }
             }
         }
@@ -644,7 +650,7 @@ class Instance extends Com\Model\AbstractModel
         {
             $this->setException($e);
         }
-        
+
         return $this->isSuccess();
     }
     
@@ -933,11 +939,22 @@ class Instance extends Com\Model\AbstractModel
                 $data['password'] = $params->password;
                 $data['domain'] = $domain;
                 $data['first_name'] = $params->first_name;
-                $data['approved'] = 1;
                 $data['last_name'] = $params->last_name;
                 $data['created_on'] = date('Y-m-d H:i:s');
+                $data['approved'] = 1;
+                $data['approved_on'] = date('Y-m-d H:i:s');
                 $data['email_verified'] = $isTrial ? 1 : 0;
-                $data['type'] = $params->type;
+                
+                $request = $sl->get('request');
+                $cookie = $request->getCookie();
+                if(isset($cookie->lang))
+                {
+                    $lang = $data['lang'] = $cookie->lang;
+                }
+                else
+                {
+                    $lang = $data['lang'] = 'en';
+                }
                 
                 $dbClient->doInsert($data);
                 $clientId = $dbClient->getLastInsertValue();
@@ -1024,26 +1041,22 @@ class Instance extends Com\Model\AbstractModel
                     $dbName = $rowDb->db_name;
                     $password = hash_internal_user_password($params->password);
         
-                    mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
-                    mysql_select_db($dbName);
-                    
-                    $firstNname = mysql_real_escape_string($params->first_name);
-                    $lastNname = mysql_real_escape_string($params->last_name);
-                    
                     $confirmed = $isTrial ? 1 : 0;
                     
                     $sql = "
                     UPDATE mdl_user SET 
-                        `password` = '$password'
-                        ,`email` = '{$params->email}'
-                        ,`username` = '{$params->email}'
-                        ,`firstname` = '{$firstNname}'
-                        ,`lastname` = '{$lastNname}'
-                        ,`confirmed` = $confirmed
-                    WHERE `id` = '2'
-                    ";
+                        password = ?
+                        ,email = ?
+                        ,username = ?
+                        ,firstname = ?
+                        ,lastname = ?
+                        ,confirmed = ?
+                        ,lang = ?
+                    WHERE id = ?";
                     
-                    mysql_query($sql);
+                    $db = new \PDO("mysql:host={$rowDb->db_host};dbname=$dbName;charset=utf8", $rowDb->db_user, $rowDb->db_password);
+                    $stmt = $db->prepare($sql);
+                    $stmt->execute(array($password, $params->email, $params->email, $params->first_name, $params->last_name, $confirmed, $lang, 2));
 
                     
 
@@ -1051,7 +1064,11 @@ class Instance extends Com\Model\AbstractModel
                     $newUmask = 0777;
                     $oldUmask = umask($newUmask);
 
-                    mkdir("$mDataPath/$domain", $newUmask, true);
+                    if(!file_exists("$mDataPath/$domain"))
+                    {
+                        mkdir("$mDataPath/$domain", $newUmask, true);
+                    }
+                    
                     chmod("$mDataPath/$domain", $newUmask);
 
                     // Copying from master data folder
@@ -1097,16 +1114,18 @@ class Instance extends Com\Model\AbstractModel
                     $dbName = $rowDb->db_name;
                     $password = hash_internal_user_password($params->password);
 
-                    mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
-                    mysql_select_db($dbName);
-                    
-                    $firstNname = mysql_real_escape_string($params->first_name);
-                    $lastNname = mysql_real_escape_string($params->last_name);
-                    
-                    $sql = "INSERT INTO mdl_user (`username`, `password`, `firstname`, `lastname`, `email`, ,`confirmed`) VALUES
-                    ('{$params->email}', '$password', '{$firstNname}', '{$lastNname}', '$email', $confirmed)";
-                    
-                    mysql_query($sql);
+                    $db = new \PDO("mysql:host={$rowDb->db_host};dbname=$dbName;charset=utf8", $rowDb->db_user, $rowDb->db_password);
+                    $stmt = $db->prepare("INSERT INTO mdl_user(username, password, firstname, lastname, email, idnumber, confirmed, lang) VALUES(:username, :password, :firstname, :lastname, :email, :idnumber, :confirmed, :lang)");
+                    $stmt->execute(array(
+                        ':username' => $params->email
+                        ,':password' => $password
+                        ,':firstname' => $params->first_name
+                        ,':lastname' => $params->last_name
+                        ,':email' => $params->email
+                        ,':idnumber' => $params->email
+                        ,':confirmed' => 0
+                        ,':lang' => $lang
+                    ));
                     
                     
                     // ok reserve the database
@@ -1342,13 +1361,13 @@ class Instance extends Com\Model\AbstractModel
                     
                     $sql = "
                     UPDATE mdl_user SET 
-                        `confirmed` = 1
-                    WHERE `email` = '{$params->email}'
+                        `confirmed` = ?
+                    WHERE `email` = ?
                     ";
-                    
-                    $cnn = mysql_connect($rowDb->db_host, $rowDb->db_user, $rowDb->db_password);
-                    mysql_select_db($rowDb->db_name, $cnn);
-                    mysql_query($sql, $cnn);
+
+                    $db = new \PDO("mysql:host={$rowDb->db_host};dbname={$rowDb->db_name};charset=utf8", $rowDb->db_user, $rowDb->db_password);
+                    $stmt = $db->prepare($sql);
+                    $stmt->execute(array(1, $params->email));
                 }
                 
                 $this->getCommunicator()->setSuccess($this->_('account_verified', array("http://{$row->domain}/logo.php")));
