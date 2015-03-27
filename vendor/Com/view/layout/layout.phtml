@@ -43,12 +43,162 @@
          <!-- /freemium -->
          <header>
             <div id="logo">
-               <img src="<?php echo $this->basePath('img/lms-logo.png') ?>" alt="Paradiso LMS">
+               <a target="_blank" ref="http://paradisosolutions.com.co/">
+               <img src="<?php echo $this->translate('logo'); ?>" alt="Paradiso LMS"></a>
             </div>
-            <div id="right-buttons">
+            <div id="right-buttonss">
                <!--a href="<?php //echo $CFG->wwwroot?>/login/index.php"><?php echo $this->translate('Login')?></a-->
             </div>
+             
+             <div id="centrar">
+                 <aside class="top-links">
+
+                        <div class="custom top-telephone-number">
+                            <p class="phone">
+                                <?php echo $this->translate('phone'); ?></p>
+                            <p class="movil">
+                                <?php echo $this->translate('movil'); ?></p>
+                        </div>
+
+                        <div class="custom top-buttons">
+                            <ul>
+                                <li>
+                                    <a class="contact-us" href="<?php echo $this->translate('menu_nosotros_3_url'); ?>" target="_blank"><?php echo $this->translate('menu_contact'); ?></a>
+                                </li>
+                            </ul>
+                        </div>
+
+                 </aside>
+             </div>
+             
+             <div class="menu" id="main-menu">
+                 <nav>
+					<ul>
+						<li>
+							<a href="#"><?php echo $this->translate('menu_paradiso'); ?></a>
+							<ul class="drop-paradiso">
+								<li>
+									<a href="<?php echo $this->translate('menu_paradiso_1_url'); ?>"><?php echo $this->translate('menu_paradiso_1'); ?></a>
+								</li>
+								<li>
+									<a href="<?php echo $this->translate('menu_paradiso_2_url'); ?>"><?php echo $this->translate('menu_paradiso_2'); ?></a>
+								</li>
+							</ul>
+						</li>
+						<li>
+							<a href="#"><?php echo $this->translate('menu_soluciones'); ?></a>
+							<ul class="drop-soluciones">
+								<li>
+									<a href="<?php echo $this->translate('menu_soluciones_1_url'); ?>">
+										<?php echo $this->translate('menu_soluciones_1'); ?>
+									</a>
+								</li>
+								
+								<li>
+									<a href="<?php echo $this->translate('menu_soluciones_2_url'); ?>">
+										<?php echo $this->translate('menu_soluciones_2'); ?>
+									</a>
+								</li>
+								<li>
+									<a href="<?php echo $this->translate('menu_soluciones_3_url'); ?>">
+										<?php echo $this->translate('menu_soluciones_3'); ?>
+									</a>
+								</li>
+								
+								<li>
+									<a href="<?php echo $this->translate('menu_soluciones_4_url'); ?>">
+										<?php echo $this->translate('menu_soluciones_4'); ?>
+									</a>
+								</li>
+								
+								<li>
+									<a href="<?php echo $this->translate('menu_soluciones_5_url'); ?>">
+										<?php echo $this->translate('menu_soluciones_5'); ?>
+									</a>
+								</li>
+							</ul>
+						</li>
+						<li>
+							<a href="#"><?php echo $this->translate('menu_servicios'); ?></a>
+							<ul class="drop-servicios">
+								<li>
+									<a href="<?php echo $this->translate('menu_servicios_1_url'); ?>"><?php echo $this->translate('menu_servicios_1'); ?></a>
+									<ul>
+										<li>
+											<a href="<?php echo $this->translate('menu_servicios_1_1_url'); ?>"><?php echo $this->translate('menu_servicios_1_1'); ?></a>
+										</li>
+										<li>
+											<a href="<?php echo $this->translate('menu_servicios_1_2_url'); ?>"><?php echo $this->translate('menu_servicios_1_2'); ?></a>
+										</li>
+										<li>
+											<a href="<?php echo $this->translate('menu_servicios_1_3_url'); ?>"><?php echo $this->translate('menu_servicios_1_3'); ?></a>
+										</li>
+										<li>
+											<a href="<?php echo $this->translate('menu_servicios_1_4_url'); ?>"><?php echo $this->translate('menu_servicios_1_4'); ?></a>
+										</li>
+										<li>
+											<a href="<?php echo $this->translate('menu_servicios_1_5_url'); ?>"><?php echo $this->translate('menu_servicios_1_5'); ?></a>
+										</li>
+									</ul>
+								</li>
+								<li>
+									<a href="<?php echo $this->translate('menu_servicios_2_url'); ?>"><?php echo $this->translate('menu_servicios_2'); ?></a>
+									<ul>
+										<li>
+											<a href="<?php echo $this->translate('menu_servicios_2_1_url'); ?>"><?php echo $this->translate('menu_servicios_2_1'); ?></a>
+										</li>
+										
+										<li>
+											<a href="<?php echo $this->translate('menu_servicios_2_2_url'); ?>"><?php echo $this->translate('menu_servicios_2_2'); ?></a>
+										</li>
+
+										<li>
+											<a href="<?php echo $this->translate('menu_servicios_2_3_url'); ?>"><?php echo $this->translate('menu_servicios_2_3'); ?></a>
+										</li>
+									</ul>
+								</li>
+							</ul>
+						</li>
+						<li>
+							<a href="#"><?php echo $this->translate('menu_cursos'); ?></a>
+							<ul class="drop-cursos">
+								<li>
+									<a href="<?php echo $this->translate('menu_cursos_1_url'); ?>"><?php echo $this->translate('menu_cursos_1'); ?></a>
+								</li>
+								<li>
+									<a href="<?php echo $this->translate('menu_cursos_2_url'); ?>"><?php echo $this->translate('menu_cursos_2'); ?></a>
+								</li>
+							</ul>
+						</li>
+						<li>
+							<a href="#">
+									<?php echo $this->translate('menu_nosotros'); ?>
+								</a>
+							<ul class="drop-nosotros">
+								<li>
+									<a href="<?php echo $this->translate('menu_nosotros_1_url'); ?>"><?php echo $this->translate('menu_nosotros_1'); ?></a>
+								</li>
+								<li>
+									<a href="<?php echo $this->translate('menu_nosotros_2_url'); ?>"><?php echo $this->translate('menu_nosotros_2'); ?></a>
+								</li>
+								<li>
+									<a href="<?php echo $this->translate('menu_nosotros_3_url'); ?>"><?php echo $this->translate('menu_nosotros_3'); ?></a>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				</nav>
+             </div>
          </header>
+          
+          <div id="text-top">
+            <h2><?php echo $this->translate('try_free'); ?></h2>
+          </div>
+          <div id="head-form">
+              
+              
+              <h3><?php echo $this->translate('test_begin'); ?></h3>
+          </div>
 
          <?php echo $this->content; ?>
          
