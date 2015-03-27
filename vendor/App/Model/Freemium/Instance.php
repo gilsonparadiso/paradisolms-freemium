@@ -345,6 +345,9 @@ class Instance extends Com\Model\AbstractModel
             // prepare de mail transport and send the message
             $transport = $mailer->getTransport($message, 'smtp1', 'sales');
             $transport->send($message);
+            
+            $this->getCommunicator()
+                ->setSuccess($this->_('freemium_account_created_pending_approval'));
         }
         catch(\Exception $e)
         {
