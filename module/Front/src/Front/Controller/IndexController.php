@@ -30,6 +30,7 @@ class IndexController extends Com\Controller\AbstractController
             {
                 $flag = $mInstance->doReserve($params);
                 $com = $mInstance->getCommunicator();
+                $this->setCommunicator($com);
                 
                 if($flag)
                 {
