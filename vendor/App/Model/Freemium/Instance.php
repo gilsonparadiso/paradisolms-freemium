@@ -319,12 +319,14 @@ class Instance extends Com\Model\AbstractModel
             // load the email template and replace values
             $mTemplate = $sl->get('App\Model\EmailTemplate');
             
-            if('es' != $lang)
+            $langString = '';
+            if('es' == $lang)
             {
-                $lang = '';
+                $langString = "_$lang";
             }
             
-            $arr = $mTemplate->loadAndParse("common_{$lang}", $data);
+            
+            $arr = $mTemplate->loadAndParse("common{$langString}", $data);
             
             //
             $mailer = new Com\Mailer();
@@ -631,12 +633,13 @@ class Instance extends Com\Model\AbstractModel
                     // load the email template and replace values
                     $mTemplate = $sl->get('App\Model\EmailTemplate');
                     
-                    if('es' != $row->lang)
+                    $langString = '';
+                    if('es' == $row->lang)
                     {
-                        $lang = '';
+                        $langString = "_$lang";
                     }
                     
-                    $arr = $mTemplate->loadAndParse("common_{$lang}", $data);
+                    $arr = $mTemplate->loadAndParse("common{$langString}", $data);
                     
                     //
                     $mailer = new Com\Mailer();
@@ -1184,12 +1187,13 @@ class Instance extends Com\Model\AbstractModel
                 // load the email template and replace values
                 $mTemplate = $sl->get('App\Model\EmailTemplate');
                 
-                if('es' != $lang)
+                $langString = '';
+                if('es' == $lang)
                 {
-                    $lang = '';
+                    $langString = "_$lang";
                 }
                 
-                $arr = $mTemplate->loadAndParse("common_{$lang}", $data);
+                $arr = $mTemplate->loadAndParse("common{$langString}", $data);
                     
                 //
                 $mailer = new Com\Mailer();
