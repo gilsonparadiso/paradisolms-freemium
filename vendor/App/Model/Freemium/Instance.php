@@ -455,7 +455,7 @@ class Instance extends Com\Model\AbstractModel
                         $password = hash_internal_user_password($row->password);
                         
                         $db = new \PDO("mysql:host={$rowDb->db_host};dbname=$dbName;charset=utf8", $rowDb->db_user, $rowDb->db_password);
-                        $stmt = $db->prepare("INSERT INTO mdl_user(username, password, firstname, lastname, email, idnumber, confirmed, lang) VALUES(:username, :password, :firstname, :lastname, :email, :idnumber, :confirmed, :lang)");
+                        $stmt = $db->prepare("INSERT INTO mdl_user(username, password, firstname, lastname, email, idnumber, confirmed, lang, mnethostid, timecreated) VALUES(:username, :password, :firstname, :lastname, :email, :idnumber, :confirmed, :lang, :mnethostid, :timecreated)");
                         
                         $result = $stmt->execute(array(
                             ':username' => $row->email
@@ -466,6 +466,8 @@ class Instance extends Com\Model\AbstractModel
                             ,':idnumber' => $row->email
                             ,':confirmed' => 0
                             ,':lang' => $row->lang
+                            ,':mnethostid' => 1
+                            ,':timecreated' => time()
                         ));
                         
                         if(!$result)
@@ -1131,7 +1133,7 @@ class Instance extends Com\Model\AbstractModel
                     $password = hash_internal_user_password($params->password);
 
                     $db = new \PDO("mysql:host={$rowDb->db_host};dbname=$dbName;charset=utf8", $rowDb->db_user, $rowDb->db_password);
-                    $stmt = $db->prepare("INSERT INTO mdl_user(username, password, firstname, lastname, email, idnumber, confirmed, lang) VALUES(:username, :password, :firstname, :lastname, :email, :idnumber, :confirmed, :lang)");
+                    $stmt = $db->prepare("INSERT INTO mdl_user(username, password, firstname, lastname, email, idnumber, confirmed, lang, mnethostid, timecreated) VALUES(:username, :password, :firstname, :lastname, :email, :idnumber, :confirmed, :lang, :mnethostid, :timecreated)");
                     $stmt->execute(array(
                         ':username' => $params->email
                         ,':password' => $password
@@ -1141,6 +1143,8 @@ class Instance extends Com\Model\AbstractModel
                         ,':idnumber' => $params->email
                         ,':confirmed' => 0
                         ,':lang' => $lang
+                        ,':mnethostid' => 1
+                        ,':timecreated' => time()
                     ));
                     
                     
