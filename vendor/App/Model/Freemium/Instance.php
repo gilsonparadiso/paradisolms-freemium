@@ -636,7 +636,7 @@ class Instance extends Com\Model\AbstractModel
                     $langString = '';
                     if('es' == $row->lang)
                     {
-                        $langString = "_$lang";
+                        $langString = "_{$row->lang}";
                     }
                     
                     $arr = $mTemplate->loadAndParse("common{$langString}", $data);
