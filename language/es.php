@@ -32,7 +32,7 @@ return array(
     ,'confirm_your_email_address_body' => 'Por favor haga click en el siguiente enlace para activar su cuenta.<br> <a href="%s">Activar Cuenta</a> 
     <br><b>Login:</b> %s<br>
     <b>Contraseña:</b> %s<br>
-    <br> Si tiene alguna pregunta o comentario, puede llamarnos al teléfono <br> +1 800 513 5902, tambinén nos puede escribir al correo sales@paradisosolutions.com'
+    <br> Si tiene alguna pregunta o comentario, puede llamarnos a los teléfonos <br> +57 (4) 412 97 36 - +57 301 524 89 81, tambinén nos puede escribir al correo mercadeo@paradisosolutions.com'
     ,'follow_us' => 'Síguenos'
     ,'invalid_verification_code' => 'El código de verificación no es válido.'
     ,'account_already_verified' => "La cuenta de usuario ya está verificada.<br>  <a href='%s' target='_blank'>Haga click aquí</a> para ir a su cuenta."

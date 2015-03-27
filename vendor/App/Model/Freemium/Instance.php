@@ -286,9 +286,10 @@ class Instance extends Com\Model\AbstractModel
             // cookie
             $request = $sl->get('request');
             $cookie = $request->getCookie();
+            $lang = 'en';
             if(isset($cookie->lang))
             {
-                $data['lang'] = $cookie->lang;
+                $lang = $data['lang'] = $cookie->lang;
             }
 
             $dbClient->doInsert($data);
@@ -317,7 +318,13 @@ class Instance extends Com\Model\AbstractModel
 
             // load the email template and replace values
             $mTemplate = $sl->get('App\Model\EmailTemplate');
-            $arr = $mTemplate->loadAndParse('common', $data);
+            
+            if('es' != $lang)
+            {
+                $lang = '';
+            }
+            
+            $arr = $mTemplate->loadAndParse("common_{$lang}", $data);
             
             //
             $mailer = new Com\Mailer();
@@ -623,7 +630,13 @@ class Instance extends Com\Model\AbstractModel
 
                     // load the email template and replace values
                     $mTemplate = $sl->get('App\Model\EmailTemplate');
-                    $arr = $mTemplate->loadAndParse('common', $data);
+                    
+                    if('es' != $row->lang)
+                    {
+                        $lang = '';
+                    }
+                    
+                    $arr = $mTemplate->loadAndParse("common_{$lang}", $data);
                     
                     //
                     $mailer = new Com\Mailer();
@@ -1170,8 +1183,14 @@ class Instance extends Com\Model\AbstractModel
 
                 // load the email template and replace values
                 $mTemplate = $sl->get('App\Model\EmailTemplate');
-                $arr = $mTemplate->loadAndParse('common', $data);
                 
+                if('es' != $lang)
+                {
+                    $lang = '';
+                }
+                
+                $arr = $mTemplate->loadAndParse("common_{$lang}", $data);
+                    
                 //
                 $mailer = new Com\Mailer();
                 

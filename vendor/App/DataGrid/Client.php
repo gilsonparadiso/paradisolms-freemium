@@ -99,6 +99,11 @@ xxx;
         $this->addColumn($col);
         
         // 
+        $col = new ZfcDatagrid\Column\Select('lang', 'c');
+        $col->setLabel('Lang');
+        $this->addColumn($col);
+        
+        // 
         $formatter = new App\DataGrid\Client\Formatter\Verified();
         $options = array('1' => 'Yes', '0' => 'No');
         
