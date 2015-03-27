@@ -52,6 +52,7 @@ xxx;
         // 
         $col = new ZfcDatagrid\Column\Select('id', 'c');
         $col->setIdentity();
+        $col->setSortDefault(1, 'DESC');
         $this->addColumn($col);
         
         {// hidden columsn
@@ -119,7 +120,6 @@ xxx;
         
         $col = new ZfcDatagrid\Column\Select('domain', 'c');
         $col->setLabel('Instance');
-        $col->setSortDefault(1, 'ASC');
         $col->setFormatter($formatter);
         $this->addColumn($col);
         
