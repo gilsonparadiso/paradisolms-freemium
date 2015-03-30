@@ -9,6 +9,18 @@ $com = $this->Communicator();
 #alert{display:none}
 <?php $this->headStyle()->captureEnd() ?>
 
+<div id="text-top">
+    <h2><?php echo $this->translate('try_free'); ?></h2>
+</div>
+
+<div id="head-form">
+    <h3>
+        <?php if(!$this->internal) : ?>
+            <?php echo $this->translate('test_begin'); ?>
+        <?php endif; ?>
+    </h3>
+</div>
+          
 <div id="form">
    <h1><?php echo $this->translate('welcome_message') ?></h1>
    <p><?php //echo $this->translate('tag_line_1') ?></p>

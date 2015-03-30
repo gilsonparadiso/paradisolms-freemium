@@ -19,7 +19,7 @@ return array(
     ,'instance_name_already_registered' => 'The choosen instance name is not avaiable.'
     ,'invalid_characters_instance_name' => 'Invalid characters in the instance name'
     ,'freemium_account_created' => "You are almost done. Please check your email for a link to activate your LMS instance."
-    ,'freemium_account_created_pending_approval' => "Your account is pending for approval. We'll be in touch with you within the next 12 business hours."
+    ,'freemium_account_created_pending_approval' => "Thank you for subscribing, you will receive an e-mail confirmation shortly with your freemium  LMS credentials."
     
     // 
     ,'confirm_your_email_address_subject' => 'Please confirm your email address'

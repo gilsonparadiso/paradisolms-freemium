@@ -25,7 +25,7 @@ return array(
     ,'instance_name_already_registered' => 'El nombre de instancia especificado no está disponible.'
     ,'invalid_characters_instance_name' => 'Hay algunos caracteres inválidos en el nombre de la instancia'
     ,'freemium_account_created' => "Útimo paso. Por favor revise su correo, le hemos enviado un link para ativar su cuenta."
-    ,'freemium_account_created_pending_approval' => "Su cuenta de usuario está pendiente de aprobación. Nos pondremos en contacto con usted lo más pronto posible."
+    ,'freemium_account_created_pending_approval' => "Gracias por suscribirse, en unos minutos va a recibir un correo para empezar a disfrutar de nuestra plataforma LMS Freemium."
     
     //
     ,'confirm_your_email_address_subject' => 'Por favor confirme su dirección de coreo.'
