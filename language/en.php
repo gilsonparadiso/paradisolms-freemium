@@ -29,7 +29,7 @@ return array(
     <br> If you have any question or comments, please call us at<br> +1 800 513 5902 or email us at sales@paradisosolutions.com'
     ,'follow_us' => 'Follow Us'
     ,'invalid_verification_code' => 'The verification code is invalid'
-    ,'account_already_verified' => "Account alrady verified.<br>  <a href='%s' target='_blank'>Click here</a> to go to your instance."
+    ,'account_already_verified' => "Account already verified.<br>  <a href='%s' target='_blank'>Click here</a> to go to your instance."
     ,'account_verified' => 'Thanks, your account was successfully verified, please <a href="%s">click here</a> to go to your account.'
     ,'please_wait' => 'Please wait...'
     ,'edit_instance_name'=> 'Edit instance name'
