@@ -425,7 +425,7 @@ class InstanceController extends Com\Controller\BackendController
         {
             $params = $response->getParams();
             
-            $this->assign('last_login_date', date('F d, Y @ H:i:s', $params['time']));
+            $this->assign('last_login_date', date('F d, Y @ h:i:s a', $params['time']));
             $this->assign('last_login_user', "{$params['user']} - {$params['email']}");
         }
     }
