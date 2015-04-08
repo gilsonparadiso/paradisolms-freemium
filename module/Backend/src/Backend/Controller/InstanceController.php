@@ -359,22 +359,17 @@ class InstanceController extends Com\Controller\BackendController
             $client->setServicesToken($rowDb->db_name);
             
             $client->setServerUri("http://{$rowClient->domain}/services/index.php");
-            $response = $client->request('count_users');
             
-            if($response->isError())
+            $this->_assignLastLoginInfo($client, $rowClient->email);
+            $this->_assignCountUsers($client);
+            
+            //
+            $this->assign('client', $rowClient);
+            
+            if($rowClient->approved_by)
             {
-                $this->getCommunicator()->addError($response->getMessage());
-            }
-            else
-            {
-                $this->assign($response->getParams());
-                $this->assign('client', $rowClient);
-                
-                if($rowClient->approved_by)
-                {
-                    $row = $dbUser->findByPrimaryKey($rowClient->approved_by);
-                    $rowClient->approved_by = "{$row->first_name} {$row->last_name}";
-                }
+                $row = $dbUser->findByPrimaryKey($rowClient->approved_by);
+                $rowClient->approved_by = "{$row->first_name} {$row->last_name}";
             }
         }
         else
@@ -396,7 +391,48 @@ class InstanceController extends Com\Controller\BackendController
             }
         }
         
-        
         return $this->viewVars;
+    }
+    
+    
+    protected function _assignCountUsers(App\Lms\Services\Client $client)
+    {
+        $response = $client->request('count_users');
+            
+        if($response->isError())
+        {
+            $this->getCommunicator()->addError($response->getMessage());
+        }
+        else
+        {
+            $this->assign($response->getParams());
+        }
+    }
+    
+    
+    protected function _assignLastLoginInfo(App\Lms\Services\Client $client, $email)
+    {
+        $response = $client->request('user_last_login', array('user' => $email));
+        
+        if($response->isError())
+        {
+            $r = $response->getMessage();
+            $this->assign('last_login', $r);
+        }
+        else
+        {
+            $params = $response->getParams();
+            
+            if($params['int'])
+            {
+                $r = date('F d, Y @ H:i:s', $params['int']);
+            }
+            else
+            {
+                $r = 'Never loggued in';
+            }
+            
+            $this->assign('last_login', $r);
+        }
     }
 }

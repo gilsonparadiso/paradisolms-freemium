@@ -10,43 +10,45 @@ $client = $this->client;
 <div style="height:80px">
 
     <?php $com->printMessage() ?>
-
-    <?php if($com->isSuccess()) : ?>
         
-        <table class="table">
-            <tr>
-                <td class="td_label">Total active users</td>
-                <td><span class="badge"><?php echo $this->active?></span></td>
-            </tr>
-            <tr>
-                <td class="td_label">Total inactive users</td>
-                <td><span class="badge"><?php echo $this->inactive?></span></td>
-            </tr>
-            
-            <tr>
-                <td class="td_label">Approved on</td>
-                <td>
-                    <?php if($client->approved_on) : ?>
-                        <?php $time = strtotime($client->approved_on); ?>
-                        <?php echo date('F d, Y @ h:i a', $time);?>
-                    <?php else : ?>
-                        - 
-                    <?php endif;?>
-                </td>
-            </tr>
-            
-            <tr>
-                <td class="td_label">Approved by</td>
-                <td>
-                    <?php if($client->approved_by) : ?>
-                        <?php echo $client->approved_by ?>
-                    <?php else : ?>
-                        -
-                    <?php endif;?>
-                </td>
-            </tr>
-            
-        </table>
+    <table class="table">
+        <tr>
+            <td class="td_label">Total active users</td>
+            <td><span class="badge"><?php echo $this->active?></span></td>
+        </tr>
+        <tr>
+            <td class="td_label">Total inactive users</td>
+            <td><span class="badge"><?php echo $this->inactive?></span></td>
+        </tr>
+        
+        <tr>
+            <td class="td_label">Last login</td>
+            <td><?php echo $this->last_login?></td>
+        </tr>
+        
+        <tr>
+            <td class="td_label">Approved on</td>
+            <td>
+                <?php if($client && $client->approved_on) : ?>
+                    <?php $time = strtotime($client->approved_on); ?>
+                    <?php echo date('F d, Y @ h:i a', $time);?>
+                <?php else : ?>
+                    - 
+                <?php endif;?>
+            </td>
+        </tr>
+        
+        <tr>
+            <td class="td_label">Approved by</td>
+            <td>
+                <?php if($client && $client->approved_by) : ?>
+                    <?php echo $client->approved_by ?>
+                <?php else : ?>
+                    -
+                <?php endif;?>
+            </td>
+        </tr>
+        
+    </table>
 
-    <?php endif; ?>
 </div>
