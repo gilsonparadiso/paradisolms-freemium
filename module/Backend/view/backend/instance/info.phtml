@@ -22,6 +22,15 @@ $client = $this->client;
         </tr>
         
         <tr>
+            <td class="td_label">Count Logins</td>
+            <td>
+                <span class="badge"><?php echo $this->count_logins?></span>
+
+                <span class="label label-info">Starting on <?php echo $this->count_logins_from_date?></span>
+            </td>
+        </tr>
+        
+        <tr>
             <td class="td_label">Last login</td>
             <td><?php echo $this->last_login?></td>
         </tr>

@@ -362,6 +362,7 @@ class InstanceController extends Com\Controller\BackendController
             
             $this->_assignLastLoginInfo($client, $rowClient->email);
             $this->_assignCountUsers($client);
+            $this->_assignCountLoginInfo($client, date('Y-m-d', strtotime($rowClient->created_on)));
             
             //
             $this->assign('client', $rowClient);
@@ -433,6 +434,28 @@ class InstanceController extends Com\Controller\BackendController
             }
             
             $this->assign('last_login', $r);
+        }
+    }
+    
+    
+    protected function _assignCountLoginInfo(App\Lms\Services\Client $client, $startDate)
+    {
+        $response = $client->request('count_logins', array('start_date' => $startDate));
+        
+        $this->assign('count_logins_from_date', date('F d, Y', strtotime($startDate)));
+        
+        if($response->isError())
+        {
+            $r = $response->getMessage();
+            $this->assign('count_logins', $r);
+            
+        }
+        else
+        {
+            $params = $response->getParams();
+            $r = $params['count'];
+            
+            $this->assign('count_logins', $r);
         }
     }
 }
