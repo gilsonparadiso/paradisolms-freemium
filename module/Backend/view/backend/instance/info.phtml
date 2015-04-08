@@ -39,7 +39,7 @@ $client = $this->client;
         </tr>
         
         <tr>
-            <td class="td_label">Approved on</td>
+            <td class="td_label">Instance approved on</td>
             <td>
                 <?php if($client && $client->approved_on) : ?>
                     <?php $time = strtotime($client->approved_on); ?>
@@ -51,7 +51,7 @@ $client = $this->client;
         </tr>
         
         <tr>
-            <td class="td_label">Approved by</td>
+            <td class="td_label">Instance approved by</td>
             <td>
                 <?php if($client && $client->approved_by) : ?>
                     <?php echo $client->approved_by ?>
