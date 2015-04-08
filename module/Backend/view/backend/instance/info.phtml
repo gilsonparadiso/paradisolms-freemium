@@ -22,7 +22,7 @@ $client = $this->client;
         </tr>
         
         <tr>
-            <td class="td_label">Count Logins</td>
+            <td class="td_label">Count logins</td>
             <td>
                 <span class="badge"><?php echo $this->count_logins?></span>
 
@@ -32,7 +32,10 @@ $client = $this->client;
         
         <tr>
             <td class="td_label">Last login</td>
-            <td><?php echo $this->last_login?></td>
+            <td>
+                <?php echo $this->last_login_date?><br>
+                <?php echo $this->last_login_user?>
+            </td>
         </tr>
         
         <tr>

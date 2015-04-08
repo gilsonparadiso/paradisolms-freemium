@@ -360,7 +360,7 @@ class InstanceController extends Com\Controller\BackendController
             
             $client->setServerUri("http://{$rowClient->domain}/services/index.php");
             
-            $this->_assignLastLoginInfo($client, $rowClient->email);
+            $this->_assignLastLoginInfo($client);
             $this->_assignCountUsers($client);
             $this->_assignCountLoginInfo($client, date('Y-m-d', strtotime($rowClient->created_on)));
             
@@ -411,29 +411,22 @@ class InstanceController extends Com\Controller\BackendController
     }
     
     
-    protected function _assignLastLoginInfo(App\Lms\Services\Client $client, $email)
+    protected function _assignLastLoginInfo(App\Lms\Services\Client $client)
     {
-        $response = $client->request('user_last_login', array('user' => $email));
+        $response = $client->request('last_login');
         
         if($response->isError())
         {
             $r = $response->getMessage();
-            $this->assign('last_login', $r);
+            $this->assign('last_login_date', $r);
+            $this->assign('last_login_user', null);
         }
         else
         {
             $params = $response->getParams();
             
-            if($params['int'])
-            {
-                $r = date('F d, Y @ H:i:s', $params['int']);
-            }
-            else
-            {
-                $r = 'Never loggued in';
-            }
-            
-            $this->assign('last_login', $r);
+            $this->assign('last_login_date', date('F d, Y @ H:i:s', $params['time']));
+            $this->assign('last_login_user', "{$params['user']} - {$params['email']}");
         }
     }
     
