@@ -1,20 +1,10 @@
-Executing...
 <script>
 jQuery(function() {
-    <?php if($this->instances) : ?>
-        <?php foreach($this->instances as $row) : ?>
-            $.ajax({
-                type: "GET",
-                url:"http://<?php echo $row->domain ?>/admin/cron.php",
-                data: "{}",
-                async: true,
-                dataType: "text",
-                success: function( data ) {
-                    
-                }
-            }); 
-        <?php endforeach;?>
-    <?php endif; ?>
+    
+    var url = "<?php echo $this->url('run-cron/wildcard', array('ajax' => 1))?>";
+    
+    $.get(url, {}, function(d){
+        console.log(d)
+    });
 });
 </script>
-<p>Done!</p>

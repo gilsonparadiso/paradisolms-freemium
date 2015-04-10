@@ -17,13 +17,21 @@ return array(
             ),
             
             'run-cron' => array(
-                'type' => 'Zend\Mvc\Router\Http\Literal',
+                'type' => 'Zend\Mvc\Router\Http\Segment',
                 'options' => array(
                     'route' => '/run-cron',
                     'defaults' => array(
                         '__NAMESPACE__' => 'Front\Controller',
                         'controller' => 'Index',
                         'action' => 'run-cron',
+                    ) 
+                ),
+                
+                'may_terminate' => true,
+                
+                'child_routes' => array(
+                    'wildcard' => array(
+                        'type' => 'Wildcard' 
                     ) 
                 ) 
             ),
