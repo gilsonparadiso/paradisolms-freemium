@@ -16,6 +16,17 @@ return array(
                 ) 
             ),
             
+            'run-cron' => array(
+                'type' => 'Zend\Mvc\Router\Http\Literal',
+                'options' => array(
+                    'route' => '/run-cron',
+                    'defaults' => array(
+                        '__NAMESPACE__' => 'Front\Controller',
+                        'controller' => 'Index',
+                        'action' => 'run-cron',
+                    ) 
+                ) 
+            ),
             
             'internal' => array(
                 'type' => 'Zend\Mvc\Router\Http\Literal',

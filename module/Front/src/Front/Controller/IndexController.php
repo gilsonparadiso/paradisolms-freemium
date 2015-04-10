@@ -96,6 +96,32 @@ class IndexController extends Com\Controller\AbstractController
     }
     
     
+    function runCronAction()
+    {
+        //  We are going to execute via ajax all the crons
+        
+        // This action should be executed using wkhtmltopdf
+        // the reason for this is because we are using javascript
+        // and wkhtmltopdf can ejecute javascript
+        
+        $this->layout('layout/blank');
+        
+        $sl = $this->getServiceLocator();
+        
+        $dbClient = $sl->get('App\Db\Client');
+        
+        $where = array();
+        $where['deleted = ?'] = 0;
+        $where['approved = ?'] = 1;
+        $where['email_verified = ?'] = 1;
+        
+        $rowset = $dbClient->findby($where);
+        $this->assign('instances', $rowset);
+        
+        return $this->viewVars;
+    }
+    
+    
     function testAction()
     {
         $view = new Zend\View\Model\ViewModel($this->viewVars);
