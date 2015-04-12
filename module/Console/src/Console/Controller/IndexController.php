@@ -44,10 +44,10 @@ class IndexController extends Com\Controller\AbstractController
         foreach($rowset as $row)
         {
             $url = "http://{$row->domain}/admin/cron.php";
-            if(strpos($row->domain, 'paradisosolutions') === false)
-            {
-                continue;
-            }
+            
+            //
+            #if(strpos($row->domain, 'paradisosolutions') === false)
+                #continue;
             
             $command = "$bin $url {$coreDir}/data/log/{$row->domain}.pdf > {$coreDir}/data/log/{$row->domain}.log 2>&1 &";
             
