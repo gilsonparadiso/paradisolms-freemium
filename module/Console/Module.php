@@ -26,6 +26,7 @@ class Module implements AutoloaderProviderInterface, ConfigProviderInterface, Co
             // Describe available commands
             'create-databases' => 'Create databases',
             'delete-account <domain-name>' => 'Delete a user account',
+            'run-cron' => 'Executes the cron of all instances',
          
             // Describe expected parameters
             array('<domain-name>', 'The domain name to be deleted')

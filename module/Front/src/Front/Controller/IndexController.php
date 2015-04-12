@@ -96,56 +96,6 @@ class IndexController extends Com\Controller\AbstractController
     }
     
     
-    function runCronAction()
-    {
-        //  We are going to execute via ajax all the crons
-        
-        // This action should be executed using wkhtmltopdf
-        // the reason for this is because we are using javascript
-        // and wkhtmltopdf can ejecute javascript
-        
-        $this->layout('layout/blank');
-        
-        $publicDir = PUBLIC_DIRECTORY;
-        $coreDir = CORE_DIRECTORY;
-        
-        $sl = $this->getServiceLocator();
-    
-        $dbClient = $sl->get('App\Db\Client');
-        
-        $where = array();
-        $where['deleted = ?'] = 0;
-        $where['approved = ?'] = 1;
-        $where['email_verified = ?'] = 1;
-        
-        $rowset = $dbClient->findby($where);
-        
-        $client = new Zend\Http\Client();
-        $client->setMethod(Zend\Http\Request::METHOD_GET);
-        
-        foreach($rowset as $row)
-        {
-            $url = "http://{$row->domain}/admin/cron.php";
-            $bin = '/usr/local/bin/wkhtmltopdf';
-            
-            if(strpos($row->domain, 'paradisosolutions') === false)
-            {
-                continue;
-            }
-            
-            echo $command = "$bin $url {$coreDir}/data/log/{$row->domain}.pdf > {$coreDir}/data/log/{$row->domain}.log 2>&1 &";
-            echo '<hr>';
-            
-            shell_exec($command);
-        }
-
-        exit;
-        # $com = $this->getCommunicator();
-        # $result = new Zend\View\Model\JsonModel($com->toArray());
-        # return $result;
-    }
-    
-    
     function testAction()
     {
         $view = new Zend\View\Model\ViewModel($this->viewVars);

@@ -9,6 +9,54 @@ use Zend\Mvc\Controller\AbstractActionController,
 class IndexController extends Com\Controller\AbstractController
 {
 
+
+
+    function runCronAction()
+    {
+        $request = $this->getRequest();
+        
+        // Make sure that we are running in a console and the user has not tricked our
+        // application into running this action from a public web server.
+        if (!$request instanceof ConsoleRequest)
+        {
+            throw new \RuntimeException('You can only use this action from a console!');
+        }
+        
+        $publicDir = PUBLIC_DIRECTORY;
+        $coreDir = CORE_DIRECTORY;
+        
+        $sl = $this->getServiceLocator();
+    
+        $dbClient = $sl->get('App\Db\Client');
+        
+        $where = array();
+        $where['deleted = ?'] = 0;
+        $where['approved = ?'] = 1;
+        $where['email_verified = ?'] = 1;
+        
+        $rowset = $dbClient->findby($where);
+        
+        $client = new Zend\Http\Client();
+        $client->setMethod(Zend\Http\Request::METHOD_GET);
+        
+        // If we want a log this should be executed using wkhtmltopdf
+        $bin = '/usr/local/bin/wkhtmltopdf';
+        foreach($rowset as $row)
+        {
+            $url = "http://{$row->domain}/admin/cron.php";
+            if(strpos($row->domain, 'paradisosolutions') === false)
+            {
+                continue;
+            }
+            
+            $command = "$bin $url {$coreDir}/data/log/{$row->domain}.pdf > {$coreDir}/data/log/{$row->domain}.log 2>&1 &";
+            
+            shell_exec($command);
+        }
+    }
+
+    
+
     function createDatabasesAction()
     {
         $request = $this->getRequest();

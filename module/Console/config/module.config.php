@@ -23,6 +23,17 @@ return array(
                     ),
                 ),
                 
+                'run-cron' => array(
+                    'options' => array(
+                        'route' => 'run-cron',
+                        'defaults' => array(
+                            '__NAMESPACE__' => 'Console\Controller',
+                            'controller' => 'Index',
+                            'action' => 'run-cron'
+                        ),
+                    ),
+                ),
+                
                 'delete-account' => array(
                     'options' => array(
                         'route' => 'delete-account <domain>',
