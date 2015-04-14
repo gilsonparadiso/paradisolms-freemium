@@ -49,6 +49,14 @@ return array(
                         '__NAMESPACE__' => 'Front\Controller',
                         'controller' => 'Ajax',
                     ) 
+                ),
+                
+                'may_terminate' => true,
+                
+                'child_routes' => array(
+                    'wildcard' => array(
+                        'type' => 'Wildcard' 
+                    ) 
                 ) 
             ),
             

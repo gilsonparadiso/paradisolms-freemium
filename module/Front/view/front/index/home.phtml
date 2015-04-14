@@ -10,13 +10,19 @@ $com = $this->Communicator();
 <?php $this->headStyle()->captureEnd() ?>
 
 <div id="text-top">
-    <h2><?php echo $this->translate('try_free'); ?></h2>
+    <div class="wrapper">
+        <div id="wrapper-top">
+            <h2 class="tryfree"><strong><?php echo $this->translate('try_free_top'); ?></strong></h2>
+            <h2 class="tryfree"><?php echo $this->translate('try_free_bottom'); ?></h2>
+            
+        </div>
+    </div>
 </div>
 
-<div id="head-form">
+<div id="head-forms">
     <h3>
         <?php if(!$this->internal) : ?>
-            <?php echo $this->translate('test_begin'); ?>
+            <?php //echo $this->translate('test_begin'); ?>
         <?php endif; ?>
     </h3>
 </div>
@@ -36,7 +42,7 @@ $com = $this->Communicator();
 
       <h2><?php echo $this->translate('Create Account')?> <span><?php echo $this->translate('fill_in_required_fields') ?></span></h2>
       
-      <form method="post" action="<?php echo $this->url($this->route_name) ?>" id="form_element" enctype="multipart/form-data">
+      <form method="post" action="<?php echo $this->url($this->route_name) ?>" id="form_element" >
       
          <div id="alert"><?php $com->printMessage() ?></div>
          <div id="loader"><img src="<?php echo $this->basePath('img/loader.gif') ?>"> 
@@ -45,30 +51,11 @@ $com = $this->Communicator();
          <div class="form-control-2 required large <?php $com->printErrorClass('email'); ?>">
             <label><?php echo $this->translate('Email address')?>*</label>
             <input type="text" id="email" name="email" value="<?php echo $this->escapeHtml($this->email) ?>" required="required">
+            <div id="message-email"></div>
             <?php $com->printFieldErrors('email'); ?>
          </div>
          
-         
-         <div id="instance_container" class="form-control-2 required <?php $com->printErrorClass('instance'); ?>">
-            <label><?php echo $this->translate('Instance name')?>*</label>
-            
-            <input 
-                class="form-control" 
-                disabled="disabled"
-                type="text" 
-                id="instance_label" 
-                name="instance_label" 
-                value="<?php echo $this->escapeHtml($this->instance) ?>" >.paradisolms.com 
-                
-                <input type="hidden" id="instance" name="instance" value="<?php echo $this->escapeHtml($this->instance) ?>" >
-            
-            <img id="edit_instance" 
-                src="<?php echo $this->basePath('img/edit.png') ?>" 
-                alt="<?php echo $this->translate('edit_instance_name') ?>" 
-                title="<?php echo $this->translate('edit_instance_name') ?>">
-            
-            <?php $com->printFieldErrors('instance'); ?>
-         </div>
+    
 
          <div class="form-control-2 required <?php $com->printErrorClass('password'); ?>">
             <label><?php echo $this->translate('Password')?>*</label>
@@ -88,34 +75,10 @@ $com = $this->Communicator();
             <?php $com->printFieldErrors('last_name'); ?>
          </div>
          
-         <div class="form-control-2 required <?php $com->printErrorClass('logo'); ?>">
-            <label><?php echo $this->translate('Logo')?></label>
-            <input type="file" name="logo" />
-            <div id="supported_formats_label">
-                <?php echo $this->translate('supported_formats')?><br>
-            </div>
-            
-            <div id="recommended_size_label">
-                <?php echo $this->translate('recommended_size')?><br>
-                <label>
-                    <input type="checkbox" name="resize_logo" value="1" <?php echo $this->resize_logo ? 'checked="checked"' : '' ?>>
-                    <?php echo $this->translate('resize_logo_label')?>
-                    <a 
-                        tabindex="0" 
-                        class="help" 
-                        role="button" 
-                        data-toggle="popover" 
-                        data-trigger="focus" 
-                        
-                        data-content='<?php echo $this->translate('resizing_recommendation')?>'>
-                        <i class="fa fa-question-circle"></i>
-                    </a>
-                </label>
-                
-            </div>
-            
-            <?php $com->printFieldErrors('logo'); ?>
+         <div id="terms-conditions">
+                 <p class="terms"><?php echo $this->translate('terms')?></p>
          </div>
+         
 
          <div class="form-control-2" id="submit" style="margin-top:10px">
             <input type="submit" id="submit" value="<?php echo $this->translate('Create account')?>">
@@ -125,6 +88,77 @@ $com = $this->Communicator();
       </form>
    </div>
 </div>
+       
+  
+        
+
+<script type="text/javascript">
+/*jQuery(function(){
+    $("#boton").click(function() {
+        var email = $("#texto").val();
+        var url = "<?php //echo $this->url('ajax', array('action' => 'validate-email'));?>";
+        var data = {"email": email};
+        $.post(url, data, function(response){
+           if(response.success == true)
+           {
+              alert("el correo es valido")
+           }
+           else
+           {
+             alert(response.errors.email[0]);
+           }
+        });
+    });
+});*/
+
+    jQuery("#email").blur(function(){
+        //alert("This input field has lost its focus.");
+        var emailFree = $('#email').val();
+        var url = "<?php echo $this->url('ajax', array('action' => 'validate-email'));?>";
+        var data = {"email": emailFree};
+        $( "#message-email" ).text("");
+        //$( "#message-email" ).fadeIn( "slow" );
+
+        $.post(url, data, function(response){
+            if(response.success == true){
+
+            }
+            else {
+               //$( "#message-email" ).fadeIn( "slow" );
+               $( "#message-email" ).fadeToggle( "1500", "swing" );
+               $( "#message-email" ).addClass("message-email");
+               $( "#message-email" ).append(response.errors.email[0]);
+            }
+        });
+
+        $( "#message-email" ).removeClass("message-email");
+
+    
+    });
+</script>
+
+                            
+         		
+<script type="text/javascript">
+$(document).ready(function() {
+      $( ".contact-us" ).click(function() {
+           $( ".contactpopup" ).fadeIn(500);
+           $( ".contactpopup" ).addClass( "displayBlock" );
+           
+      });
+      $( ".close" ).click(function() {
+           $( ".contactpopup" ).fadeOut(500);
+           $( ".contactpopup" ).removeClass( "displayBlock" );
+           
+      });
+    
+     $('#contactpopupsubmit').click(function(event){
+		event.preventDefault();
+	});
+});
+
+</script>
+
 
 
 <script type="text/javascript">
@@ -297,6 +331,8 @@ $com = $this->Communicator();
     <?php endif; ?>
 
 </script>
+
+
 
 
 

@@ -13,6 +13,7 @@ class Instance extends Com\Model\AbstractModel
         ,'gilson@paradisosolutions.com'
         ,'berardo@paradisosolutions.com'
         ,'camilo@paradisosolutions.com'
+        ,'alberto.g@paradisosolutions.com'
     );
     
     
@@ -36,7 +37,6 @@ class Instance extends Com\Model\AbstractModel
         $fields = array(
             'email',
             'password',
-            'instance',
             'first_name',
             'last_name',
         );
@@ -54,6 +54,14 @@ class Instance extends Com\Model\AbstractModel
             $config = $sl->get('config');
             
             $params->email = strtolower($params->email);
+            
+            $exploded = explode('@', $params->email);
+            if(isset($exploded[1]))
+            {
+                $exploded2 = explode('.', $exploded[1]);
+                $params->instance = $exploded2[0];
+            }
+            
             $params->instance = trim($params->instance);
             
             // check if the email field looks like a real email address
@@ -719,6 +727,7 @@ class Instance extends Com\Model\AbstractModel
             $isTrial = ('trial' == $params->type);
             
             $params->email = strtolower($params->email);
+            
             $params->instance = trim($params->instance);
             
             // check if the email field looks like a real email address
