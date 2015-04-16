@@ -959,6 +959,9 @@ form#blockcontact_ {
   }
 
 
+  .despues {
+    display:none;
+  }
 
 
 /*  Responsive */
