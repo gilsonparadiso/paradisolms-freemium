@@ -207,10 +207,77 @@ $(document).ready(function() {
 </script>
 
 
+<script>
+function $_GET(param)
+{
+  /* Obtener la url completa */
+  url = document.URL;
+  /* Buscar a partir del signo de interrogación ? */
+  url = String(url.match(/\?+.+/));
+  /* limpiar la cadena quitándole el signo ? */
+  url = url.replace("?", "");
+  /* Crear un array con parametro=valor */
+  url = url.split("&");
+ 
+/* 
+Recorrer el array url
+obtener el valor y dividirlo en dos partes a través del signo = 
+0 = parametro
+1 = valor
+Si el parámetro existe devolver su valor
+*/
+  x = 0;
+  while (x < url.length)
+    {
+      p = url[x].split("=");
+        if (p[0] == param)
+        {
+          return decodeURIComponent(p[1]);
+        }
+      x++;
+    }
+}
+</script>
+
+<?php if(isset($_GET['email'])) { ?>
+    <script>
+
+      jQuery(document).ready(function(e){
+          $correo = $_GET("email");
+          $('#email').val($('#email').val() + $correo);
+          $('#email').blur();
+      });
+      
+    </script>
+<?php } ?>
+
+<?php if(isset($_GET['lastname'])) { ?>
+    <script>
+
+      jQuery(document).ready(function(e){
+          $apellidos = $_GET("lastname");
+          $('#lastname').val($('#lastname').val() + $apellidos);
+          $('#lastname').blur();
+      });
+      
+    </script>
+<?php } ?>
+
+<?php if(isset($_GET['firstname'])) { ?>
+    <script>
+
+      jQuery(document).ready(function(e){
+          $nombres = $_GET("firstname");
+          $('#firstname').val($('#firstname').val() + $nombres);
+          $('#firstname').blur();
+      });
+
+    </script>
+<?php } ?>
 
 
 
-         <script>
+<script>
   jQuery(document).ready(function(e){
 
   
@@ -284,6 +351,8 @@ $(document).ready(function() {
         },
 
     });
+
+
 
     
     jQuery('.contactpopup h4, .contactpopup form').fadeOut(500, function(){

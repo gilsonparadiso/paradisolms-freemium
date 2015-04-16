@@ -65,13 +65,13 @@ $com = $this->Communicator();
 
          <div class="form-control-2 required large <?php $com->printErrorClass('first_name'); ?>">
             <label><?php echo $this->translate('First name')?>*</label>
-            <input type="text" name="first_name" value="<?php echo $this->escapeHtml($this->first_name) ?>" required="required">
+            <input type="text" id="firstname" name="first_name" value="<?php echo $this->escapeHtml($this->first_name) ?>" required="required">
             <?php $com->printFieldErrors('first_name'); ?>
          </div>
 
          <div class="form-control-2 required large <?php $com->printErrorClass('last_name'); ?>">
             <label><?php echo $this->translate('Last name')?>*</label>
-            <input type="text" name="last_name" value="<?php echo $this->escapeHtml($this->last_name) ?>" required="required">
+            <input type="text" id="lastname" name="last_name" value="<?php echo $this->escapeHtml($this->last_name) ?>" required="required">
             <?php $com->printFieldErrors('last_name'); ?>
          </div>
          
@@ -93,23 +93,6 @@ $com = $this->Communicator();
         
 
 <script type="text/javascript">
-/*jQuery(function(){
-    $("#boton").click(function() {
-        var email = $("#texto").val();
-        var url = "<?php //echo $this->url('ajax', array('action' => 'validate-email'));?>";
-        var data = {"email": email};
-        $.post(url, data, function(response){
-           if(response.success == true)
-           {
-              alert("el correo es valido")
-           }
-           else
-           {
-             alert(response.errors.email[0]);
-           }
-        });
-    });
-});*/
 
     jQuery("#email").blur(function(){
         //alert("This input field has lost its focus.");
@@ -135,6 +118,40 @@ $com = $this->Communicator();
 
     
     });
+
+$(document).ready(function() {
+
+
+        var validate = $.trim($("#email").val());
+
+        if(validate.length>0)
+        {
+
+
+                var emailFree = $('#email').val();
+
+
+                var url = "<?php echo $this->url('ajax', array('action' => 'validate-email'));?>";
+                var data = {"email": emailFree};
+                $( "#message-email" ).text("");
+                //$( "#message-email" ).fadeIn( "slow" );
+
+                $.post(url, data, function(response){
+                    if(response.success == true){
+
+                    }
+                    else {
+                       //$( "#message-email" ).fadeIn( "slow" );
+                       $( "#message-email" ).fadeToggle( "1500", "swing" );
+                       $( "#message-email" ).addClass("message-email");
+                       $( "#message-email" ).append(response.errors.email[0]);
+                    }
+                });
+
+                $( "#message-email" ).removeClass("message-email");
+
+    }
+});
 </script>
 
                             

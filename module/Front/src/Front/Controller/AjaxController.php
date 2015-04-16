@@ -168,4 +168,5 @@ class AjaxController extends Com\Controller\AbstractController
                     $result = new JsonModel($arr);
     return $result;*/
     }
+
 }
