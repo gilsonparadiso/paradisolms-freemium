@@ -863,6 +863,7 @@ form#blockcontact_ {
 
 #clickdesk-appendable-bubble {
    /* display: none; */
+   display:block!important;
 }
 
 
