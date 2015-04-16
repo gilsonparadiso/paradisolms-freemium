@@ -122,9 +122,11 @@ $com = $this->Communicator();
 $(document).ready(function() {
 
 
- 
-        //if ($('#email').length) {
-        if($("#email").length > 0) {
+        var validate = $.trim($("#email").val());
+
+        if(validate.length>0)
+        {
+
 
                 var emailFree = $('#email').val();
 
@@ -147,6 +149,7 @@ $(document).ready(function() {
                 });
 
                 $( "#message-email" ).removeClass("message-email");
+
     }
 });
 </script>

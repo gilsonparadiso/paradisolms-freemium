@@ -237,37 +237,46 @@ Si el parámetro existe devolver su valor
       x++;
     }
 }
-
-
-  jQuery(document).ready(function(e){
-
-    var correo = $_GET("email");
-    var nombres = $_GET("firstname");
-    var apellidos = $_GET("lastname");
-
-    var email = $( "#email" );
-    var firstname = $( "#firstname" );
-    var lastname = $( "#lastname" );
-
-    //$("#email").prop("placeholder", "username");
-    email.val( email.val() + correo );
-    //$('#email').val("value = " + $('#email').val() + correo);
-    firstname.val( firstname.val() + nombres );
-    lastname.val( lastname.val() + apellidos );
-
-
-
-    //$('#email').val($('#email').val() + $correo);
-    //$('#firstname').val($('#firstname').val() + $nombres);
-    //$('#lastname').val($('#lastname').val() + $apellidos);
-
-  });
- 
-//alert($_GET("firstname"));
-//alert($_GET("lastname"));
-//alert($_GET("email"));
-
 </script>
+
+<?php if(isset($_GET['email'])) { ?>
+    <script>
+
+      jQuery(document).ready(function(e){
+          $correo = $_GET("email");
+          $('#email').val($('#email').val() + $correo);
+          $('#email').blur();
+      });
+      
+    </script>
+<?php } ?>
+
+<?php if(isset($_GET['lastname'])) { ?>
+    <script>
+
+      jQuery(document).ready(function(e){
+          $apellidos = $_GET("lastname");
+          $('#lastname').val($('#lastname').val() + $apellidos);
+          $('#lastname').blur();
+      });
+      
+    </script>
+<?php } ?>
+
+<?php if(isset($_GET['firstname'])) { ?>
+    <script>
+
+      jQuery(document).ready(function(e){
+          $nombres = $_GET("firstname");
+          $('#firstname').val($('#firstname').val() + $nombres);
+          $('#firstname').blur();
+      });
+
+    </script>
+<?php } ?>
+
+
+
 <script>
   jQuery(document).ready(function(e){
 
