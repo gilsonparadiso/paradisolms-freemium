@@ -391,11 +391,6 @@ float: right;
 #text-top  {
      margin-top: -33px;
 }
-
-
-.despues {
-  display:none;
-}
  
  #text-top h2{
   display: none;
@@ -867,7 +862,7 @@ form#blockcontact_ {
 
 
 #clickdesk-appendable-bubble {
-    display: none;
+   /* display: none; */
 }
 
 
@@ -961,11 +956,6 @@ form#blockcontact_ {
     padding-left: 18px;
     margin: 0px 0px 8px;
   }
-
-
-#test h2.tryfree {
-    display:none;
-}
 
 
 
