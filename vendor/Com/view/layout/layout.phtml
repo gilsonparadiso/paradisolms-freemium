@@ -406,6 +406,7 @@ Si el parámetro existe devolver su valor
 
                                       _agile.create_contact(contact, {
                                             success: function (data) {
+                                              _agile.set_email(contact.email);
                                                 console.log("success");
                                             },
                                             error: function (data) {
