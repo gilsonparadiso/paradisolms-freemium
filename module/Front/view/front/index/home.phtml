@@ -88,6 +88,7 @@ $com = $this->Communicator();
       </form>
    </div>
 </div>
+
        
   
         
@@ -155,25 +156,23 @@ $(document).ready(function() {
 </script>
 
                             
-         		
+                
 <script type="text/javascript">
-$(document).ready(function() {
-      $( ".contact-us" ).click(function() {
-           $( ".contactpopup" ).fadeIn(500);
-           $( ".contactpopup" ).addClass( "displayBlock" );
-           
-      });
-      $( ".close" ).click(function() {
-           $( ".contactpopup" ).fadeOut(500);
-           $( ".contactpopup" ).removeClass( "displayBlock" );
-           
-      });
-    
-     $('#contactpopupsubmit').click(function(event){
-		event.preventDefault();
-	});
-});
-
+    $(document).ready(function() {
+          $( ".contact-us" ).click(function() {
+               $( ".contactpopup" ).fadeIn(500);
+               $( ".contactpopup" ).addClass( "displayBlock" );
+               
+          });
+          $( ".close" ).click(function() {
+               $( ".contactpopup" ).fadeOut(500);
+               $( ".contactpopup" ).removeClass( "displayBlock" );     
+          });
+        
+         $('#contactpopupsubmit').click(function(event){
+            event.preventDefault();
+        });
+    });
 </script>
 
 
@@ -348,6 +347,10 @@ $(document).ready(function() {
     <?php endif; ?>
 
 </script>
+
+
+
+
 
 
 

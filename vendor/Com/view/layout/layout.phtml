@@ -46,6 +46,15 @@
         ?>
         <!-- /scripts -->
 
+        <!-- Agile CRM -->
+      <script type="text/javascript" src="https://paradiso.agilecrm.com/stats/min/agile-min.js"> 
+      </script>
+      <script type="text/javascript" >
+         _agile.set_account('1hjma4g6bthgmu56b1tdjadlht', 'paradiso');
+         _agile.track_page_view();
+         _agile_execute_web_rules();
+      </script>
+
          
         
       </head>
@@ -54,38 +63,38 @@
                               <div class="ventana">     
 
 
-		<div id="popupcontactus">
-			<div class="contactpopup contactblockpopup">
-				<a class="close">x</a>
-				<h3><?php echo $this->translate('form_title'); ?></h3>
-				<p><?php echo $this->translate('form_p'); ?></p>
-				
-				<h4><?php echo $this->translate('form_h4'); ?></h4>
-				
-				<form method="post" action="<?php echo $this->url($this->route_name); ?>" id="blockcontactfreemium" name="blockcontactfreemium">
-					
-					<input type="hidden" name="contact_form" value="blockcontactfreemium">
-		
-					<input id="contact_us_name" class="c1" type="text" name="contact_name" placeholder="<?php echo $this->translate('label_name'); ?>" value=""  onfocus="this.placeholder = ''" onblur="this.placeholder = '* Your Name:'">
-					<input id="contact_us_phone" class="c2" type="tel" name="contact_phone" placeholder="<?php echo $this->translate('label_phone'); ?>" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Your Phone'">
-					<input id="contact_us_email" type="email" name="contact_email" placeholder="<?php echo $this->translate('label_email'); ?>"  onfocus="this.placeholder = ''" onblur="this.placeholder = '* Your Email Address'">
-					<input id="contact_us_company" class="c4" type="text" name="contact_company" placeholder="<?php echo $this->translate('label_company'); ?>" value="" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Company Name:'">
-					<textarea id="contact_us_msg" placeholder="<?php echo $this->translate('label_message'); ?>" name="contact_message" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Message'"></textarea>
-					<h5><?php echo $this->translate('call_us'); ?></h5>
-					<button id="contactpopupsubmit" type="submit"><?php echo $this->translate('btn_send'); ?></button>
-				</form>
-				<div id="contactmsgsuccess">
-					<h3><?php echo $this->translate('h3_success'); ?></h3>
-					<p><?php echo $this->translate('p_success'); ?></p>
-					<span><?php echo $this->translate('span_success'); ?></span>
-				</div>
-				<div id="contactusmsgerror">
-					<?php echo $this->translate('text_error'); ?>
-				</div>
-				
-			</div>
-		</div>
-		 
+    <div id="popupcontactus">
+      <div class="contactpopup contactblockpopup">
+        <a class="close">x</a>
+        <h3><?php echo $this->translate('form_title'); ?></h3>
+        <p><?php echo $this->translate('form_p'); ?></p>
+        
+        <h4><?php echo $this->translate('form_h4'); ?></h4>
+        
+        <form method="post" action="<?php echo $this->url($this->route_name); ?>" id="blockcontactfreemium" name="blockcontactfreemium">
+          
+          <input type="hidden" name="contact_form" value="blockcontactfreemium">
+    
+          <input id="contact_us_name" class="c1" type="text" name="contact_name" placeholder="<?php echo $this->translate('label_name'); ?>" value=""  onfocus="this.placeholder = ''" onblur="this.placeholder = '* Your Name:'">
+          <input id="contact_us_phone" class="c2" type="tel" name="contact_phone" placeholder="<?php echo $this->translate('label_phone'); ?>" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Your Phone'">
+          <input id="contact_us_email" type="email" name="contact_email" placeholder="<?php echo $this->translate('label_email'); ?>"  onfocus="this.placeholder = ''" onblur="this.placeholder = '* Your Email Address'">
+          <input id="contact_us_company" class="c4" type="text" name="contact_company" placeholder="<?php echo $this->translate('label_company'); ?>" value="" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Company Name:'">
+          <textarea id="contact_us_msg" placeholder="<?php echo $this->translate('label_message'); ?>" name="contact_message" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Message'"></textarea>
+          <h5><?php echo $this->translate('call_us'); ?></h5>
+          <button id="contactpopupsubmit" type="submit"><?php echo $this->translate('btn_send'); ?></button>
+        </form>
+        <div id="contactmsgsuccess">
+          <h3><?php echo $this->translate('h3_success'); ?></h3>
+          <p><?php echo $this->translate('p_success'); ?></p>
+          <span><?php echo $this->translate('span_success'); ?></span>
+        </div>
+        <div id="contactusmsgerror">
+          <?php echo $this->translate('text_error'); ?>
+        </div>
+        
+      </div>
+    </div>
+     
       </div> 
          <!-- /freemium -->
          
@@ -334,14 +343,14 @@ Si el parámetro existe devolver su valor
         url: "http://dev.freemium.paradisolms.com/ajax/sendcontact",
         dataType: 'json',
         data: { 
-        	name: name, 
-        	email: email, 
-        	company: company, 
-        	formajax: 'contact', 
-        	send_email: send_email, 
-        	phone: phone, 
-        	msg: msg, 
-        	url: url },
+          name: name, 
+          email: email, 
+          company: company, 
+          formajax: 'contact', 
+          send_email: send_email, 
+          phone: phone, 
+          msg: msg, 
+          url: url },
 
         success: function(data) {
             console.log("success form");
@@ -365,7 +374,7 @@ Si el parámetro existe devolver su valor
                  var contact={ };
 
                 contact.first_name = jQuery("#contact_us_name").val();
-                contact.email_address = jQuery("#contact_us_email").val();
+                contact.email = jQuery("#contact_us_email").val();
                 contact.phone = jQuery("#contact_us_phone").val();
                 contact.company_name = jQuery("#contact_us_company").val();
             
@@ -382,6 +391,35 @@ Si el parámetro existe devolver su valor
  });
 
 </script>
+
+    <script type="text/javascript">
+          jQuery(document).ready(function() {
+                  // La validacion fue puesta en el index.php del tema "paradiso" para que no entrara en conflicto con el codigo de Agile que esta aqui abajo
+
+                      jQuery("#submit").click(function(){
+                                     
+                                      var contact = {};
+
+                                      contact.first_name = jQuery("#firstname").val();
+                                      contact.last_name = jQuery("#lastname").val();
+                                      contact.email = jQuery("#email").val();
+
+                                      _agile.create_contact(contact, {
+                                            success: function (data) {
+                                                console.log("success");
+                                            },
+                                            error: function (data) {
+                                                console.log("error");
+                                            }
+                                      });
+
+                                      /*event.preventDefault();
+                                      return false;*/
+                      });    
+
+            });                
+
+    </script>
          
 
 
