@@ -37,7 +37,7 @@ class SqlController extends Com\Controller\BackendController
                             {
                                 try
                                 {
-                                    #$this->_execute($item->db_name, $query);
+                                    $this->_execute($item->db_name, $query);
                                 }
                                 catch(\Exception $e)
                                 {
@@ -52,7 +52,7 @@ class SqlController extends Com\Controller\BackendController
                         {
                             try
                             {
-                                #$this->_execute($database, $query);
+                                $this->_execute($database, $query);
                             }
                             catch(\Exception $e)
                             {
