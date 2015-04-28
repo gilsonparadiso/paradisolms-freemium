@@ -31,26 +31,36 @@ class SqlController extends Com\Controller\BackendController
                 {
                     if(!empty($query))
                     {
-                        try
+                        if(empty($database))
                         {
-                            if(empty($database))
+                            foreach($databases as $item)
                             {
-                                foreach($databases as $item)
+                                try
                                 {
-                                    $this->_execute($item->db_name, $query);
+                                    #$this->_execute($item->db_name, $query);
+                                }
+                                catch(\Exception $e)
+                                {
+                                    $result[] = array(
+                                        'query' => $query . " - {$item->db_name}"
+                                        ,'error' => $e->getMessage()
+                                    );
                                 }
                             }
-                            else
-                            {
-                                $this->_execute($database, $query);
-                            }
                         }
-                        catch(\Exception $e)
+                        else
                         {
-                            $result[] = array(
-                                'query' => $query
-                                ,'error' => $e->getMessage()
-                            );
+                            try
+                            {
+                                #$this->_execute($database, $query);
+                            }
+                            catch(\Exception $e)
+                            {
+                                $result[] = array(
+                                    'query' => $query . " - {$item->db_name}"
+                                    ,'error' => $e->getMessage()
+                                );
+                            }
                         }
                     }
                 }
