@@ -1400,17 +1400,9 @@ class Instance extends Com\Model\AbstractModel
         $rowset = $dbDatabase->executeCustomSelect($select);
         
         $ids = array();
-        $count = 0;
         foreach($rowset as $row)
         {
-            if($count >= 3)
-            {
-                break;
-            }
-            
             $ids[$row->id] = $row->db_name;
-            
-            $count ++;
         }
         
         $predicate = new Zend\Db\Sql\Predicate\In('id', array_keys($ids));
