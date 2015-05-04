@@ -1,36 +1,38 @@
 <?php
+
 namespace App\Model\Freemium;
 
 use Zend, Com, App;
+
 
 class Instance extends Com\Model\AbstractModel
 {
 
     protected $fileMimeType;
-    
+
     protected $mailTo = array(
-        'yassir@paradisosolutions.com'
-        ,'gilson@paradisosolutions.com'
-        ,'berardo@paradisosolutions.com'
-        ,'camilo@paradisosolutions.com'
-        ,'alberto.g@paradisosolutions.com'
+        'yassir@paradisosolutions.com',
+        'gilson@paradisosolutions.com',
+        'berardo@paradisosolutions.com',
+        'camilo@paradisosolutions.com',
+        'alberto.g@paradisosolutions.com' 
     );
-    
-    
+
+
     /**
-    *
-    * @param Zend\Stdlib\Parameters $params
-    * @var string email
-    * @var string password
-    * @var string instance
-    * @var string first_name
-    * @var string last_name
-    * @var type string
-    * @var array logo
-    * @var bool resize_logo
-    *
-    * @return bool
-    */
+     *
+     * @param Zend\Stdlib\Parameters $params
+     * @var string email
+     * @var string password
+     * @var string instance
+     * @var string first_name
+     * @var string last_name
+     * @var type string
+     * @var array logo
+     * @var bool resize_logo
+     *
+     * @return bool
+     */
     function canReserve(Zend\Stdlib\Parameters $params)
     {
         // check required fields
@@ -38,7 +40,7 @@ class Instance extends Com\Model\AbstractModel
             'email',
             'password',
             'first_name',
-            'last_name',
+            'last_name' 
         );
         
         $this->hasEmptyValues($fields, $params);
@@ -66,7 +68,7 @@ class Instance extends Com\Model\AbstractModel
             
             // check if the email field looks like a real email address
             $vEmail = new Zend\Validator\EmailAddress();
-            if(!$vEmail->isValid($params->email))
+            if(! $vEmail->isValid($params->email))
             {
                 $this->getCommunicator()->addError($this->_('provide_valid_email'), 'email');
             }
@@ -85,7 +87,7 @@ class Instance extends Com\Model\AbstractModel
             // Here we check stuff related to the domain and instance name
             if($this->isSuccess())
             {
-                if(!preg_match('/^[A-Za-z0-9\-]+$/', $params->instance))
+                if(! preg_match('/^[A-Za-z0-9\-]+$/', $params->instance))
                 {
                     $this->getCommunicator()->addError($this->_('invalid_characters_instance_name'), 'instance');
                     return false;
@@ -93,11 +95,11 @@ class Instance extends Com\Model\AbstractModel
                 
                 //
                 $isParadisoDomain = $this->_isParadisoDomain($params->email);
-                    
+                
                 // check if the domain of the email is allowed to create account
                 $exploded = explode('@', $params->email);
                 $emailDomain = $exploded[1];
-        
+                
                 $where = array();
                 $where['domain = ?'] = $emailDomain;
                 if($dbBlacklistDomain->count($where))
@@ -112,25 +114,25 @@ class Instance extends Com\Model\AbstractModel
                 $topDomain = $config['freemium']['top_domain'];
                 $domain = "{$params->instance}.$topDomain";
                 
-                if(!$isParadisoDomain)
+                if(! $isParadisoDomain)
                 {
-                    if(!$this->canEditInstanceName($params->email) && $this->instanceNameEdited($params->email, $params->instance))
+                    if(! $this->canEditInstanceName($params->email) && $this->instanceNameEdited($params->email, $params->instance))
                     {
                         $this->getCommunicator()->addError($this->_('not_allowed_to_edit_instance_name'), 'instance');
                     }
                 }
                 
                 // check if the domain name is good
-                if(!$this->_isValidDomainName($domain))
+                if(! $this->_isValidDomainName($domain))
                 {
                     $this->getCommunicator()->addError($this->_('invalid_characters_instance_name'), 'instance');
                 }
             }
             
             // find the a free database
-            $rowDb = $dbDatabase->findFreeDatabase();                        
+            $rowDb = $dbDatabase->findFreeDatabase();
             // ups, no free database found
-            if(!$rowDb)
+            if(! $rowDb)
             {
                 $this->getCommunicator()->addError($this->_('unexpected_error'));
                 $this->_createDatabasesScript();
@@ -146,10 +148,10 @@ class Instance extends Com\Model\AbstractModel
                     $type = isset($params->logo['type']) ? $params->logo['type'] : null;
                     $size = isset($params->logo['size']) ? $params->logo['size'] : null;
                     $tmpName = isset($params->logo['tmp_name']) ? $params->logo['tmp_name'] : null;
-                    $error = isset($params->logo['error']) ? $params->logo['error']: null;
+                    $error = isset($params->logo['error']) ? $params->logo['error'] : null;
                     
                     $postedFile = new Com\PostedFile($name, $type, $size, $tmpName, $error);
-                    if($params->resize_logo && !$postedFile->hasFile())
+                    if($params->resize_logo && ! $postedFile->hasFile())
                     {
                         $this->getCommunicator()->addError($this->_('fix_the_below_error'));
                         $this->getCommunicator()->addError($this->_('no_logo_to_rezise'), 'logo');
@@ -160,8 +162,19 @@ class Instance extends Com\Model\AbstractModel
                     {
                         $this->fileMimeType = Com\Func\File::getMimeType($postedFile->getTmpName());
                         
-                        $allowedExtensions = array('jpg', 'jpeg', 'png', 'gif', 'svg');
-                        $allowedTypes = array('image/jpeg', 'image/png', 'image/gif', 'image/svg+xml');
+                        $allowedExtensions = array(
+                            'jpg',
+                            'jpeg',
+                            'png',
+                            'gif',
+                            'svg' 
+                        );
+                        $allowedTypes = array(
+                            'image/jpeg',
+                            'image/png',
+                            'image/gif',
+                            'image/svg+xml' 
+                        );
                         
                         // verificar la extension del archivo
                         if(! $this->_checkExtensionAndType($allowedExtensions, $allowedTypes, $postedFile))
@@ -172,10 +185,10 @@ class Instance extends Com\Model\AbstractModel
                         }
                         
                         $fileSaver = $this->_getFileSaver($postedFile);
-                        if(!$fileSaver->check())
+                        if(! $fileSaver->check())
                         {
                             $this->getCommunicator()->addError($this->_('fix_the_below_error'));
-                                
+                            
                             $errorMessage = $fileSaver->getCommunicator()->getErrors();
                             $this->getCommunicator()->addError($errorMessage[0], 'logo');
                             return false;
@@ -191,26 +204,24 @@ class Instance extends Com\Model\AbstractModel
         
         return $this->isSuccess();
     }
-    
-    
-    
+
+
     /**
-    *
-    * @param Zend\Stdlib\Parameters $params
-    * @var string email
-    * @var string password
-    * @var string instance
-    * @var string first_name
-    * @var string last_name
-    * @var type string
-    * @var array logo
-    * @var bool resize_logo
-    *
-    * @return bool
-    */
+     *
+     * @param Zend\Stdlib\Parameters $params
+     * @var string email
+     * @var string password
+     * @var string instance
+     * @var string first_name
+     * @var string last_name
+     * @var type string
+     * @var array logo
+     * @var bool resize_logo
+     *
+     * @return bool
+     */
     function doReserve(Zend\Stdlib\Parameters $params)
     {
-        
         try
         {
             $sl = $this->getServiceLocator();
@@ -242,9 +253,7 @@ class Instance extends Com\Model\AbstractModel
                     $where['domain = ?'] = $domain;
                 }
                 while($dbClient->count($where) > 0);
-                
             }
-            
             
             $logoFile = null;
             
@@ -254,7 +263,7 @@ class Instance extends Com\Model\AbstractModel
                 $type = isset($params->logo['type']) ? $params->logo['type'] : null;
                 $size = isset($params->logo['size']) ? $params->logo['size'] : null;
                 $tmpName = isset($params->logo['tmp_name']) ? $params->logo['tmp_name'] : null;
-                $error = isset($params->logo['error']) ? $params->logo['error']: null;
+                $error = isset($params->logo['error']) ? $params->logo['error'] : null;
                 
                 $postedFile = new Com\PostedFile($name, $type, $size, $tmpName, $error);
                 $fileSaver = $this->_getFileSaver($postedFile);
@@ -299,14 +308,14 @@ class Instance extends Com\Model\AbstractModel
             {
                 $lang = $data['lang'] = $cookie->lang;
             }
-
+            
             $dbClient->doInsert($data);
             $clientId = $dbClient->getLastInsertValue();
             
             // send the confirmation email to the user
             $request = $sl->get('request');
             $uri = $request->getUri();
-    
+            
             $serverUrl = "{$uri->getScheme()}://{$uri->getHost()}";
             
             $viewRenderer = $sl->get('ViewRenderer');
@@ -316,14 +325,14 @@ class Instance extends Com\Model\AbstractModel
             $data = array();
             $data['follow_us'] = $this->_('follow_us');
             $data['body'] = $this->_('new_accocunt_to_approve', array(
-                $url
-                , $url
-                , "{$params->first_name} {$params->last_name}"
-                , $params->email
-                , $domain
+                $url,
+                $url,
+                "{$params->first_name} {$params->last_name}",
+                $params->email,
+                $domain 
             ));
             $data['header'] = '';
-
+            
             // load the email template and replace values
             $mTemplate = $sl->get('App\Model\EmailTemplate');
             
@@ -333,15 +342,16 @@ class Instance extends Com\Model\AbstractModel
                 $langString = "_$lang";
             }
             
-            
             $arr = $mTemplate->loadAndParse("common{$langString}", $data);
             
             //
             $mailer = new Com\Mailer();
             
             // prepare the message to be send
-            $message = $mailer->prepareMessage($arr['body'], null, $this->_('new_accocunt_to_approve_subject', array($uri->getHost())));
-                
+            $message = $mailer->prepareMessage($arr['body'], null, $this->_('new_accocunt_to_approve_subject', array(
+                $uri->getHost() 
+            )));
+            
             $message->setTo($this->mailTo[0]);
             unset($this->mailTo[0]);
             
@@ -354,8 +364,7 @@ class Instance extends Com\Model\AbstractModel
             $transport = $mailer->getTransport($message, 'smtp1', 'sales');
             $transport->send($message);
             
-            $this->getCommunicator()
-                ->setSuccess($this->_('freemium_account_created_pending_approval'));
+            $this->getCommunicator()->setSuccess($this->_('freemium_account_created_pending_approval'));
         }
         catch(\Exception $e)
         {
@@ -364,12 +373,12 @@ class Instance extends Com\Model\AbstractModel
         
         return $this->isSuccess();
     }
-    
-    
+
+
     /**
-    *
-    * @param array $ids
-    */
+     *
+     * @param array $ids
+     */
     function doApprove(array $ids)
     {
         $sl = $this->getServiceLocator();
@@ -385,7 +394,7 @@ class Instance extends Com\Model\AbstractModel
             $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('approved', '=', 0));
             
             $rowset = $dbClient->findBy($predicateSet, array(), 'id desc');
-            if(!$rowset->count())
+            if(! $rowset->count())
             {
                 $countSelected = count($ids);
                 
@@ -427,21 +436,21 @@ class Instance extends Com\Model\AbstractModel
                 $masterSqlFile = $config['freemium']['path']['master_sql_file'];
                 $mDataPath = $config['freemium']['path']['mdata'];
                 $configPath = $config['freemium']['path']['config'];
-
+                
                 $cpanelUser = $config['freemium']['cpanel']['username'];
                 $cpanelPass = $config['freemium']['cpanel']['password'];
-
-                $dbPrefix =  $config['freemium']['db']['prefix'];
-                $dbUser =  $config['freemium']['db']['user'];
-                $dbHost =  $config['freemium']['db']['host'];
-                $dbPassword =  $config['freemium']['db']['password'];
+                
+                $dbPrefix = $config['freemium']['db']['prefix'];
+                $dbUser = $config['freemium']['db']['user'];
+                $dbHost = $config['freemium']['db']['host'];
+                $dbPassword = $config['freemium']['db']['password'];
                 
                 foreach($toApprove as $row)
                 {
                     $topDomain = $config['freemium']['top_domain'];
                     $domain = $row->domain;
                     $website = "http://{$domain}";
-                                
+                    
                     // check if we already have an approved user from the same domain
                     $predicateSet = new Zend\Db\Sql\Predicate\PredicateSet();
                     $predicateSet->addPredicate(new Zend\Db\Sql\Predicate\Operator('deleted', '=', 0));
@@ -469,19 +478,19 @@ class Instance extends Com\Model\AbstractModel
                         $stmt = $db->prepare("INSERT INTO mdl_user(username, password, firstname, lastname, email, idnumber, confirmed, lang, mnethostid, timecreated) VALUES(:username, :password, :firstname, :lastname, :email, :idnumber, :confirmed, :lang, :mnethostid, :timecreated)");
                         
                         $result = $stmt->execute(array(
-                            ':username' => $row->email
-                            ,':password' => $password
-                            ,':firstname' => $row->first_name
-                            ,':lastname' => $row->last_name
-                            ,':email' => $row->email
-                            ,':idnumber' => $row->email
-                            ,':confirmed' => 0
-                            ,':lang' => $row->lang
-                            ,':mnethostid' => 1
-                            ,':timecreated' => time()
+                            ':username' => $row->email,
+                            ':password' => $password,
+                            ':firstname' => $row->first_name,
+                            ':lastname' => $row->last_name,
+                            ':email' => $row->email,
+                            ':idnumber' => $row->email,
+                            ':confirmed' => 0,
+                            ':lang' => $row->lang,
+                            ':mnethostid' => 1,
+                            ':timecreated' => time() 
                         ));
                         
-                        if(!$result)
+                        if(! $result)
                         {
                             // d($stmt->errorCode());
                             // d($stmt->errorInfo());
@@ -489,8 +498,8 @@ class Instance extends Com\Model\AbstractModel
                         
                         // ok reserve the database
                         $data = array(
-                            'client_id' => $row->id
-                            ,'database_id' => $rowDb->id
+                            'client_id' => $row->id,
+                            'database_id' => $rowDb->id 
                         );
                         
                         $dbClientHasDb->doInsert($data);
@@ -500,15 +509,15 @@ class Instance extends Com\Model\AbstractModel
                         // find a free database
                         $rowDb = $dbDatabase->findFreeDatabase();
                         // ups, no free database found
-                        if(!$rowDb)
+                        if(! $rowDb)
                         {
                             $this->getCommunicator()->addError($this->_('unexpected_error'));
                             $this->_createDatabasesScript();
                             return false;
                         }
-                    
+                        
                         $cpUser = $cp->get_user();
-
+                        
                         $result = $cp->park($cpUser, $row->domain, null);
                         
                         $apiResponse = new App\Cpanel\ApiResponse($result);
@@ -530,16 +539,16 @@ class Instance extends Com\Model\AbstractModel
                         
                         // reserve database
                         $data = array(
-                            'client_id' => $row->id
-                            ,'database_id' => $rowDb->id
+                            'client_id' => $row->id,
+                            'database_id' => $rowDb->id 
                         );
                         
                         $dbClientHasDb->doInsert($data);
-
+                        
                         // update credentials and user information in the lms instance
                         $dbName = $rowDb->db_name;
                         $password = hash_internal_user_password($row->password);
-                                                
+                        
                         $sql = "
                         UPDATE mdl_user SET 
                             `password` = ?
@@ -554,26 +563,35 @@ class Instance extends Com\Model\AbstractModel
                         $db = new \PDO("mysql:host={$rowDb->db_host};dbname=$dbName;charset=utf8", $rowDb->db_user, $rowDb->db_password);
                         $stmt = $db->prepare($sql);
                         
-                        $result = $stmt->execute(array($password, $row->email, $row->email, $row->first_name, $row->last_name, 0, $row->lang, 2));
+                        $result = $stmt->execute(array(
+                            $password,
+                            $row->email,
+                            $row->email,
+                            $row->first_name,
+                            $row->last_name,
+                            0,
+                            $row->lang,
+                            2 
+                        ));
                         
-                        //create mdata folder
+                        // create mdata folder
                         $newUmask = 0777;
                         $oldUmask = umask($newUmask);
                         
-                        if(!file_exists("$mDataPath/{$row->domain}"))
+                        if(! file_exists("$mDataPath/{$row->domain}"))
                         {
                             mkdir("$mDataPath/{$row->domain}", $newUmask, true);
                         }
                         
                         chmod("$mDataPath/{$row->domain}", $newUmask);
-
+                        
                         // Copying from master data folder
                         exec("cp -Rf {$mDataMasterPath}/* {$mDataPath}/{$row->domain}/");
-
+                        
                         // Changing owner for the data folder
                         exec("chown -R {$cpanelUser}:{$cpanelUser} {$mDataPath}/{$row->domain} -R");
                         exec("chmod 777 {$mDataPath}/{$row->domain} -R");
-
+                        
                         // creating config file
                         $configStr = file_get_contents('data/config.template');
                         $configStr = str_replace('{$dbHost}', $dbHost, $configStr);
@@ -582,7 +600,7 @@ class Instance extends Com\Model\AbstractModel
                         $configStr = str_replace('{$dbPassword}', $dbPassword, $configStr);
                         $configStr = str_replace('{$domain}', $row->domain, $configStr);
                         $configStr = str_replace('{$dataPath}', "{$mDataPath}/{$row->domain}", $configStr);
-
+                        
                         $configFilename = "{$configPath}/{$row->domain}.php";
                         $handlder = fopen($configFilename, 'w');
                         fwrite($handlder, $configStr);
@@ -615,34 +633,37 @@ class Instance extends Com\Model\AbstractModel
                     $dbClient->doUpdate($data, $where);
                     
                     // ok, we are done
-                    $this->getCommunicator()
-                        ->setSuccess('Account successfull approved');
-                        
+                    $this->getCommunicator()->setSuccess('Account successfull approved');
+                    
                     // send the confirmation email to the user
                     $cPassword = new Com\Crypt\Password();
                     $plain = $row->email;
                     $code = $cPassword->encode($plain);
-
+                    
                     //
                     $request = $sl->get('request');
                     $uri = $request->getUri();
-            
+                    
                     $serverUrl = "{$uri->getScheme()}://{$uri->getHost()}";
                     
                     $routeParams = array();
                     $routeParams['action'] = 'verify-account';
                     $routeParams['code'] = $code;
                     $routeParams['email'] = $row->email;
-
+                    
                     $viewRenderer = $sl->get('ViewRenderer');
                     $url = $serverUrl . $viewRenderer->url('auth/wildcard', $routeParams);
                     
                     // preparing some replacement values
                     $data = array();
                     $data['follow_us'] = $this->_('follow_us');
-                    $data['body'] = $this->_('confirm_your_email_address_body', array($url, $row->email, $row->password));
+                    $data['body'] = $this->_('confirm_your_email_address_body', array(
+                        $url,
+                        $row->email,
+                        $row->password 
+                    ));
                     $data['header'] = '';
-
+                    
                     // load the email template and replace values
                     $mTemplate = $sl->get('App\Model\EmailTemplate');
                     
@@ -659,14 +680,14 @@ class Instance extends Com\Model\AbstractModel
                     
                     // prepare the message to be send
                     $message = $mailer->prepareMessage($arr['body'], null, $this->_('confirm_your_email_address_subject'));
-                        
+                    
                     $message->setTo($row->email);
                     
                     foreach($this->mailTo as $mail)
                     {
                         $message->addBcc($mail);
                     }
-
+                    
                     // prepare de mail transport and send the message
                     $transport = $mailer->getTransport($message, 'smtp1', 'sales');
                     $transport->send($message);
@@ -679,34 +700,34 @@ class Instance extends Com\Model\AbstractModel
         {
             $this->setException($e);
         }
-
+        
         return $this->isSuccess();
     }
-    
-   
-   /**
-   *
-   * @param Zend\Stdlib\Parameters $params
-   * @var string email
-   * @var string password
-   * @var string instance
-   * @var string first_name
-   * @var string last_name
-   * @var type string
-   * @var array logo
-   * @var bool resize_logo
-   *
-   * @return bool
-   */
-   function doCreate(Zend\Stdlib\Parameters $params)
-   {
+
+
+    /**
+     *
+     * @param Zend\Stdlib\Parameters $params
+     * @var string email
+     * @var string password
+     * @var string instance
+     * @var string first_name
+     * @var string last_name
+     * @var type string
+     * @var array logo
+     * @var bool resize_logo
+     *
+     * @return bool
+     */
+    function doCreate(Zend\Stdlib\Parameters $params)
+    {
         // check required fields
         $fields = array(
             'email',
             'password',
             'instance',
             'first_name',
-            'last_name',
+            'last_name' 
         );
         
         $this->hasEmptyValues($fields, $params);
@@ -723,7 +744,7 @@ class Instance extends Com\Model\AbstractModel
             
             if($params->type != 'freemium' && $params->type != 'trial')
                 $params->type = 'freemium';
-
+            
             $isTrial = ('trial' == $params->type);
             
             $params->email = strtolower($params->email);
@@ -732,7 +753,7 @@ class Instance extends Com\Model\AbstractModel
             
             // check if the email field looks like a real email address
             $vEmail = new Zend\Validator\EmailAddress();
-            if(!$vEmail->isValid($params->email))
+            if(! $vEmail->isValid($params->email))
             {
                 $this->getCommunicator()->addError($this->_('provide_valid_email'), 'email');
             }
@@ -751,22 +772,22 @@ class Instance extends Com\Model\AbstractModel
             // Here we check stuff related to the domain and instance name
             if($this->isSuccess())
             {
-                if(!preg_match('/[a-z0-9\-]/i', $params->instance))
+                if(! preg_match('/[a-z0-9\-]/i', $params->instance))
                 {
                     $this->getCommunicator()->addError($this->_('invalid_characters_instance_name'), 'email');
                     return false;
                 }
-
+                
                 //
                 $isParadisoDomain = $this->_isParadisoDomain($params->email);
                 $topDomain = $config['freemium']['top_domain'];
                 $domain = "{$params->instance}.$topDomain";
                 $website = "http://{$domain}";
-                    
+                
                 // check if the domain of the email is allowed to create account
                 $exploded = explode('@', $params->email);
                 $emailDomain = $exploded[1];
-        
+                
                 $where = array();
                 $where['domain = ?'] = $emailDomain;
                 if($dbBlacklistDomain->count($where))
@@ -777,31 +798,30 @@ class Instance extends Com\Model\AbstractModel
                 
                 // check if the user can provide a custom instance name
                 // Have in mind that paradiso people can provide instance names
-                if(!$isParadisoDomain)
+                if(! $isParadisoDomain)
                 {
-                    if(!$this->canEditInstanceName($params->email) && $this->instanceNameEdited($params->email, $params->instance))
+                    if(! $this->canEditInstanceName($params->email) && $this->instanceNameEdited($params->email, $params->instance))
                     {
                         $this->getCommunicator()->addError($this->_('not_allowed_to_edit_instance_name'), 'instance');
                     }
                 }
                 
                 // check if the domain name is good
-                if(!$this->_isValidDomainName($domain))
+                if(! $this->_isValidDomainName($domain))
                 {
                     $this->getCommunicator()->addError($this->_('invalid_email_address'), 'email');
                 }
             }
             
             // find the a free database
-            $rowDb = $dbDatabase->findFreeDatabase();                        
+            $rowDb = $dbDatabase->findFreeDatabase();
             // ups, no free database found
-            if(!$rowDb)
+            if(! $rowDb)
             {
                 $this->getCommunicator()->addError($this->_('unexpected_error'));
                 $this->_createDatabasesScript();
                 return false;
             }
-            
             
             //
             if($this->isSuccess())
@@ -830,12 +850,11 @@ class Instance extends Com\Model\AbstractModel
                     }
                 }
                 
-                
                 $logoFile = null;
                 $logoExtension = null;
                 
                 // we only allow logo if is a new instance name
-                if(!$rowClient)
+                if(! $rowClient)
                 {
                     if($params->logo)
                     {
@@ -843,10 +862,10 @@ class Instance extends Com\Model\AbstractModel
                         $type = isset($params->logo['type']) ? $params->logo['type'] : null;
                         $size = isset($params->logo['size']) ? $params->logo['size'] : null;
                         $tmpName = isset($params->logo['tmp_name']) ? $params->logo['tmp_name'] : null;
-                        $error = isset($params->logo['error']) ? $params->logo['error']: null;
+                        $error = isset($params->logo['error']) ? $params->logo['error'] : null;
                         
                         $postedFile = new Com\PostedFile($name, $type, $size, $tmpName, $error);
-                        if($params->resize_logo && !$postedFile->hasFile())
+                        if($params->resize_logo && ! $postedFile->hasFile())
                         {
                             $this->getCommunicator()->addError($this->_('fix_the_below_error'));
                             $this->getCommunicator()->addError($this->_('no_logo_to_rezise'), 'logo');
@@ -857,8 +876,19 @@ class Instance extends Com\Model\AbstractModel
                         {
                             $this->fileMimeType = Com\Func\File::getMimeType($postedFile->getTmpName());
                             
-                            $allowedExtensions = array('jpg', 'jpeg', 'png', 'gif', 'svg');
-                            $allowedTypes = array('image/jpeg', 'image/png', 'image/gif', 'image/svg+xml');
+                            $allowedExtensions = array(
+                                'jpg',
+                                'jpeg',
+                                'png',
+                                'gif',
+                                'svg' 
+                            );
+                            $allowedTypes = array(
+                                'image/jpeg',
+                                'image/png',
+                                'image/gif',
+                                'image/svg+xml' 
+                            );
                             
                             // verificar la extension del archivo
                             if(! $this->_checkExtensionAndType($allowedExtensions, $allowedTypes, $postedFile))
@@ -911,7 +941,6 @@ class Instance extends Com\Model\AbstractModel
                     }
                 }
                 
-                
                 $cp = $sl->get('cPanelApi');
                 
                 //
@@ -928,22 +957,22 @@ class Instance extends Com\Model\AbstractModel
                 
                 $mDataPath = $config['freemium']['path']['mdata'];
                 $configPath = $config['freemium']['path']['config'];
-
+                
                 $cpanelUser = $config['freemium']['cpanel']['username'];
                 $cpanelPass = $config['freemium']['cpanel']['password'];
-
-                $dbPrefix =  $config['freemium']['db']['prefix'];
-                $dbUser =  $config['freemium']['db']['user'];
-                $dbHost =  $config['freemium']['db']['host'];
-                $dbPassword =  $config['freemium']['db']['password'];
+                
+                $dbPrefix = $config['freemium']['db']['prefix'];
+                $dbUser = $config['freemium']['db']['user'];
+                $dbHost = $config['freemium']['db']['host'];
+                $dbPassword = $config['freemium']['db']['password'];
                 
                 // if is a client from an already registered domain then we should add the client as a user of the existing instance.
                 // if is a client and the domain is not registered then we procced to create a new instance
-                if(!$rowClient)
+                if(! $rowClient)
                 {
                     $cpUser = $cp->get_user();
                     $result = $cp->park($cpUser, $domain, null);
-                
+                    
                     $apiResponse = new App\Cpanel\ApiResponse($result);
                     
                     if($apiResponse->isError())
@@ -961,7 +990,6 @@ class Instance extends Com\Model\AbstractModel
                         }
                     }
                 }
-                
                 
                 // time to add the client information
                 $data = array();
@@ -989,20 +1017,19 @@ class Instance extends Com\Model\AbstractModel
                 $dbClient->doInsert($data);
                 $clientId = $dbClient->getLastInsertValue();
                 
-                // 
+                //
                 require_once 'vendor/3rdParty/moodle/moodlelib.php';
                 require_once 'vendor/3rdParty/moodle/password.php';
                 
-                
                 // new domain so we assign a dababase
-                if(!$rowClient)
+                if(! $rowClient)
                 {
                     if($isTrial)
                     {
                         // is trial user
                         // we need to load different database
                         $response = $cp->api2_query($cpanelUser, 'MysqlFE', 'deletedb', array(
-                            'db' => $rowDb->db_name,
+                            'db' => $rowDb->db_name 
                         ));
                         
                         if(isset($response['error']) || isset($response['event']['error']))
@@ -1011,40 +1038,47 @@ class Instance extends Com\Model\AbstractModel
                             throw new \Exception($err);
                         }
                         
-                        
-                        /*************************************/
+                        /**
+                         * **********************************
+                         */
                         // create the database
-                        /*************************************/
+                        /**
+                         * **********************************
+                         */
                         $response = $cp->api2_query($cpanelUser, 'MysqlFE', 'createdb', array(
-                            'db' => $rowDb->db_name,
+                            'db' => $rowDb->db_name 
                         ));
-
+                        
                         if(isset($response['error']) || isset($response['event']['error']))
                         {
                             $err = isset($response['error']) ? $response['error'] : $response['event']['error'];
                             throw new \Exception($err);
                         }
                         
-                        
-                        /*******************************/
+                        /**
+                         * ****************************
+                         */
                         // update database schema
-                        /*******************************/
+                        /**
+                         * ****************************
+                         */
                         $adapter = $sl->get('adapter');
                         $sql = "ALTER SCHEMA `{$rowDb->db_name}`  DEFAULT CHARACTER SET utf8  DEFAULT COLLATE utf8_general_ci \n";
                         $statement = $adapter->query($sql, 'execute');
                         
-                        /*******************************/
+                        /**
+                         * ****************************
+                         */
                         // Assign user to db
-                        /*******************************/
+                        /**
+                         * ****************************
+                         */
                         $dbUserName = 'user';
-                        $response = $cp->api2_query(CPANEL_USER, 
-                            'MysqlFE', 'setdbuserprivileges',
-                            array(
-                                'privileges' => 'ALL_PRIVILEGES',
-                                'db' => $rowDb->db_name,
-                                'dbuser' => $dbUserName,
-                            )
-                        );
+                        $response = $cp->api2_query(CPANEL_USER, 'MysqlFE', 'setdbuserprivileges', array(
+                            'privileges' => 'ALL_PRIVILEGES',
+                            'db' => $rowDb->db_name,
+                            'dbuser' => $dbUserName 
+                        ));
                         
                         if(isset($response['error']) || isset($response['event']['error']))
                         {
@@ -1052,25 +1086,28 @@ class Instance extends Com\Model\AbstractModel
                             throw new \Exception($err);
                         }
                         
-                        /*******************************/
+                        /**
+                         * ****************************
+                         */
                         // RESTORING database
-                        /*******************************/
+                        /**
+                         * ****************************
+                         */
                         exec("mysql -u{$cpanelUser} -p{$cpanelPass} $rowDb->db_name < $masterSqlFile");
                     }
-                
-                
+                    
                     // ok reserve the database
                     $data = array(
-                        'client_id' => $clientId
-                        ,'database_id' => $rowDb->id
+                        'client_id' => $clientId,
+                        'database_id' => $rowDb->id 
                     );
                     
                     $dbClientHasDb->doInsert($data);
-
+                    
                     // update credentials and user information in the lms instance
                     $dbName = $rowDb->db_name;
                     $password = hash_internal_user_password($params->password);
-        
+                    
                     $confirmed = $isTrial ? 1 : 0;
                     
                     $sql = "
@@ -1086,28 +1123,35 @@ class Instance extends Com\Model\AbstractModel
                     
                     $db = new \PDO("mysql:host={$rowDb->db_host};dbname=$dbName;charset=utf8", $rowDb->db_user, $rowDb->db_password);
                     $stmt = $db->prepare($sql);
-                    $stmt->execute(array($password, $params->email, $params->email, $params->first_name, $params->last_name, $confirmed, $lang, 2));
-
+                    $stmt->execute(array(
+                        $password,
+                        $params->email,
+                        $params->email,
+                        $params->first_name,
+                        $params->last_name,
+                        $confirmed,
+                        $lang,
+                        2 
+                    ));
                     
-
-                    //create mdata folder
+                    // create mdata folder
                     $newUmask = 0777;
                     $oldUmask = umask($newUmask);
-
-                    if(!file_exists("$mDataPath/$domain"))
+                    
+                    if(! file_exists("$mDataPath/$domain"))
                     {
                         mkdir("$mDataPath/$domain", $newUmask, true);
                     }
                     
                     chmod("$mDataPath/$domain", $newUmask);
-
+                    
                     // Copying from master data folder
                     exec("cp -Rf {$mDataMasterPath}/* {$mDataPath}/$domain/");
-
+                    
                     // Changing owner for the data folder
                     exec("chown -R {$cpanelUser}:{$cpanelUser} {$mDataPath}/{$domain} -R");
                     exec("chmod 777 {$mDataPath}/{$domain} -R");
-
+                    
                     // creating config file
                     $configStr = file_get_contents('data/config.template');
                     $configStr = str_replace('{$dbHost}', $dbHost, $configStr);
@@ -1116,12 +1160,12 @@ class Instance extends Com\Model\AbstractModel
                     $configStr = str_replace('{$dbPassword}', $dbPassword, $configStr);
                     $configStr = str_replace('{$domain}', $domain, $configStr);
                     $configStr = str_replace('{$dataPath}', "{$mDataPath}/{$domain}", $configStr);
-
+                    
                     $configFilename = "{$configPath}/{$domain}.php";
                     $handlder = fopen($configFilename, 'w');
                     fwrite($handlder, $configStr);
                     fclose($handlder);
-        
+                    
                     exec("chown {$cpanelUser}:{$cpanelUser} $configFilename & chmod 755 $configFilename");
                     
                     // move the logo to the mdata folder
@@ -1143,27 +1187,26 @@ class Instance extends Com\Model\AbstractModel
                     // add as a new user into the existing instance
                     $dbName = $rowDb->db_name;
                     $password = hash_internal_user_password($params->password);
-
+                    
                     $db = new \PDO("mysql:host={$rowDb->db_host};dbname=$dbName;charset=utf8", $rowDb->db_user, $rowDb->db_password);
                     $stmt = $db->prepare("INSERT INTO mdl_user(username, password, firstname, lastname, email, idnumber, confirmed, lang, mnethostid, timecreated) VALUES(:username, :password, :firstname, :lastname, :email, :idnumber, :confirmed, :lang, :mnethostid, :timecreated)");
                     $stmt->execute(array(
-                        ':username' => $params->email
-                        ,':password' => $password
-                        ,':firstname' => $params->first_name
-                        ,':lastname' => $params->last_name
-                        ,':email' => $params->email
-                        ,':idnumber' => $params->email
-                        ,':confirmed' => 0
-                        ,':lang' => $lang
-                        ,':mnethostid' => 1
-                        ,':timecreated' => time()
+                        ':username' => $params->email,
+                        ':password' => $password,
+                        ':firstname' => $params->first_name,
+                        ':lastname' => $params->last_name,
+                        ':email' => $params->email,
+                        ':idnumber' => $params->email,
+                        ':confirmed' => 0,
+                        ':lang' => $lang,
+                        ':mnethostid' => 1,
+                        ':timecreated' => time() 
                     ));
-                    
                     
                     // ok reserve the database
                     $data = array(
-                        'client_id' => $clientId
-                        ,'database_id' => $rowDb->id
+                        'client_id' => $clientId,
+                        'database_id' => $rowDb->id 
                     );
                     
                     $dbClientHasDb->doInsert($data);
@@ -1171,19 +1214,21 @@ class Instance extends Com\Model\AbstractModel
                 
                 // ok, we are done
                 $this->getCommunicator()
-                    ->setSuccess($this->_('freemium_account_created', array("$website/logo.php", 'Go to your instance')))
+                    ->setSuccess($this->_('freemium_account_created', array(
+                    "$website/logo.php",
+                    'Go to your instance' 
+                )))
                     ->addData($website, 'website');
-                    
-                    
+                
                 // send the confirmation email to the user
                 $cPassword = new Com\Crypt\Password();
                 $plain = $params->email;
                 $code = $cPassword->encode($plain);
-
+                
                 //
                 $request = $sl->get('request');
                 $uri = $request->getUri();
-        
+                
                 $serverUrl = "{$uri->getScheme()}://{$uri->getHost()}";
                 
                 $routeParams = array();
@@ -1197,9 +1242,13 @@ class Instance extends Com\Model\AbstractModel
                 // preparing some replacement values
                 $data = array();
                 $data['follow_us'] = $this->_('follow_us');
-                $data['body'] = $this->_('confirm_your_email_address_body', array($url, $params->email, $params->password));
+                $data['body'] = $this->_('confirm_your_email_address_body', array(
+                    $url,
+                    $params->email,
+                    $params->password 
+                ));
                 $data['header'] = '';
-
+                
                 // load the email template and replace values
                 $mTemplate = $sl->get('App\Model\EmailTemplate');
                 
@@ -1210,13 +1259,13 @@ class Instance extends Com\Model\AbstractModel
                 }
                 
                 $arr = $mTemplate->loadAndParse("common{$langString}", $data);
-                    
+                
                 //
                 $mailer = new Com\Mailer();
                 
                 // prepare the message to be send
                 $message = $mailer->prepareMessage($arr['body'], null, $this->_('confirm_your_email_address_subject'));
-                    
+                
                 if($isTrial)
                 {
                     $message->setTo($this->mailTo[0]);
@@ -1250,20 +1299,17 @@ class Instance extends Com\Model\AbstractModel
         }
         
         return $this->isSuccess();
-   }
-   
-   
-    
-    
-    
+    }
+
+
     /**
-    * Verifica si el usuario puede propocrionar nombre de una instancia.
-    * Si ya existe un usuario registrado con el mismo dominio de correo entonces no puede especifiar un
-    * nombre de instancia diferente
-    *
-    * @param string $email
-    * @return bool
-    */
+     * Verifica si el usuario puede propocrionar nombre de una instancia.
+     * Si ya existe un usuario registrado con el mismo dominio de correo entonces no puede especifiar un
+     * nombre de instancia diferente
+     *
+     * @param string $email
+     * @return bool
+     */
     function canEditInstanceName($email)
     {
         $r = false;
@@ -1272,7 +1318,7 @@ class Instance extends Com\Model\AbstractModel
         
         $dbClient = $sl->get('App\Db\Client');
         
-        if(!empty($email))
+        if(! empty($email))
         {
             $vEmail = new Zend\Validator\EmailAddress();
             if($vEmail->isValid($email))
@@ -1283,7 +1329,7 @@ class Instance extends Com\Model\AbstractModel
                 }
                 else
                 {
-                    // basado en el nombre de dominio del email tenemos que buscar si existe algun cliente con el mismo nombre de instancia 
+                    // basado en el nombre de dominio del email tenemos que buscar si existe algun cliente con el mismo nombre de instancia
                     // en caso de que ya exista una instancia basada en el dominio del email del usuario, entonces esta obligado a usar ese
                     // nombre de instancia
                     
@@ -1304,19 +1350,17 @@ class Instance extends Com\Model\AbstractModel
         
         return $r;
     }
-    
-    
-    
-    
+
+
     /**
-    *
-    * @param string $email
-    * @param string $instanceName
-    * @return bool
-    */
+     *
+     * @param string $email
+     * @param string $instanceName
+     * @return bool
+     */
     function instanceNameEdited($email, $instanceName)
     {
-        // 
+        //
         $exploed = explode('@', $email);
         $emailDomain = $exploed[1];
         
@@ -1326,12 +1370,117 @@ class Instance extends Com\Model\AbstractModel
         //
         return ($instanceNameFromEmail != $instanceName);
     }
-    
-    
-    
-   
-   /**
-     * 
+
+
+    function deleteFreeDatabases()
+    {
+        $sl = $this->getServiceLocator();
+        
+        $dbDatabase = $sl->get('App\Db\Database');
+        $dbClientHasDb = $sl->get('App\Db\Client\HasDatabase');
+        
+        //
+        $select = new Zend\Db\Sql\Select();
+        
+        // tabla
+        $select->from(array(
+            'd' => $dbDatabase->getTable() 
+        ));
+        
+        // join
+        $select->join(array(
+            'chd' => $dbClientHasDb->getTable() 
+        ), 'chd.database_id = d.id', array(), 'left');
+        
+        //
+        $predicate = new Zend\Db\Sql\Predicate\Literal('chd.client_id IS NULL');
+        $select->where($predicate);
+        
+        //
+        $rowset = $dbDatabase->executeCustomSelect($select);
+        
+        $ids = array();
+        $count = 0;
+        foreach($rowset as $row)
+        {
+            if($count >= 3)
+            {
+                break;
+            }
+            
+            $ids[$row->id] = $row->db_name;
+            
+            $count ++;
+        }
+        
+        $predicate = new Zend\Db\Sql\Predicate\In('id', array_keys($ids));
+        #$dbDatabase->doDelete($predicate);
+        
+        // delete from cpanel
+        $cp = $sl->get('cPanelApi');
+        
+        $config = $sl->get('config');
+        $cpanelUser = $config['freemium']['cpanel']['username'];
+        
+        foreach($ids as $dbName)
+        {
+//             $response = $cp->api2_query($cpanelUser, 'MysqlFE', 'deletedb', array(
+//                 'db' => $dbName 
+//             ));
+            
+//             if(isset($response['error']) || isset($response['event']['error']))
+//             {
+//                 $err = isset($response['error']) ? $response['error'] : $response['event']['error'];
+//                 throw new \Exception($err);
+//             }
+            
+            echo "Delete database $dbName<br>";
+        }
+        
+        exit();
+    }
+
+
+    function deleteFree()
+    {
+        $sl = $this->getServiceLocator();
+        
+        $dbDatabase = $this;
+        $dbClientHasDb = $sl->get('App\Db\Client\HasDatabase');
+        
+        //
+        $select = new Zend\Db\Sql\Select();
+        
+        // tabla
+        $select->from(array(
+            'd' => $dbDatabase->getTable() 
+        ));
+        
+        // join
+        $select->join(array(
+            'chd' => $dbClientHasDb->getTable() 
+        ), 'chd.database_id = d.id', array(), 'left');
+        
+        //
+        $predicate = new Zend\Db\Sql\Predicate\Literal('chd.client_id IS NULL');
+        $select->where($predicate);
+        
+        //
+        $rowset = $this->executeCustomSelect($select);
+        
+        $ids = array();
+        foreach($rowset as $row)
+        {
+            $ids[] = $row->id;
+        }
+        
+        $predicate = new Zend\Db\Sql\Predicate\In('id', $ids);
+        $dbDatabase->doDelete($predicate);
+    }
+
+
+    /**
+     *
      * @param Zend\Stdlib\Parameters $params
      * @var string email
      *
@@ -1366,7 +1515,9 @@ class Instance extends Com\Model\AbstractModel
                 }
                 elseif($row->email_verified)
                 {
-                    $this->getCommunicator()->addError($this->_('account_already_verified', array("http://{$row->domain}/logo.php")));
+                    $this->getCommunicator()->addError($this->_('account_already_verified', array(
+                        "http://{$row->domain}/logo.php" 
+                    )));
                 }
                 else
                 {
@@ -1403,13 +1554,18 @@ class Instance extends Com\Model\AbstractModel
                         `confirmed` = ?
                     WHERE `email` = ?
                     ";
-
+                    
                     $db = new \PDO("mysql:host={$rowDb->db_host};dbname={$rowDb->db_name};charset=utf8", $rowDb->db_user, $rowDb->db_password);
                     $stmt = $db->prepare($sql);
-                    $stmt->execute(array(1, $params->email));
+                    $stmt->execute(array(
+                        1,
+                        $params->email 
+                    ));
                 }
                 
-                $this->getCommunicator()->setSuccess($this->_('account_verified', array("http://{$row->domain}/logo.php")));
+                $this->getCommunicator()->setSuccess($this->_('account_verified', array(
+                    "http://{$row->domain}/logo.php" 
+                )));
             }
         }
         catch(\Exception $e)
@@ -1419,8 +1575,8 @@ class Instance extends Com\Model\AbstractModel
         
         return $this->isSuccess();
     }
-   
-   
+
+
     protected function _createDatabasesScript()
     {
         // final step, lets run the cron
@@ -1430,8 +1586,8 @@ class Instance extends Com\Model\AbstractModel
         $command = "/usr/local/bin/php {$publicDir}/index.php create-databases > {$coreDir}/data/log/create-databases.cron.log 2>&1 &";
         shell_exec($command);
     }
-   
-    
+
+
     protected function _isParadisoDomain($email)
     {
         $exploded = explode('@', $email);
@@ -1441,17 +1597,16 @@ class Instance extends Com\Model\AbstractModel
         
         return $isPradisoDomain;
     }
-   
-   
-   
+
+
     protected function _isValidDomainName($domainName)
     {
-        return (preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $domainName) //valid chars check
-         && preg_match("/^.{1,253}$/", $domainName) //overall length check
-         && preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $domainName)   ); //length of each label
+        return (preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $domainName) &&         // valid chars check
+        preg_match("/^.{1,253}$/", $domainName) &&         // overall length check
+        preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $domainName)); // length of each label
     }
-   
-   
+
+
     protected function _resizeLogo($logoFile)
     {
         // get image size
@@ -1463,7 +1618,7 @@ class Instance extends Com\Model\AbstractModel
         // Ratio cropping
         $offsetX = 0;
         $offsetY = 0;
-
+        
         // define image max size
         $maxWidth = 300;
         $maxHeight = 79;
@@ -1476,7 +1631,7 @@ class Instance extends Com\Model\AbstractModel
         $xRatio = $maxWidth / $width;
         $yRatio = $maxHeight / $height;
         
-        if ($xRatio * $height < $maxHeight)
+        if($xRatio * $height < $maxHeight)
         {
             // Resize the image based on width
             $tnHeight = ceil($xRatio * $height);
@@ -1495,43 +1650,45 @@ class Instance extends Com\Model\AbstractModel
         $dst = imagecreatetruecolor($tnWidth, $tnHeight);
         
         // Set up the appropriate image handling functions based on the original image's mime type
-        switch ($mime) 
+        switch($mime)
         {
-            case 'image/gif':
-            {
-                // We will be converting GIFs to PNGs to avoid transparency issues when resizing GIFs
-                // This is maybe not the ideal solution, but IE6 can suck it
-                $creationFunction = 'ImageCreateFromGif';
-                $outputFunction = 'ImagePng';
-                $mime = 'image/png'; // We need to convert GIFs to PNGs
-                $doSharpen = false;
-                $quality = round(10 - ($quality / 10)); // We are converting the GIF to a PNG and PNG needs a compression level of 0 (no compression) through 9
-                break;
-            }
-
-
-            case 'image/x-png':
-            case 'image/png':
-            {
-                $creationFunction = 'ImageCreateFromPng';
-                $outputFunction = 'ImagePng';
-                $doSharpen = false;
-                $quality = round(10 - ($quality / 10)); // PNG needs a compression level of 0 (no compression) through 9
-                break;
-            }
-
-            default:
-            {
-                $creationFunction = 'ImageCreateFromJpeg';
-                $outputFunction = 'ImageJpeg';
-                $doSharpen = true;
-                break;
-            }
+            case 'image/gif' :
+                {
+                    // We will be converting GIFs to PNGs to avoid transparency issues when resizing GIFs
+                    // This is maybe not the ideal solution, but IE6 can suck it
+                    $creationFunction = 'ImageCreateFromGif';
+                    $outputFunction = 'ImagePng';
+                    $mime = 'image/png'; // We need to convert GIFs to PNGs
+                    $doSharpen = false;
+                    $quality = round(10 - ($quality / 10)); // We are converting the GIF to a PNG and PNG needs a compression level of 0 (no compression) through 9
+                    break;
+                }
+            
+            case 'image/x-png' :
+            case 'image/png' :
+                {
+                    $creationFunction = 'ImageCreateFromPng';
+                    $outputFunction = 'ImagePng';
+                    $doSharpen = false;
+                    $quality = round(10 - ($quality / 10)); // PNG needs a compression level of 0 (no compression) through 9
+                    break;
+                }
+            
+            default :
+                {
+                    $creationFunction = 'ImageCreateFromJpeg';
+                    $outputFunction = 'ImageJpeg';
+                    $doSharpen = true;
+                    break;
+                }
         }
         
         // Read in the original image
         $src = $creationFunction($logoFile);
-        if (in_array($mime, array('image/gif','image/png')))
+        if(in_array($mime, array(
+            'image/gif',
+            'image/png' 
+        )))
         {
             // If this is a GIF or a PNG, we need to set up transparency
             imagealphablending($dst, false);
@@ -1540,13 +1697,29 @@ class Instance extends Com\Model\AbstractModel
         
         // Resample the original image into the resized canvas we set up earlier
         imagecopyresampled($dst, $src, 0, 0, $offsetX, $offsetY, $tnWidth, $tnHeight, $width, $height);
-        if ($doSharpen)
+        if($doSharpen)
         {
             // Sharpen the image based on two things:
             // (1) the difference between the original size and the final size
             // (2) the final size
             $sharpness = $this->_findSharp($width, $tnWidth);
-            $sharpenMatrix = array(array(- 1,- 2,- 1), array(- 2, $sharpness + 12, - 2), array(- 1, - 2, - 1));
+            $sharpenMatrix = array(
+                array(
+                    - 1,
+                    - 2,
+                    - 1 
+                ),
+                array(
+                    - 2,
+                    $sharpness + 12,
+                    - 2 
+                ),
+                array(
+                    - 1,
+                    - 2,
+                    - 1 
+                ) 
+            );
             
             $divisor = $sharpness;
             $offset = 0;
@@ -1560,8 +1733,8 @@ class Instance extends Com\Model\AbstractModel
         ImageDestroy($src);
         ImageDestroy($dst);
     }
-    
-    
+
+
     protected function _findSharp($orig, $final) // function from Ryan Rud (http://adryrun.com)
     {
         $final = $final * (750.0 / $orig);
@@ -1573,9 +1746,9 @@ class Instance extends Com\Model\AbstractModel
         
         return max(round($result), 0);
     }
-   
-   
-   /**
+
+
+    /**
      *
      * @param array $allowedExtensions
      * @param array $allowedTypes
@@ -1618,16 +1791,16 @@ class Instance extends Com\Model\AbstractModel
         
         return $result;
     }
-    
-    
+
+
     /**
-    * 
-    * @return Com\FileSaver
-    */
+     *
+     * @return Com\FileSaver
+     */
     protected function _getFileSaver(Com\PostedFile $postedFile)
     {
         $uploadPath = PUBLIC_DIRECTORY . '/uploads';
-                        
+        
         $fileSaver = new Com\FileSaver($postedFile);
         $fileSaver->setEncloseWithDate(true);
         $fileSaver->setUseRandFileName(true);
@@ -1638,5 +1811,4 @@ class Instance extends Com\Model\AbstractModel
         
         return $fileSaver;
     }
-   
 }

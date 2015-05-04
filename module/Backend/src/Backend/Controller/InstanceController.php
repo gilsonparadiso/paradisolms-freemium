@@ -45,7 +45,19 @@ class InstanceController extends Com\Controller\BackendController
         
         return $view;
     }
+
     
+    function deleteFreeDbAction()
+    {
+    	$sl = $this->getServiceLocator();
+    	
+    	
+    	$mInstance = $sl->get('App\Model\Freemium\Instance');
+    	
+    	$mInstance->deleteFreeDatabases();
+    	exit;
+    	
+    }
     
     
     function approveAction()
