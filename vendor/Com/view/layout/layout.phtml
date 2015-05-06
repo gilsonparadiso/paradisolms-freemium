@@ -403,6 +403,7 @@ Si el parámetro existe devolver su valor
                                       contact.first_name = jQuery("#firstname").val();
                                       contact.last_name = jQuery("#lastname").val();
                                       contact.email = jQuery("#email").val();
+                                      contact.tags = "freemium";
 
                                       _agile.create_contact(contact, {
                                             success: function (data) {
