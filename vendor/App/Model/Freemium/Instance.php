@@ -229,8 +229,18 @@ class Instance extends Com\Model\AbstractModel
             $dbClient = $sl->get('App\Db\Client');
             $config = $sl->get('config');
             
+            // cookie
+            $request = $sl->get('request');
+            $cookie = $request->getCookie();
+            $lang = 'en';
+            if(isset($cookie->lang))
+            {
+                $lang = $cookie->lang;
+            }
+            
+            //
             $topDomain = $config['freemium']['top_domain'];
-            $domain = "{$params->instance}.$topDomain";
+            $domain = "{$params->instance}.$lang.$topDomain";
             
             $isParadisoDomain = $this->_isParadisoDomain($params->email);
             
@@ -299,16 +309,10 @@ class Instance extends Com\Model\AbstractModel
             $data['approved'] = 0;
             $data['email_verified'] = 0;
             $data['logo'] = $logoFile;
+            $data['lang'] = $lang;
             
-            // cookie
-            $request = $sl->get('request');
-            $cookie = $request->getCookie();
-            $lang = 'en';
-            if(isset($cookie->lang))
-            {
-                $lang = $data['lang'] = $cookie->lang;
-            }
             
+            //
             $dbClient->doInsert($data);
             $clientId = $dbClient->getLastInsertValue();
             
