@@ -549,7 +549,7 @@ class Instance extends Com\Model\AbstractModel
                         
                         $dbClientHasDb->doInsert($data);
                         
-                        // update credentials and user information in the lms instance
+                        // update credentials and user information in the lms instance for the admin user
                         $dbName = $rowDb->db_name;
                         $password = hash_internal_user_password($row->password);
                         
@@ -576,6 +576,23 @@ class Instance extends Com\Model\AbstractModel
                             0,
                             $row->lang,
                             2 
+                        ));
+                        
+                        
+                        // update user information in the lms instance for the student user
+                        $dbName = $rowDb->db_name;
+                        
+                        $sql = "
+                        UPDATE mdl_user SET
+                            `lang` = ?
+                        WHERE `id` = ?";
+                        
+                        $db = new \PDO("mysql:host={$rowDb->db_host};dbname=$dbName;charset=utf8", $rowDb->db_user, $rowDb->db_password);
+                        $stmt = $db->prepare($sql);
+                        
+                        $result = $stmt->execute(array(
+                                $row->lang,
+                                'student'
                         ));
                         
                         // create mdata folder
