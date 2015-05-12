@@ -579,6 +579,7 @@ class Instance extends Com\Model\AbstractModel
                         ));
                         
                         
+                        
                         // update user information in the lms instance for the student user
                         $dbName = $rowDb->db_name;
                         
@@ -591,8 +592,8 @@ class Instance extends Com\Model\AbstractModel
                         $stmt = $db->prepare($sql);
                         
                         $result = $stmt->execute(array(
-                                $row->lang,
-                                'student'
+                            $row->lang
+                            ,'student'
                         ));
                         
                         // create mdata folder
@@ -641,6 +642,18 @@ class Instance extends Com\Model\AbstractModel
                                 rename($row->logo, "$mDataPath/{$row->domain}/logo.{$logoExtension}");
                             }
                         }
+                        
+                        
+                        // change the language
+                        $token = $dbName;
+                        $client = new App\Lms\Services\Client();
+                        $client->setServicesToken($token);
+                        
+                        $client->setServerUri("http://{$row->domain}/services/index.php");
+                        $data = array();
+                        $data['name'] = 'lang';
+                        $data['value'] = $row->lang;
+                        $response = $client->request('set_config', $data);
                     }
                     
                     //
