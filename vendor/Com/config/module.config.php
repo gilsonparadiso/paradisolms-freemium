@@ -34,8 +34,8 @@ return array(
    
       'top_domain' => 'paradisolms.com',
       
-      'min_databases' => 10, // we this value to know if i'ts time to create more databases
-      'max_databases' => 20, // this is the amount of databases to be
+      'min_databases' => 1, // we this value to know if i'ts time to create more databases
+      'max_databases' => 2, // this is the amount of databases to be cerated
       
       'path' => array(
          'mdata' => '/home/paradisolms/mdata',
