@@ -645,15 +645,19 @@ class Instance extends Com\Model\AbstractModel
                         
                         
                         // change the language
-                        $token = $dbName;
-                        $client = new App\Lms\Services\Client();
-                        $client->setServicesToken($token);
+                        $dbName = $rowDb->db_name;
                         
-                        $client->setServerUri("http://{$row->domain}/services/index.php");
-                        $data = array();
-                        $data['name'] = 'lang';
-                        $data['value'] = $row->lang;
-                        $response = $client->request('set_config', $data);
+                        $sql = "
+                        UPDATE mdl_config SET
+                            `value` = ?
+                        WHERE `name` = 'lang'";
+                        
+                        $db = new \PDO("mysql:host={$rowDb->db_host};dbname=$dbName;charset=utf8", $rowDb->db_user, $rowDb->db_password);
+                        $stmt = $db->prepare($sql);
+                        
+                        $result = $stmt->execute(array(
+                            $row->lang
+                        ));
                     }
                     
                     //
