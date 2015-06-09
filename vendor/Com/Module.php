@@ -27,6 +27,11 @@ class Module
             'handlePhpErrors' 
         ));
         
+        set_exception_handler(array(
+            '\Com\Module',
+            'handlePhpExceptions' 
+        ));
+        
         $eventManager = $event->getApplication()->getEventManager();
         $serviceManager = $event->getApplication()->getServiceManager();
         
@@ -44,16 +49,14 @@ class Module
         $this->_setupGlobalVariables($event);
         $this->_setupLayout($event);
     }
-    
-    
+
+
     protected function _setupDebug()
     {
-        if(APP_ENV == APP_DEVELOPMENT)
-        {
-            new \Kint();
-        }
+        new \Kint();
+        \kint::enabled((APP_ENV == APP_DEVELOPMENT));
     }
-    
+
 
     protected function _setupPhpSettings($config)
     {
@@ -78,7 +81,7 @@ class Module
         if(method_exists($request, 'getCookie'))
         {
             $cookie = $request->getCookie();
-   
+            
             $lang = null;
             $changeLanguage = false;
             
@@ -92,7 +95,7 @@ class Module
             {
                 // if not trying to change the language, then check if the language was already set in the session variable
                 // if not session was set then we try to get the language from the browser
-                if(!isset($cookie->lang))
+                if(! isset($cookie->lang))
                 {
                     // get language from browser preferences
                     $request = $serviceManager->get('request');
@@ -132,8 +135,7 @@ class Module
         }
         
         $translator = $serviceManager->get('translator');
-        $translator->setLocale($lang)
-            ->setFallbackLocale('en');
+        $translator->setLocale($lang)->setFallbackLocale('en');
         
         \Zend\Validator\AbstractValidator::setDefaultTranslator($translator);
     }
@@ -213,7 +215,9 @@ class Module
                     $session->back = $request->getRequestUri();
                     
                     $options['name'] = 'auth';
-                    $params = array('action' => 'login');
+                    $params = array(
+                        'action' => 'login' 
+                    );
                     
                     $url = $event->getRouter()
                         ->assemble($params, $options);
@@ -304,9 +308,9 @@ class Module
             ),
             'Zend\Loader\ClassMapAutoloader' => array(
                 array(
-                    'Kint' => 'vendor/3rdParty/Kint/Kint.class.php',
-                ),
-            ),    
+                    'Kint' => 'vendor/3rdParty/Kint/Kint.class.php' 
+                ) 
+            ) 
         );
     }
 
@@ -325,6 +329,26 @@ class Module
             
             $mErrorLog = $serviceManager->get('App\Model\ErrorLog');
             $mErrorLog->logError($type, $message, $file, $line);
+        }
+    }
+
+
+    static function handlePhpExceptions(\Exception $ex)
+    {
+        if(APP_ENV == APP_DEVELOPMENT)
+        {
+            throw new \Exception("Error: {$ex->getMessage()}", null, $ex);
+        }
+        else
+        {
+            $event = self::$MVC_EVENT;
+            
+            $serviceManager = $event->getApplication()->getServiceManager();
+            
+            $message = $ex->getMessage() . " ({$ex->getCode()}) " . PHP_EOL . $e->getTraceAsString();
+            
+            $mErrorLog = $serviceManager->get('App\Model\ErrorLog');
+            $mErrorLog->logError('excpetion', $message, $ex->getFile(), $ex->getLine());
         }
     }
 }

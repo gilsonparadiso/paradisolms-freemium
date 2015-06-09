@@ -1,6 +1,6 @@
 <?php
 return array(
-
+    
     // configuraciones de la autenticacion basica
     // Especial para proteger de forma basica cualquier action
     'basic-authentication' => array(
@@ -30,37 +30,45 @@ return array(
         ) 
     ),
     
-   'freemium' => array(
-   
-      'top_domain' => 'paradisolms.com',
-      
-      'min_databases' => 1, // we this value to know if i'ts time to create more databases
-      'max_databases' => 2, // this is the amount of databases to be cerated
-      
-      'path' => array(
-         'mdata' => '/home/paradisolms/mdata',
-         'master_mdata' => '/home/paradisolms/mdata/master_data',
-         'master_mdata_trial' => '/home/paradisolms/trial/mdata/master_data',
-         'config' => '/home/paradisolms/clients/config',
-         'master_sql_file' => '/home/paradisolms/repo/db/master_freemium.sql',
-         'master_sql_file_trial' => '/home/paradisolms/repo/db/master_trial.sql',
-      ),
-      
-      'db' => array(
-         'host' => 'localhost',
-         'prefix' => 'paradiso_',
-         'user' => 'paradiso_user',
-         'password' => 'Paradiso123',
-      ),
-      
-      'cpanel' => array(
-         'server' => '65.111.187.33',
-         'username' => 'paradisolms',
-         'password' => 'Paradiso123',
-      ),
-   ),
+    'apps' => array(
+        'shopify' => array(
+            'paradiso_lms' => array(
+                'api_key' => '948574a56e24b67a23c27d16d2dca161',
+                'app_secret' => 'e34a645548f7a8fe60b0af0aa1478ab0' 
+            ) 
+        ) 
+    ),
     
-
+    'freemium' => array(
+        
+        'top_domain' => 'paradisolms.com',
+        
+        'min_databases' => 1, // we this value to know if i'ts time to create more databases
+        'max_databases' => 2, // this is the amount of databases to be cerated
+        
+        'path' => array(
+            'mdata' => '/home/paradisolms/mdata',
+            'master_mdata' => '/home/paradisolms/mdata/master_data',
+            'master_mdata_trial' => '/home/paradisolms/trial/mdata/master_data',
+            'config' => '/home/paradisolms/clients/config',
+            'master_sql_file' => '/home/paradisolms/repo/db/master_freemium.sql',
+            'master_sql_file_trial' => '/home/paradisolms/repo/db/master_trial.sql' 
+        ),
+        
+        'db' => array(
+            'host' => 'localhost',
+            'prefix' => 'paradiso_',
+            'user' => 'paradiso_user',
+            'password' => 'Paradiso123' 
+        ),
+        
+        'cpanel' => array(
+            'server' => '65.111.187.33',
+            'username' => 'paradisolms',
+            'password' => 'Paradiso123' 
+        ) 
+    ),
+    
     'caches' => array(
         'cache-fs1' => array(
             'adapter' => array(
@@ -72,7 +80,7 @@ return array(
                     'namespaceSeparator' => '-cache-fs1-',
                     'umask' => true,
                     'ttl' => 24 * 3600 * 7  // 7 days
-                )
+                                ) 
             ),
             'plugins' => array(
                 'serializer',
@@ -91,7 +99,7 @@ return array(
                     'namespaceSeparator' => '-cache-fs2-',
                     'umask' => true,
                     'ttl' => 24 * 3600 * 7  // 7 days
-                 ) 
+                                ) 
             ),
             'plugins' => array(
                 'exception_handler' => array(
@@ -178,24 +186,50 @@ return array(
                 return $session;
             },
             
+            'shopify_api' => function ($sl)
+            {
+                $config = $sl->get('config');
+                
+                $shopifyAppSecret = '';
+                if(isset($config['apps']) && isset($config['apps']['shopify']) && isset($config['apps']['shopify']['paradiso_lms']))
+                {
+                    $shopifyAppSecret = $config['apps']['shopify']['paradiso_lms']['api_key'];
+                }
+                
+                return $shopifyAppSecret;
+            },
+            
+            'shopify_secret' => function ($sl)
+            {
+                $config = $sl->get('config');
+                
+                $shopifyAppSecret = '';
+                if(isset($config['apps']) && isset($config['apps']['shopify']) && isset($config['apps']['shopify']['paradiso_lms']))
+                {
+                    $shopifyAppSecret = $config['apps']['shopify']['paradiso_lms']['app_secret'];
+                }
+                
+                return $shopifyAppSecret;
+            },
+            
             'cPanelApi' => function ($sl)
             {
-               require_once 'vendor/3rdParty/xmlapi.php';
- 
-               $config = $sl->get('config');
-
-               $server = $config['freemium']['cpanel']['server'];
-               $username = $config['freemium']['cpanel']['username'];
-               $password = $config['freemium']['cpanel']['password'];
-               
-               $xmlapi = new xmlapi($server);
-               $xmlapi->set_port(2083);
-               $xmlapi->set_user($username);
-               $xmlapi->set_password($password);
-               // $xmlapi->set_debug(1); 
-               $xmlapi->set_output('array');
-
-               return $xmlapi;
+                require_once 'vendor/3rdParty/xmlapi.php';
+                
+                $config = $sl->get('config');
+                
+                $server = $config['freemium']['cpanel']['server'];
+                $username = $config['freemium']['cpanel']['username'];
+                $password = $config['freemium']['cpanel']['password'];
+                
+                $xmlapi = new xmlapi($server);
+                $xmlapi->set_port(2083);
+                $xmlapi->set_user($username);
+                $xmlapi->set_password($password);
+                // $xmlapi->set_debug(1);
+                $xmlapi->set_output('array');
+                
+                return $xmlapi;
             },
             
             'Com\Json\Service\Consumer' => function ($sl)
@@ -367,6 +401,6 @@ return array(
     'view_helpers' => array(
         'abstract_factories' => array(
             'Com\Service\CommonViewHelpers' 
-        ),
+        ) 
     ) 
 );

@@ -30,6 +30,5 @@ return array(
         'display_errors' => false,
         'max_execution_time' => 60,
         'date.timezone' => 'America/La_Paz',
-        'mbstring.internal_encoding' => 'UTF-8'
     ),
 );
