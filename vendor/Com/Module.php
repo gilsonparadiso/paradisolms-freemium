@@ -43,9 +43,10 @@ class Module
         $this->_setupAuthorisation($eventManager);
         $this->_setupGlobalVariables($event);
         $this->_setupLayout($event);
+        $this->_newDomainTld($event);
     }
-    
-    
+
+
     protected function _setupDebug()
     {
         if(APP_ENV == APP_DEVELOPMENT)
@@ -53,7 +54,7 @@ class Module
             new \Kint();
         }
     }
-    
+
 
     protected function _setupPhpSettings($config)
     {
@@ -78,7 +79,7 @@ class Module
         if(method_exists($request, 'getCookie'))
         {
             $cookie = $request->getCookie();
-   
+            
             $lang = null;
             $changeLanguage = false;
             
@@ -92,7 +93,7 @@ class Module
             {
                 // if not trying to change the language, then check if the language was already set in the session variable
                 // if not session was set then we try to get the language from the browser
-                if(!isset($cookie->lang))
+                if(! isset($cookie->lang))
                 {
                     // get language from browser preferences
                     $request = $serviceManager->get('request');
@@ -132,8 +133,7 @@ class Module
         }
         
         $translator = $serviceManager->get('translator');
-        $translator->setLocale($lang)
-            ->setFallbackLocale('en');
+        $translator->setLocale($lang)->setFallbackLocale('en');
         
         \Zend\Validator\AbstractValidator::setDefaultTranslator($translator);
     }
@@ -213,7 +213,9 @@ class Module
                     $session->back = $request->getRequestUri();
                     
                     $options['name'] = 'auth';
-                    $params = array('action' => 'login');
+                    $params = array(
+                        'action' => 'login' 
+                    );
                     
                     $url = $event->getRouter()
                         ->assemble($params, $options);
@@ -288,6 +290,38 @@ class Module
     }
 
 
+    protected function _newDomainTld(Zend\Mvc\MvcEvent $event)
+    {
+        $request = $event->getRequest();
+        
+        // small code to redirect requests to the new tld
+        $uri = $request->getUri();
+        $host = $uri->getHost();
+        
+        $oldTld = '.com';
+        if($oldTld == substr($host, - 4))
+        {
+            $scheme = $uri->getScheme();
+            $host = str_replace($oldTld, '.net', $host);
+            $path = $uri->getPath();
+            
+            $query = $uri->getQuery();
+            if(! empty($query))
+            {
+                $query = "?$query";
+            }
+            
+            $url = "{$scheme}://{$host}{$path}{$query}";
+            
+            $response = $event->getResponse();
+            
+            $headers = $response->getHeaders()->addHeaderLine('Location', $url);
+            $response->setStatusCode(302);
+            $response->sendHeaders();
+        }
+    }
+
+
     function getConfig()
     {
         return include __DIR__ . '/config/module.config.php';
@@ -304,9 +338,9 @@ class Module
             ),
             'Zend\Loader\ClassMapAutoloader' => array(
                 array(
-                    'Kint' => 'vendor/3rdParty/Kint/Kint.class.php',
-                ),
-            ),    
+                    'Kint' => 'vendor/3rdParty/Kint/Kint.class.php' 
+                ) 
+            ) 
         );
     }
 

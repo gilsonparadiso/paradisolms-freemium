@@ -32,7 +32,7 @@ return array(
     
    'freemium' => array(
    
-      'top_domain' => 'paradisolms.com',
+      'top_domain' => 'paradisolms.net',
       
       'min_databases' => 1, // we this value to know if i'ts time to create more databases
       'max_databases' => 2, // this is the amount of databases to be cerated
