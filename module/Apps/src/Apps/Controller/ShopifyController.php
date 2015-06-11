@@ -228,11 +228,15 @@ class ShopifyController extends Com\Controller\AbstractController
                     // shopify client
                     $shopifyClient = new App\Model\Shopify\Client($shop, $re->access_token);
                     
+                    $routeOptions = array(
+                        'force_canonical' => true 
+                    );
+                    
                     // register the uninstall webhook
                     $webHookUrl = $this->url()->fromRoute('apps', array(
                         'controller' => 'shopify',
                         'action' => 'unistall' 
-                    ));
+                    ), $routeOptions);
                     
                     $shopifyClient->call('POST', '/admin/webhooks.json', array(
                         'webhook' => array(
@@ -246,7 +250,7 @@ class ShopifyController extends Com\Controller\AbstractController
                     $webHookUrl = $this->url()->fromRoute('apps', array(
                         'controller' => 'shopify',
                         'action' => 'create-user' 
-                    ));
+                    ), $routeOptions);
                     
                     $shopifyClient->call('POST', '/admin/webhooks.json', array(
                         'webhook' => array(
