@@ -82,7 +82,7 @@ class IndexController extends Com\Controller\AbstractController
             
             if($existing > $min)
             {
-                $msg = "No need to create more databases, currenlty there are $count databases";
+                $msg = "No need to create more databases, currenlty there are $existing databases";
                 $console->writeLine($msg, 10);
                 exit;
             }
