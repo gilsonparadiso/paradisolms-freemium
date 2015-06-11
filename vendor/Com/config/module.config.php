@@ -69,36 +69,6 @@ return array(
         ) 
     ),
     
-    'freemium' => array(
-        
-        'top_domain' => 'paradisolms.com',
-        
-        'min_databases' => 1, // we this value to know if i'ts time to create more databases
-        'max_databases' => 2, // this is the amount of databases to be cerated
-        
-        'path' => array(
-            'mdata' => '/home/paradisolms/mdata',
-            'master_mdata' => '/home/paradisolms/mdata/master_data',
-            'master_mdata_trial' => '/home/paradisolms/trial/mdata/master_data',
-            'config' => '/home/paradisolms/clients/config',
-            'master_sql_file' => '/home/paradisolms/repo/db/master_freemium.sql',
-            'master_sql_file_trial' => '/home/paradisolms/repo/db/master_trial.sql' 
-        ),
-        
-        'db' => array(
-            'host' => 'localhost',
-            'prefix' => 'paradiso_',
-            'user' => 'paradiso_user',
-            'password' => 'Paradiso123' 
-        ),
-        
-        'cpanel' => array(
-            'server' => '65.111.187.33',
-            'username' => 'paradisolms',
-            'password' => 'Paradiso123' 
-        ) 
-    ),
-    
     'caches' => array(
         'cache-fs1' => array(
             'adapter' => array(
@@ -343,7 +313,7 @@ return array(
         ),
         
         'initializers' => array(
-            function ($instance,\Zend\ServiceManager\ServiceManager $sm)
+            function ($instance, \Zend\ServiceManager\ServiceManager $sm)
             {
                 if($instance instanceof \Com\Model\AbstractModel)
                 {
