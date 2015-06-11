@@ -110,7 +110,7 @@ class IndexController extends Com\Controller\AbstractController
             
             $topDomain = $config['freemium']['top_domain'];
             $mDataPath = $config['freemium']['path']['mdata'];
-            $mDataMasterPath = $config['freemium']['path']['mdata_master'];
+            #$mDataMasterPath = $config['freemium']['path']['mdata_master'];
             $masterSqlFile = $config['freemium']['path']['master_sql_file'];
             $configPath = $config['freemium']['path']['config'];
             
@@ -185,7 +185,7 @@ class IndexController extends Com\Controller\AbstractController
                 // Assign user to db
                 /*******************************/
                 $dbUserName = 'user';
-                $response = $cp->api2_query(CPANEL_USER, 
+                $response = $cp->api2_query($cpanelUser, 
                     'MysqlFE', 'setdbuserprivileges',
                     array(
                         'privileges' => 'ALL_PRIVILEGES',
@@ -252,7 +252,7 @@ class IndexController extends Com\Controller\AbstractController
             
             $topDomain = $config['freemium']['top_domain'];
             $mDataPath = $config['freemium']['path']['mdata'];
-            $mDataMasterPath = $config['freemium']['path']['mdata_master'];
+            #$mDataMasterPath = $config['freemium']['path']['mdata_master'];
             $masterSqlFile = $config['freemium']['path']['master_sql_file'];
             $configPath = $config['freemium']['path']['config'];
             
