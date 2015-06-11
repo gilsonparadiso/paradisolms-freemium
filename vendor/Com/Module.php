@@ -381,7 +381,7 @@ class Module
             
             $serviceManager = $event->getApplication()->getServiceManager();
             
-            $message = $ex->getMessage() . " ({$ex->getCode()}) " . PHP_EOL . $e->getTraceAsString();
+            $message = $ex->getMessage() . " ({$ex->getCode()}) " . PHP_EOL . $ex->getTraceAsString();
             
             $mErrorLog = $serviceManager->get('App\Model\ErrorLog');
             $mErrorLog->logError('excpetion', $message, $ex->getFile(), $ex->getLine());
