@@ -12,6 +12,7 @@ $modules = array(
    'Backend',
    'ZfcDatagrid',
    'Front',
+   'Apps',
 );
 
 if (APP_ENV == APP_DEVELOPMENT)

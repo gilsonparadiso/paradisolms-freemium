@@ -1,9 +1,9 @@
 <?php
 return array(
-
-   'router' => array(
+    
+    'router' => array(
         'routes' => array(
-
+            
             'home' => array(
                 'type' => 'Zend\Mvc\Router\Http\Literal',
                 'options' => array(
@@ -11,7 +11,27 @@ return array(
                     'defaults' => array(
                         '__NAMESPACE__' => 'Front\Controller',
                         'controller' => 'Index',
-                        'action' => 'home',
+                        'action' => 'home' 
+                    ) 
+                ) 
+            ),
+            
+            'apps' => array(
+                'type' => 'Zend\Mvc\Router\Http\segment',
+                'options' => array(
+                    'route' => '/apps/:controller/:action',
+                    'defaults' => array(
+                        '__NAMESPACE__' => 'Apps\Controller',
+                            'controller' => 'Shopify',
+                        'action' => 'app' 
+                    ) 
+                ),
+                
+                'may_terminate' => true,
+                
+                'child_routes' => array(
+                    'wildcard' => array(
+                        'type' => 'Wildcard' 
                     ) 
                 ) 
             ),
@@ -23,7 +43,7 @@ return array(
                     'defaults' => array(
                         '__NAMESPACE__' => 'Front\Controller',
                         'controller' => 'Index',
-                        'action' => 'internal',
+                        'action' => 'internal' 
                     ) 
                 ) 
             ),
@@ -35,7 +55,7 @@ return array(
                     'defaults' => array(
                         '__NAMESPACE__' => 'Front\Controller',
                         'controller' => 'Index',
-                        'action' => 'test',
+                        'action' => 'test' 
                     ) 
                 ) 
             ),
@@ -46,7 +66,7 @@ return array(
                     'route' => '/ajax/:action',
                     'defaults' => array(
                         '__NAMESPACE__' => 'Front\Controller',
-                        'controller' => 'Ajax',
+                        'controller' => 'Ajax' 
                     ) 
                 ),
                 
@@ -97,7 +117,7 @@ return array(
                         'type' => 'Wildcard' 
                     ) 
                 ) 
-            ),
+            ) 
         ) 
-    ),
+    ) 
 );

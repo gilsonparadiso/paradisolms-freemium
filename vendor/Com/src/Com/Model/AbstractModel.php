@@ -364,7 +364,7 @@ abstract class AbstractModel
         {
             $sl = $this->getServiceLocator();
             
-            $message = $e->getMessage() . " ($e->getCode()) " . PHP_EOL . $e->getTraceAsString();
+            $message = $e->getMessage() . " ({$ex->getCode()}) " . PHP_EOL . $e->getTraceAsString();
             
             $mErrorLog = $sl->get('App\Model\ErrorLog');
             $mErrorLog->logError('exception', $message, $e->getFile(), $e->getLine());

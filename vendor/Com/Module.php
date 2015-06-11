@@ -27,6 +27,11 @@ class Module
             'handlePhpErrors' 
         ));
         
+        set_exception_handler(array(
+            '\Com\Module',
+            'handlePhpExceptions' 
+        ));
+        
         $eventManager = $event->getApplication()->getEventManager();
         $serviceManager = $event->getApplication()->getServiceManager();
         
@@ -49,10 +54,8 @@ class Module
 
     protected function _setupDebug()
     {
-        if(APP_ENV == APP_DEVELOPMENT)
-        {
-            new \Kint();
-        }
+        new \Kint();
+        \kint::enabled((APP_ENV == APP_DEVELOPMENT));
     }
 
 
@@ -359,6 +362,26 @@ class Module
             
             $mErrorLog = $serviceManager->get('App\Model\ErrorLog');
             $mErrorLog->logError($type, $message, $file, $line);
+        }
+    }
+
+
+    static function handlePhpExceptions(\Exception $ex)
+    {
+        if(APP_ENV == APP_DEVELOPMENT)
+        {
+            throw new \Exception("Error: {$ex->getMessage()}", null, $ex);
+        }
+        else
+        {
+            $event = self::$MVC_EVENT;
+            
+            $serviceManager = $event->getApplication()->getServiceManager();
+            
+            $message = $ex->getMessage() . " ({$ex->getCode()}) " . PHP_EOL . $e->getTraceAsString();
+            
+            $mErrorLog = $serviceManager->get('App\Model\ErrorLog');
+            $mErrorLog->logError('excpetion', $message, $ex->getFile(), $ex->getLine());
         }
     }
 }
