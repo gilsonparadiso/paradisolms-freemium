@@ -225,7 +225,38 @@ class ShopifyController extends Com\Controller\AbstractController
                         return $this->_badRequest();
                     }
                     
-                    // update values
+                    // shopify client
+                    $shopifyClient = new App\Model\Shopify\Client($shop, $re->access_token);
+                    
+                    // register the uninstall webhook
+                    $webHookUrl = $this->url()->fromRoute('apps', array(
+                        'controller' => 'shopify',
+                        'action' => 'unistall' 
+                    ));
+                    
+                    $shopifyClient->call('POST', '/admin/webhooks.json', array(
+                        'webhook' => array(
+                            'address' => $webHookUrl,
+                            'format' => 'json',
+                            'topic' => 'app/uninstalled' 
+                        ) 
+                    ));
+                    
+                    // register the orders/paid webhook
+                    $webHookUrl = $this->url()->fromRoute('apps', array(
+                        'controller' => 'shopify',
+                        'action' => 'create-user' 
+                    ));
+                    
+                    $shopifyClient->call('POST', '/admin/webhooks.json', array(
+                        'webhook' => array(
+                            'address' => $webHookUrl,
+                            'format' => 'json',
+                            'topic' => 'orders/paid' 
+                        ) 
+                    ));
+                    
+                    // save in database the access token
                     $row->code = $_GET['code'];
                     $row->access_token = $re->access_token;
                     
@@ -242,8 +273,10 @@ class ShopifyController extends Com\Controller\AbstractController
                 }
                 else
                 {
+                    // there was an error, redirect the suer to the paradiso app on shopify store
                     $uri = "https://apps.shopify.com/paradiso-lms/";
                     $this->redirect()->toUrl($uri);
+                    
                     return $this->getResponse();
                 }
             }
@@ -251,13 +284,61 @@ class ShopifyController extends Com\Controller\AbstractController
             {
                 dd($e);
             }
-            
-            exit();
         }
         else
         {
             return $this->_badRequest();
         }
+    }
+
+
+    function unistallAction()
+    {
+        $date = date('Y.m.d H:i:s');
+        $get = print_r($_GET, 1);
+        $post = print_r($_POST, 1);
+        $allheaders = print_r(getallheaders(), 1);
+        
+        $message = "
+        -----------------------------------------------
+        UNISTALL
+        _DATE $date
+        _GET $get
+        _POST $post
+        _ALLHEADERS $allheaders
+        -----------------------------------------------
+        ";
+        
+        $sl = $this->getServiceLocator();
+        $log = $sl->get('Zend\Log\Logger');
+        $log->debug($message);
+        
+        exit();
+    }
+
+
+    function createUserAction()
+    {
+        $date = date('Y.m.d H:i:s');
+        $get = print_r($_GET, 1);
+        $post = print_r($_POST, 1);
+        $allheaders = print_r(getallheaders(), 1);
+        
+        $message = "
+        -----------------------------------------------
+        CREATE-USER
+        _DATE $date
+        _GET $get
+        _POST $post
+        _ALLHEADERS $allheaders
+        -----------------------------------------------
+        ";
+        
+        $sl = $this->getServiceLocator();
+        $log = $sl->get('Zend\Log\Logger');
+        $log->debug($message);
+        
+        exit();
     }
 
 

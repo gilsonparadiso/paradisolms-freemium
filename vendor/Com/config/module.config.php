@@ -186,6 +186,16 @@ return array(
                 return $session;
             },
             
+            'Zend\Log\Logger' => function ($sm)
+            {
+                $logger = new Zend\Log\Logger();
+                $writer = new Zend\Log\Writer\Stream('./data/log/' . date('Y-m-d') . '.log');
+                
+                $logger->addWriter($writer);
+                
+                return $logger;
+            },
+            
             'shopify_api' => function ($sl)
             {
                 $config = $sl->get('config');
