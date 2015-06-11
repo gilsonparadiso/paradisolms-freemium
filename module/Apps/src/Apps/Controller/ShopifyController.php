@@ -235,7 +235,7 @@ class ShopifyController extends Com\Controller\AbstractController
                     // register the uninstall webhook
                     $webHookUrl = $this->url()->fromRoute('apps', array(
                         'controller' => 'shopify',
-                        'action' => 'unistall' 
+                        'action' => 'uninstall' 
                     ), $routeOptions);
                     
                     $shopifyClient->call('POST', '/admin/webhooks.json', array(
@@ -296,26 +296,32 @@ class ShopifyController extends Com\Controller\AbstractController
     }
 
 
-    function unistallAction()
+    function uninstallAction()
     {
-        $date = date('Y.m.d H:i:s');
-        $get = print_r($_GET, 1);
-        $post = print_r($_POST, 1);
-        $allheaders = print_r(getallheaders(), 1);
+        $headers = getallheaders();
         
-        $message = "
-        -----------------------------------------------
-        UNISTALL
-        _DATE $date
-        _GET $get
-        _POST $post
-        _ALLHEADERS $allheaders
-        -----------------------------------------------
-        ";
+        $params = array();
+        $params['hmac'] = isset($headers['X-Shopify-Hmac-Sha256']) ? $headers['X-Shopify-Hmac-Sha256'] : '';
+        $params['shop'] = isset($headers['X-Shopify-Shop-Domain']) ? $headers['X-Shopify-Shop-Domain'] : '';
+        $params['topic'] = isset($headers['X-Shopify-Topic']) ? $headers['X-Shopify-Topic'] : '';
         
-        $sl = $this->getServiceLocator();
-        $log = $sl->get('Zend\Log\Logger');
-        $log->debug($message);
+        // TODO
+        // we ned to check if the request comes from shopify
+        $verified = true; // $this->_verifyWebhook($params, false);
+        if($verified && 'app/uninstalled' == $params['topic'])
+        {
+            $sl = $this->getServiceLocator();
+            $dbShopifyApp = $sl->get('App\Db\ShopifyAuth');
+            
+            $row = $dbShopifyApp->findByStore($params['shop']);
+            if($row)
+            {
+                $where = array(
+                    'id = ?' => $row->id 
+                );
+                $dbShopifyApp->doDelete($where);
+            }
+        }
         
         exit();
     }
@@ -323,6 +329,36 @@ class ShopifyController extends Com\Controller\AbstractController
 
     function createUserAction()
     {
+        header('Content-Type:application/json');
+        
+        $headers = getallheaders();
+        
+        $params = array();
+        $params['hmac'] = isset($headers['X-Shopify-Hmac-Sha256']) ? $headers['X-Shopify-Hmac-Sha256'] : '';
+        $params['shop'] = isset($headers['X-Shopify-Shop-Domain']) ? $headers['X-Shopify-Shop-Domain'] : '';
+        $params['topic'] = isset($headers['X-Shopify-Topic']) ? $headers['X-Shopify-Topic'] : '';
+        $params['order_id'] = isset($headers['X-Shopify-Order-Id']) ? $headers['X-Shopify-Order-Id'] : '';
+        
+        $sl = $this->getServiceLocator();
+        $log = $sl->get('Zend\Log\Logger');
+        
+        // TODO
+        // we ned to check if the request comes from shopify
+        $verified = true; // $this->_verifyWebhook($params, false);
+        if($verified && 'orders/paid' == $params['topic'])
+        {
+            $sl = $this->getServiceLocator();
+            $dbShopifyApp = $sl->get('App\Db\ShopifyAuth');
+            
+            $row = $dbShopifyApp->findByStore($params['shop']);
+            if($row)
+            {
+                    $shopifyClient = new App\Model\Shopify\Client($params['shop'], $row->access_token);
+                    $result = $shopifyClient->call('GET', "/admin/orders/{$params['order_id']}.json");
+                    $log->debug($result);
+            }
+        }
+        
         $date = date('Y.m.d H:i:s');
         $get = print_r($_GET, 1);
         $post = print_r($_POST, 1);
@@ -338,8 +374,6 @@ class ShopifyController extends Com\Controller\AbstractController
         -----------------------------------------------
         ";
         
-        $sl = $this->getServiceLocator();
-        $log = $sl->get('Zend\Log\Logger');
         $log->debug($message);
         
         exit();
@@ -423,13 +457,17 @@ class ShopifyController extends Com\Controller\AbstractController
     protected function _verifyWebhook(array $params)
     {
         if(! isset($params['timestamp']))
+        {
             return false;
+        }
         
         $seconds = 24 * 60 * 60; // seconds in a day
         $olderThan = $params['timestamp'] < (time() - $seconds);
         
         if($olderThan)
+        {
             return false;
+        }
         
         $p = array();
         foreach($params as $param => $value)
@@ -447,6 +485,7 @@ class ShopifyController extends Com\Controller\AbstractController
         
         $p = implode('&', $p);
         $hmac = $params['hmac'];
+        
         $calculatedHmac = hash_hmac('sha256', $p, $shopifyAppSecret);
         
         return ($hmac == $calculatedHmac);
