@@ -6,6 +6,6 @@ $CFG->dbname    = "{$dbName}";
 $CFG->dbuser    = "{$dbUser}";
 $CFG->dbpass    = "{$dbPassword}";
 
-$CFG->wwwroot   = "http://{$domain}";
+$CFG->wwwroot   = "https://{$domain}";
 $CFG->dataroot  = "{$dataPath}";
 
