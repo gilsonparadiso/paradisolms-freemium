@@ -298,29 +298,32 @@ class Module
         $request = $event->getRequest();
         
         // small code to redirect requests to the new tld
-        $uri = $request->getUri();
-        $host = $uri->getHost();
-        
-        $oldTld = '.com';
-        if($oldTld == substr($host, - 4))
+        if(method_exists($request, 'getUri'))
         {
-            $scheme = $uri->getScheme();
-            $host = str_replace($oldTld, '.net', $host);
-            $path = $uri->getPath();
+            $uri = $request->getUri();
+            $host = $uri->getHost();
             
-            $query = $uri->getQuery();
-            if(! empty($query))
+            $oldTld = '.com';
+            if($oldTld == substr($host, - 4))
             {
-                $query = "?$query";
+                $scheme = $uri->getScheme();
+                $host = str_replace($oldTld, '.net', $host);
+                $path = $uri->getPath();
+                
+                $query = $uri->getQuery();
+                if(! empty($query))
+                {
+                    $query = "?$query";
+                }
+                
+                $url = "{$scheme}://{$host}{$path}{$query}";
+                
+                $response = $event->getResponse();
+                
+                $headers = $response->getHeaders()->addHeaderLine('Location', $url);
+                $response->setStatusCode(302);
+                $response->sendHeaders();
             }
-            
-            $url = "{$scheme}://{$host}{$path}{$query}";
-            
-            $response = $event->getResponse();
-            
-            $headers = $response->getHeaders()->addHeaderLine('Location', $url);
-            $response->setStatusCode(302);
-            $response->sendHeaders();
         }
     }
 
