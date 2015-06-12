@@ -249,7 +249,7 @@ class ShopifyController extends Com\Controller\AbstractController
                     // register the orders/paid webhook
                     $webHookUrl = $this->url()->fromRoute('apps', array(
                         'controller' => 'shopify',
-                        'action' => 'create-user' 
+                        'action' => 'enrol-user' 
                     ), $routeOptions);
                     
                     $shopifyClient->call('POST', '/admin/webhooks.json', array(
@@ -327,7 +327,7 @@ class ShopifyController extends Com\Controller\AbstractController
     }
 
 
-    function createUserAction()
+    function enrolUserAction()
     {
         header('Content-Type:application/json');
         
@@ -343,7 +343,7 @@ class ShopifyController extends Com\Controller\AbstractController
         $log = $sl->get('Zend\Log\Logger');
         
         // TODO
-        // we ned to check if the request comes from shopify
+        // we need to check if the request comes from shopify
         $verified = true; // $this->_verifyWebhook($params, false);
         if($verified && 'orders/paid' == $params['topic'])
         {
@@ -353,28 +353,69 @@ class ShopifyController extends Com\Controller\AbstractController
             $row = $dbShopifyApp->findByStore($params['shop']);
             if($row)
             {
-                    $shopifyClient = new App\Model\Shopify\Client($params['shop'], $row->access_token);
-                    $result = $shopifyClient->call('GET', "/admin/orders/{$params['order_id']}.json");
-                    $log->debug($result);
+                // get the order from the shopify store
+                $shopifyClient = new App\Model\Shopify\Client($params['shop'], $row->access_token);
+                $order = $shopifyClient->call('GET', "/admin/orders/{$params['order_id']}.json");
+                if(is_array($order))
+                {
+                    // now we are going to try to create the user into the lms and enrol the user
+                    // NOTE: we are not checking if the user aready exist in the lms and also wee are not checking if the course exist
+                    $curl = new App\Lms\Curl();
+                    
+                    $firstName = $order['customer']['first_name'];
+                    $lastName = $order['customer']['last_name'];
+                    $email = $order['customer']['email'];
+                    $sku = null;
+                    
+                    if(isset($order['line_items']) && isset($order['line_items'][0]) && isset($order['line_items'][0]['sku']))
+                        $sku = $order['line_items'][0]['sku'];
+                    
+                    if($sku)
+                    {
+                        $getServerUrl = function ($functionName) use($row)
+                        {
+                            $instance = $row->lms_instance;
+                            $token = $row->lms_token;
+                            $restFormat = 'json';
+                            
+                            return "{$instance}/webservice/rest/server.php?wstoken={$token}&wsfunction={$functionName}&moodlewsrestformat={$restFormat}";
+                        };
+                        
+                        // lest create the user
+                        $serverUrl = $getServerUrl('local_paradisolms_create_users');
+                        
+                        $user = array();
+                        $user['firstname'] = $firstName;
+                        $user['lastname'] = $lastName;
+                        $user['email'] = $email;
+                        $user['username'] = $email;
+                        
+                        $params = array(
+                            'users' => array(
+                                0 => $user 
+                            ) 
+                        );
+                        
+                        $resp = $curl->post($serverUrl, $params);
+                        
+                        // enrol the user into the course
+                        $serverUrl = $getServerUrl('local_paradisolms_manual_enrol_users');
+                        
+                        $item = array();
+                        $item['email'] = $email;
+                        $item['idnumber'] = $sku;
+                        
+                        $params = array(
+                            'enrolments' => array(
+                                0 => $item 
+                            ) 
+                        );
+                        
+                        $resp = $curl->post($serverUrl, $params);
+                    }
+                }
             }
         }
-        
-        $date = date('Y.m.d H:i:s');
-        $get = print_r($_GET, 1);
-        $post = print_r($_POST, 1);
-        $allheaders = print_r(getallheaders(), 1);
-        
-        $message = "
-        -----------------------------------------------
-        CREATE-USER
-        _DATE $date
-        _GET $get
-        _POST $post
-        _ALLHEADERS $allheaders
-        -----------------------------------------------
-        ";
-        
-        $log->debug($message);
         
         exit();
     }
