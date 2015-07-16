@@ -68,7 +68,15 @@ class ShopifyController extends Com\Controller\AbstractController
                                 $instance = substr($instance, 0, - 1);
                             }
                             
-                            $client = new Zend\Http\Client();
+                            $clientConfig = array(
+                                'adapter' => 'Zend\Http\Client\Adapter\Curl',
+                                'curloptions' => array(
+                                    CURLOPT_FOLLOWLOCATION => TRUE,
+                                    CURLOPT_SSL_VERIFYPEER => FALSE 
+                                ) 
+                            );
+                            
+                            $client = new Zend\Http\Client(null, $clientConfig);
                             $client->setUri("$instance/login/token.php");
                             $client->setMethod('GET');
                             
@@ -204,7 +212,16 @@ class ShopifyController extends Com\Controller\AbstractController
                     $instance = $row->lms_instance;
                     $token = $row->lms_token;
                     
-                    $client = new Zend\Http\Client();
+                    $clientConfig = array(
+                        'adapter' => 'Zend\Http\Client\Adapter\Curl',
+                        'curloptions' => array(
+                            CURLOPT_FOLLOWLOCATION => TRUE,
+                            CURLOPT_SSL_VERIFYPEER => FALSE 
+                        ) 
+                    );
+                    
+                    
+                    $client = new Zend\Http\Client(null, $client);
                     $client->setUri("$instance/local/paradisolms/ws_proxy.php");
                     $client->setMethod('GET');
                     
