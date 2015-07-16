@@ -13,7 +13,7 @@ class ShopifyController extends Com\Controller\AbstractController
     {
         $request = $this->getRequest();
         
-        // check if the suer wants to install the application
+        // check if the user wants to install the application
         if($this->_isInstall())
         {
             // lets check if the request comes from shopify
@@ -194,6 +194,84 @@ class ShopifyController extends Com\Controller\AbstractController
             if(! $row)
             {
                 return $this->_badRequest();
+            }
+            else
+            {
+                // check if the application is already installed and redirect the user to the lms in such case
+                if($row->access_token != '' && $row->code != '' && $row->lms_token != '')
+                {
+                    // time to do sso, so we get the auth token salt from the webservice
+                    $instance = $row->lms_instance;
+                    $token = $row->lms_token;
+                    
+                    $client = new Zend\Http\Client();
+                    $client->setUri("$instance/local/paradisolms/ws_proxy.php");
+                    $client->setMethod('GET');
+                    
+                    $client->setParameterGet(array(
+                        'wstoken' => $token,
+                        'wsfunction' => 'local_paradisolms_auth_token_salt' 
+                    ));
+                    
+                    $response = $client->send();
+                    
+                    if($response->isSuccess())
+                    {
+                        try
+                        {
+                            $decoded = Zend\Json\Decoder::decode($response->getBody());
+                            if(isset($decoded->salt))
+                            {
+                                $salt = $decoded->salt;
+                                // now get the user information related to the token code
+                                
+                                $client->setParameterGet(array(
+                                    'wstoken' => $token,
+                                    'wsfunction' => 'local_paradisolms_get_user_by_token',
+                                    'token' => $token 
+                                ));
+                                
+                                $response = $client->send();
+                                if($response->isSuccess())
+                                {
+                                    $decoded = Zend\Json\Decoder::decode($response->getBody());
+                                    if($decoded->email)
+                                    {
+                                        // redirect to the sso page
+                                        $email = $decoded->email;
+                                        $time = time();
+                                        $token = crypt($time . $email, $salt);
+                                        
+                                        $uri = "$instance/local/paradisolms/sso.php?token=$token&timestamp=$time&email=$email";
+                                        $this->redirect()->toUrl($uri);
+                                        
+                                        return $this->getResponse();
+                                    }
+                                    else
+                                    {
+                                        return $this->_badRequest();
+                                    }
+                                }
+                                else
+                                {
+                                    return $this->_badRequest();
+                                }
+                            }
+                            else
+                            {
+                                return $this->_badRequest();
+                            }
+                        }
+                        catch(\Exception $e)
+                        {
+                            return $this->_badRequest();
+                        }
+                    }
+                    else
+                    {
+                        return $this->_badRequest();
+                    }
+                }
             }
             
             $uri = "https://$shop/admin/oauth/access_token";
