@@ -221,7 +221,7 @@ class ShopifyController extends Com\Controller\AbstractController
                     );
                     
                     
-                    $client = new Zend\Http\Client(null, $client);
+                    $client = new Zend\Http\Client(null, $clientConfig);
                     $client->setUri("$instance/local/paradisolms/ws_proxy.php");
                     $client->setMethod('GET');
                     
