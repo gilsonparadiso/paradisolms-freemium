@@ -4,186 +4,145 @@
  *
  * https://github.com/raveren/kint
  */
+
+if ( !class_exists( 'Kint', false ) ) return;
+
 define( 'KINT_DIR', dirname( __FILE__ ) . '/' );
+define( 'KINT_PHP53', version_compare( PHP_VERSION, '5.3.0' ) >= 0 );
+
 require KINT_DIR . 'config.default.php';
 require KINT_DIR . 'parsers/parser.class.php';
+require KINT_DIR . 'decorators/rich.php';
+require KINT_DIR . 'decorators/plain.php';
 
 if ( is_readable( KINT_DIR . 'config.php' ) ) {
 	require KINT_DIR . 'config.php';
 }
 
+# init settings
+if ( !empty( $GLOBALS['_kint_settings'] ) ) {
+	Kint::enabled( $GLOBALS['_kint_settings']['enabled'] );
+
+	foreach ( $GLOBALS['_kint_settings'] as $key => $val ) {
+		property_exists( 'Kint', $key ) and Kint::$$key = $val;
+	}
+
+	unset( $GLOBALS['_kint_settings'], $key, $val );
+}
+
 class Kint
 {
 	// these are all public and 1:1 config array keys so you can switch them easily
-	public static $traceCleanupCallback;
+	private static $_enabledMode; # stores mode and active statuses
+
+	public static $returnOutput;
 	public static $fileLinkFormat;
-	public static $hideSequentialKeys;
-	public static $showClassConstants;
-	public static $keyFilterCallback;
 	public static $displayCalledFrom;
 	public static $charEncodings;
 	public static $maxStrLength;
 	public static $appRootDirs;
 	public static $maxLevels;
-	public static $enabled;
 	public static $theme;
 	public static $expandedByDefault;
-	public static $devel; # todo remove
 
-	protected static $_firstRun = true;
+	public static $cliDetection;
+	public static $cliColors;
 
-	# non-standard function calls
-	protected static $_statements = array( 'include', 'include_once', 'require', 'require_once' );
+	const MODE_RICH       = 'r';
+	const MODE_WHITESPACE = 'w';
+	const MODE_CLI        = 'c';
+	const MODE_PLAIN      = 'p';
+
+
+	public static $aliases = array(
+		'methods'   => array(
+			array( 'kint', 'dump' ),
+			array( 'kint', 'trace' ),
+		),
+		'functions' => array(
+			'd',
+			'dd',
+			'ddd',
+			's',
+			'sd',
+		)
+	);
+
+	private static $_firstRun = true;
 
 	/**
-	 * getter/setter for the enabled parameter, called at the beginning of every public function as getter, also
-	 * initializes the settings if te first time it's run.
+	 * Enables or disables Kint, can globally enforce the rendering mode. If called without parameters, returns the
+	 * current mode.
 	 *
-	 * @param null $value
+	 * @param mixed $forceMode
+	 *      null or void - return current mode
+	 *      false        - disable (no output)
+	 *      true         - enable and detect cli automatically
+	 *      Kint::MODE_* - enable and force selected mode disregarding detection and function
+	 *                     shorthand (s()/d()), note that you can still override this
+	 *                     with the "~" modifier
 	 *
-	 * @return void|bool
+	 * @return mixed        previously set value if a new one is passed
 	 */
-	public static function enabled( $value = null )
+	public static function enabled( $forceMode = null )
 	{
 		# act both as a setter...
-		if ( func_num_args() > 0 ) {
-			self::$enabled = $value;
-			return;
+		if ( isset( $forceMode ) ) {
+			$before             = self::$_enabledMode;
+			self::$_enabledMode = $forceMode;
+
+			return $before;
 		}
 
 		# ...and a getter
-		return self::$enabled;
-	}
-
-	public static function _init()
-	{
-		# init settings
-		if ( isset( $GLOBALS['_kint_settings'] ) ) {
-			foreach ( $GLOBALS['_kint_settings'] as $key => $val ) {
-				self::$$key = $val;
-			}
-		}
-
-		require KINT_DIR . 'decorators/rich.php';
-		require KINT_DIR . 'decorators/concise.php';
+		return self::$_enabledMode;
 	}
 
 	/**
-	 * Prints a debug backtrace
+	 * Prints a debug backtrace, same as Kint::dump(1)
 	 *
 	 * @param array $trace [OPTIONAL] you can pass your own trace, otherwise, `debug_backtrace` will be called
 	 *
-	 * @return void
+	 * @return mixed
 	 */
 	public static function trace( $trace = null )
 	{
-		if ( !Kint::enabled() ) return;
+		if ( !self::enabled() ) return '';
 
-		echo Kint_Decorators_Rich::_css();
-
-		isset( $trace ) or $trace = debug_backtrace( true );
-
-		$output = array();
-		foreach ( $trace as $step ) {
-			self::$traceCleanupCallback and $step = call_user_func( self::$traceCleanupCallback, $step );
-
-			# if the user defined trace cleanup function returns null, skip this line
-			if ( $step === null ) {
-				continue;
-			}
-
-			if ( !isset( $step['function'] ) ) {
-				# invalid trace step
-				continue;
-			}
-
-			if ( isset( $step['file'] ) AND isset( $step['line'] ) ) {
-				# include the source of this step
-				$source = self::_showSource( $step['file'], $step['line'] );
-			}
-
-			if ( isset( $step['file'] ) ) {
-				$file = $step['file'];
-
-				if ( isset( $step['line'] ) ) {
-					$line = $step['line'];
-				}
-			}
-
-
-			$function = $step['function'];
-
-			if ( in_array( $step['function'], self::$_statements ) ) {
-				if ( empty( $step['args'] ) ) {
-					# no arguments
-					$args = array();
-				} else {
-					# sanitize the file path
-					$args = array( self::shortenPath( $step['args'][0] ) );
-				}
-			} elseif ( isset( $step['args'] ) ) {
-				if ( empty( $step['class'] ) && !function_exists( $step['function'] ) ) {
-					# introspection on closures or language constructs in a stack trace is impossible before PHP 5.3
-					$params = null;
-				} else {
-					try {
-						if ( isset( $step['class'] ) ) {
-							if ( method_exists( $step['class'], $step['function'] ) ) {
-								$reflection = new ReflectionMethod( $step['class'], $step['function'] );
-							} else if ( isset( $step['type'] ) && $step['type'] == '::' ) {
-								$reflection = new ReflectionMethod( $step['class'], '__callStatic' );
-							} else {
-								$reflection = new ReflectionMethod( $step['class'], '__call' );
-							}
-						} else {
-							$reflection = new ReflectionFunction( $step['function'] );
-						}
-
-						# get the function parameters
-						$params = $reflection->getParameters();
-					} catch ( Exception $e ) {
-						$params = null; # avoid various PHP version incompatibilities
-					}
-				}
-
-				$args = array();
-				foreach ( $step['args'] as $i => $arg ) {
-					if ( isset( $params[$i] ) ) {
-						# assign the argument by the parameter name
-						$args[$params[$i]->name] = $arg;
-					} else {
-						# assign the argument by number
-						$args[$i] = $arg;
-					}
-				}
-			}
-
-			if ( isset( $step['class'] ) ) {
-				# Class->method() or Class::method()
-				$function = $step['class'] . $step['type'] . $step['function'];
-			}
-
-			if ( isset( $step['object'] ) ) {
-				$function = $step['class'] . $step['type'] . $step['function'];
-			}
-
-			$output[] = array(
-				'function' => $function,
-				'args'     => isset( $args ) ? $args : null,
-				'file'     => isset( $file ) ? $file : null,
-				'line'     => isset( $line ) ? $line : null,
-				'source'   => isset( $source ) ? $source : null,
-				'object'   => isset( $step['object'] ) ? $step['object'] : null,
-			);
-
-			unset( $function, $args, $file, $line, $source );
-		}
-
-		require KINT_DIR . 'view/trace.phtml';
+		return self::dump( isset( $trace ) ? $trace : debug_backtrace( true ) );
 	}
 
+
 	/**
-	 * dump information about variables
+	 * Dump information about variables, accepts any number of parameters, supports modifiers:
+	 *
+	 *  clean up any output before kint and place the dump at the top of page:
+	 *   - Kint::dump()
+	 *  *****
+	 *  expand all nodes on display:
+	 *   ! Kint::dump()
+	 *  *****
+	 *  dump variables disregarding their depth:
+	 *   + Kint::dump()
+	 *  *****
+	 *  return output instead of displaying it:
+	 *   @ Kint::dump()
+	 *  *****
+	 *  force output as plain text
+	 *   ~ Kint::dump()
+	 *
+	 * Modifiers are supported by all dump wrapper functions, including Kint::trace(). Space is optional.
+	 *
+	 *
+	 * You can also use the following shorthand to display debug_backtrace():
+	 *   Kint::dump( 1 );
+	 *
+	 * Passing the result from debug_backtrace() to kint::dump() as a single parameter will display it as trace too:
+	 *   $trace = debug_backtrace( true );
+	 *   Kint::dump( $trace );
+	 *  Or simply:
+	 *   Kint::dump( debug_backtrace() );
+	 *
 	 *
 	 * @param mixed $data
 	 *
@@ -191,127 +150,161 @@ class Kint
 	 */
 	public static function dump( $data = null )
 	{
-		if ( !Kint::enabled() ) return;
+		if ( !self::enabled() ) return '';
 
-		# find caller information
-		$trace = debug_backtrace();
-		list( $names, $modifier, $callee, $previousCaller ) = self::_getPassedNames( $trace );
-		if ( $names === array( null ) && func_num_args() === 1 && $data === 1 ) {
-			$call = reset( $trace );
-			if ( !isset( $call['file'] ) && isset( $call['class'] ) && $call['class'] === __CLASS__ ) {
-				array_shift( $trace );
-				$call = reset( $trace );
+		list( $names, $modifiers, $callee, $previousCaller, $miniTrace ) = self::_getCalleeInfo(
+			defined( 'DEBUG_BACKTRACE_IGNORE_ARGS' )
+				? debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS )
+				: debug_backtrace()
+		);
+		$modeOldValue     = self::enabled();
+		$firstRunOldValue = self::$_firstRun;
+
+		# process modifiers: @, +, !, ~ and -
+		if ( strpos( $modifiers, '-' ) !== false ) {
+			self::$_firstRun = true;
+			while ( ob_get_level() ) {
+				ob_end_clean();
 			}
+		}
+		if ( strpos( $modifiers, '!' ) !== false ) {
+			$expandedByDefaultOldValue = self::$expandedByDefault;
+			self::$expandedByDefault   = true;
+		}
+		if ( strpos( $modifiers, '+' ) !== false ) {
+			$maxLevelsOldValue = self::$maxLevels;
+			self::$maxLevels   = false;
+		}
+		if ( strpos( $modifiers, '@' ) !== false ) {
+			$returnOldValue     = self::$returnOutput;
+			self::$returnOutput = true;
+			self::$_firstRun    = true;
+		}
+		if ( strpos( $modifiers, '~' ) !== false ) {
+			self::enabled( self::MODE_WHITESPACE );
+		}
 
-			while ( isset( $call['file'] ) && $call['file'] === __FILE__ ) {
-				array_shift( $trace );
-				$call = reset( $trace );
+		# set mode for current run
+		$mode = self::enabled();
+		if ( $mode === true ) {
+			$mode = PHP_SAPI === 'cli'
+				? self::MODE_CLI
+				: self::MODE_RICH;
+		}
+		self::enabled( $mode );
+
+		$decorator = self::enabled() === self::MODE_RICH
+			? 'Kint_Decorators_Rich'
+			: 'Kint_Decorators_Plain';
+
+		$output = '';
+		if ( self::$_firstRun ) {
+			$output .= call_user_func( array( $decorator, 'init' ) );
+		}
+
+
+		$trace = false;
+		if ( $names === array( null ) && func_num_args() === 1 && $data === 1 ) { # Kint::dump(1) shorthand
+			$trace = KINT_PHP53 ? debug_backtrace( true ) : debug_backtrace();
+		} elseif ( func_num_args() === 1 && is_array( $data ) ) {
+			$trace = $data; # test if the single parameter is result of debug_backtrace()
+		}
+		$trace and $trace = self::_parseTrace( $trace );
+
+
+		$output .= call_user_func( array( $decorator, 'wrapStart' ) );
+		if ( $trace ) {
+			$output .= call_user_func( array( $decorator, 'decorateTrace' ), $trace );
+		} else {
+			$data = func_num_args() === 0
+				? array( "[[no arguments passed]]" )
+				: func_get_args();
+
+			foreach ( $data as $k => $argument ) {
+				kintParser::reset();
+				# when the dump arguments take long to generate output, user might have changed the file and
+				# Kint might not parse the arguments correctly, so check if names are set and while the
+				# displayed names might be wrong, at least don't throw an error
+				$output .= call_user_func(
+					array( $decorator, 'decorate' ),
+					kintParser::factory( $argument, isset( $names[ $k ] ) ? $names[ $k ] : '' )
+				);
 			}
-
-			self::trace( $trace );
-			return;
 		}
 
-		# process modifiers: @, + and -
-		switch ( $modifier ) {
-			case '-':
-				self::$_firstRun = true;
-				while ( ob_get_level() ) {
-					ob_end_clean();
-				}
-				break;
+		$output .= call_user_func( array( $decorator, 'wrapEnd' ), $callee, $miniTrace, $previousCaller );
 
-			case '!':
-				self::$expandedByDefault = true;
-				break;
-			case '+':
-				$maxLevelsOldValue = self::$maxLevels;
-				self::$maxLevels   = false;
-				break;
-			case '@':
-				$firstRunOldValue = self::$_firstRun;
-				self::$_firstRun  = true;
-				break;
-		}
-
-
-		$data = func_num_args() === 0
-			? array( "[[no arguments passed]]" )
-			: func_get_args();
-
-
-		$output = Kint_Decorators_Rich::_css();
-		$output .= Kint_Decorators_Rich::_wrapStart( $callee );
-
-		foreach ( $data as $k => $argument ) {
-			$output .= self::_dump( $argument, $names[$k] );
-		}
-		$output .= Kint_Decorators_Rich::_wrapEnd( $callee, $previousCaller );
+		self::enabled( $modeOldValue );
 
 		self::$_firstRun = false;
-
-		switch ( $modifier ) {
-			case '+':
-				self::$maxLevels = $maxLevelsOldValue;
-				echo $output;
-				break;
-			case '@':
-				self::$_firstRun = $firstRunOldValue;
-				return $output;
-				break;
-			default:
-				echo $output;
-				break;
+		if ( strpos( $modifiers, '~' ) !== false ) {
+			self::$_firstRun = $firstRunOldValue;
+		} else {
+			self::enabled( $modeOldValue );
+		}
+		if ( strpos( $modifiers, '!' ) !== false ) {
+			self::$expandedByDefault = $expandedByDefaultOldValue;
+		}
+		if ( strpos( $modifiers, '+' ) !== false ) {
+			self::$maxLevels = $maxLevelsOldValue;
+		}
+		if ( strpos( $modifiers, '@' ) !== false ) {
+			self::$returnOutput = $returnOldValue;
+			self::$_firstRun    = $firstRunOldValue;
+			return $output;
 		}
 
-		return '';
-	}
+		if ( self::$returnOutput ) return $output;
 
-	protected static function _dump( $var, $name = '' )
-	{
-		kintParser::reset();
-		return Kint_Decorators_Rich::decorate(
-			kintParser::factory( $var, $name )
-		);
+		echo $output;
+		return '';
 	}
 
 
 	/**
-	 * generic path display callback, can be configured in the settings
+	 * generic path display callback, can be configured in the settings; purpose is to show relevant path info and hide
+	 * as much of the path as possible.
 	 *
 	 * @param string $file
-	 * @param int    $line [OPTIONAL]
 	 *
 	 * @return string
 	 */
-	public static function shortenPath( $file, $line = null )
+	public static function shortenPath( $file )
 	{
 		$file          = str_replace( '\\', '/', $file );
 		$shortenedName = $file;
-		foreach ( self::$appRootDirs as $path => $replaceString ) {
+		$replaced      = false;
+		if ( is_array( self::$appRootDirs ) ) foreach ( self::$appRootDirs as $path => $replaceString ) {
+			if ( empty( $path ) ) continue;
+
 			$path = str_replace( '\\', '/', $path );
 
 			if ( strpos( $file, $path ) === 0 ) {
 				$shortenedName = $replaceString . substr( $file, strlen( $path ) );
+				$replaced      = true;
 				break;
 			}
 		}
 
+		# fallback to find common path with Kint dir
+		if ( !$replaced ) {
+			$pathParts = explode( '/', str_replace( '\\', '/', KINT_DIR ) );
+			$fileParts = explode( '/', $file );
+			$i         = 0;
+			foreach ( $fileParts as $i => $filePart ) {
+				if ( !isset( $pathParts[ $i ] ) || $pathParts[ $i ] !== $filePart ) break;
+			}
 
-		if ( !$line ) { # means this is called from resource type dump
-			return $shortenedName;
+			$shortenedName = ( $i ? '.../' : '' ) . implode( '/', array_slice( $fileParts, $i ) );
 		}
 
-		if ( !self::$fileLinkFormat ) {
-			return "{$shortenedName} line <i>{$line}</i>";
-		}
-
-		$url   = str_replace( array( '%f', '%l' ), array( $file, $line ), self::$fileLinkFormat );
-		$class = ( strpos( $url, 'http://' ) === 0 ) ? 'class="kint-ide-link"' : '';
-
-		return "<u><a {$class} href=\"{$url}\">{$shortenedName}</a></u> line <i>{$line}</i>";
+		return $shortenedName;
 	}
 
+	public static function getIdeLink( $file, $line )
+	{
+		return str_replace( array( '%f', '%l' ), array( $file, $line ), self::$fileLinkFormat );
+	}
 
 	/**
 	 * trace helper, shows the place in code inline
@@ -351,7 +344,7 @@ class Kint
 
 			if ( $line >= $range['start'] ) {
 				# make the row safe for output
-				$row = htmlspecialchars( $row, ENT_NOQUOTES );
+				$row = htmlspecialchars( $row, ENT_NOQUOTES, 'UTF-8' );
 
 				# trim whitespace and sanitize the row
 				$row = '<span>' . sprintf( $format, $line ) . '</span> ' . $row;
@@ -383,24 +376,29 @@ class Kint
 	 *
 	 * @return array( $parameters, $modifier, $callee, $previousCaller )
 	 */
-	private static function _getPassedNames( $trace )
+	private static function _getCalleeInfo( $trace )
 	{
 		$previousCaller = array();
-		while ( $callee = array_pop( $trace ) ) {
-			if ( strtolower( $callee['function'] ) === 'd' ||
-				strtolower( $callee['function'] ) === 'dd' ||
-				( isset( $callee['class'] ) && strtolower( $callee['class'] ) === strtolower( __CLASS__ )
-					&& strtolower( $callee['function'] ) === 'dump' )
-			) {
-				break;
-			} else {
-				$previousCaller = $callee;
-			}
-		}
+		$miniTrace      = array();
+		$prevStep       = array();
 
-		if ( !isset( $callee['file'] ) || !is_readable( $callee['file'] ) ) {
-			return false;
+		# go from back of trace to find first occurrence of call to Kint or its wrappers
+		while ( $step = array_pop( $trace ) ) {
+
+			if ( self::_stepIsInternal( $step ) ) {
+				$previousCaller = $prevStep;
+				break;
+			} elseif ( isset( $step['file'], $step['line'] ) ) {
+				unset( $step['object'], $step['args'] );
+				array_unshift( $miniTrace, $step );
+			}
+
+			$prevStep = $step;
 		}
+		$callee = $step;
+
+		if ( !isset( $callee['file'] ) || !is_readable( $callee['file'] ) ) return false;
+
 
 		# open the file and read it up to the position where the function call expression ended
 		$file   = fopen( $callee['file'], 'r' );
@@ -414,53 +412,111 @@ class Kint
 		$source = self::_removeAllButCode( $source );
 
 
-		$codePattern = empty( $callee['class'] )
-			? $callee['function']
-			: $callee['class'] . "\x07*" . $callee['type'] . "\x07*" . $callee['function'];
-		# get the position of the last call to the function
-		preg_match_all( "#[\x07{(](\\+|-|!|@)?{$codePattern}\x07*(\\()#i", $source, $matches, PREG_OFFSET_CAPTURE );
-		$match    = end( $matches[2] );
-		$modifier = end( $matches[1] );
-		$modifier = $modifier[0];
+		if ( empty( $callee['class'] ) ) {
+			$codePattern = $callee['function'];
+		} else {
+			if ( $callee['type'] === '::' ) {
+				$codePattern = $callee['class'] . "\x07*" . $callee['type'] . "\x07*" . $callee['function'];;
+			} else /*if ( $callee['type'] === '->' )*/ {
+				$codePattern = ".*\x07*" . $callee['type'] . "\x07*" . $callee['function'];;
+			}
+		}
 
-		$passedParameters = str_replace( "\x07", '', substr( $source, $match[1] + 1 ) );
+		// todo if more than one call in one line - not possible to determine variable names
+		// todo does not recognize string concat
+		# get the position of the last call to the function
+		preg_match_all( "
+            [
+            # beginning of statement
+            [\x07{(]
+
+            # search for modifiers (group 1)
+            ([-+!@~]*)?
+
+            # spaces
+            \x07*
+
+            # check if output is assigned to a variable (group 2) todo: does not detect concat
+            (
+                \\$[a-z0-9_]+ # variable
+                \x07*\\.?=\x07*  # assignment
+            )?
+
+            # possibly a namespace symbol
+            \\\\?
+
+			# spaces again
+            \x07*
+
+            # main call to Kint
+            {$codePattern}
+
+			# spaces everywhere
+            \x07*
+
+            # find the character where kint's opening bracket resides (group 3)
+            (\\()
+
+            ]ix",
+			$source,
+			$matches,
+			PREG_OFFSET_CAPTURE
+		);
+
+		$modifiers  = end( $matches[1] );
+		$assignment = end( $matches[2] );
+		$bracket    = end( $matches[3] );
+
+		$modifiers = $modifiers[0];
+		if ( $assignment[1] !== -1 ) {
+			$modifiers .= '@';
+		}
+
+		$paramsString = preg_replace( "[\x07+]", ' ', substr( $source, $bracket[1] + 1 ) );
 		# we now have a string like this:
 		# <parameters passed>); <the rest of the last read line>
 
 		# remove everything in brackets and quotes, we don't need nested statements nor literal strings which would
 		# only complicate separating individual arguments
-		$c          = strlen( $passedParameters );
-		$inString   = $escaped = false;
-		$i          = 0;
-		$inBrackets = 0;
+		$c              = strlen( $paramsString );
+		$inString       = $escaped = $openedBracket = $closingBracket = false;
+		$i              = 0;
+		$inBrackets     = 0;
+		$openedBrackets = array();
+
 		while ( $i < $c ) {
-			$letter = $passedParameters[$i];
-			if ( $inString === false ) {
+			$letter = $paramsString[ $i ];
+
+			if ( !$inString ) {
 				if ( $letter === '\'' || $letter === '"' ) {
 					$inString = $letter;
-				} elseif ( $letter === '(' ) {
+				} elseif ( $letter === '(' || $letter === '[' ) {
 					$inBrackets++;
-				} elseif ( $letter === ')' ) {
+					$openedBrackets[] = $openedBracket = $letter;
+					$closingBracket   = $openedBracket === '(' ? ')' : ']';
+				} elseif ( $inBrackets && $letter === $closingBracket ) {
 					$inBrackets--;
-					if ( $inBrackets === -1 ) { # this means we are out of the brackets that denote passed parameters
-						$passedParameters = substr( $passedParameters, 0, $i );
-						break;
-					}
+					array_pop( $openedBrackets );
+					$openedBracket  = end( $openedBrackets );
+					$closingBracket = $openedBracket === '(' ? ')' : ']';
+				} elseif ( !$inBrackets && $letter === ')' ) {
+					$paramsString = substr( $paramsString, 0, $i );
+					break;
 				}
 			} elseif ( $letter === $inString && !$escaped ) {
 				$inString = false;
 			}
 
-			# place an untype-able character instead of whatever was inside quotes or brackets, we don't
-			# need that info. We'll later replace it with '...'
+			# replace whatever was inside quotes or brackets with untypeable characters, we don't
+			# need that info. We'll later replace the whole string with '...'
 			if ( $inBrackets > 0 ) {
-				if ( $inBrackets > 1 || $letter !== '(' ) {
-					$passedParameters[$i] = "\x07";
+				if ( $inBrackets > 1 || $letter !== $openedBracket ) {
+					$paramsString[ $i ] = "\x07";
 				}
 			}
-			if ( $inString !== false ) {
+			if ( $inString ) {
 				if ( $letter !== $inString || $escaped ) {
-					$passedParameters[$i] = "\x07";
+					$paramsString[ $i ] = "\x07";
 				}
 			}
 
@@ -468,24 +524,25 @@ class Kint
 			$i++;
 		}
 
-		# by now we have an unnested arguments list, lets make it to an array for processing further
-		$arguments = explode( ',', preg_replace( "#\x07+#", '...', $passedParameters ) );
+		# by now we have an un-nested arguments list, lets make it to an array for processing further
+		$arguments = explode( ',', preg_replace( "[\x07+]", '...', $paramsString ) );
 
 		# test each argument whether it was passed literary or was it an expression or a variable name
 		$parameters = array();
-		$blacklist  = array( 'null', 'true', 'false', 'array(...)', 'array()', '"..."', 'b"..."', );
+		$blacklist  = array( 'null', 'true', 'false', 'array(...)', 'array()', '"..."', '[...]', 'b"..."', );
 		foreach ( $arguments as $argument ) {
+			$argument = trim( $argument );
 
 			if ( is_numeric( $argument )
 				|| in_array( str_replace( "'", '"', strtolower( $argument ) ), $blacklist, true )
 			) {
 				$parameters[] = null;
 			} else {
-				$parameters[] = trim( $argument );
+				$parameters[] = $argument;
 			}
 		}
 
-		return array( $parameters, $modifier, $callee, $previousCaller );
+		return array( $parameters, $modifiers, $callee, $previousCaller, $miniTrace );
 	}
 
 	/**
@@ -497,26 +554,20 @@ class Kint
 	 */
 	private static function _removeAllButCode( $source )
 	{
-		$newStr        = '';
-		$tokens        = token_get_all( $source );
-		$commentTokens = array( T_COMMENT => true, T_INLINE_HTML => true, T_DOC_COMMENT => true );
-
-		defined( 'T_NS_SEPARATOR' ) or define( 'T_NS_SEPARATOR', 380 );
-
+		$commentTokens    = array(
+			T_COMMENT => true, T_INLINE_HTML => true, T_DOC_COMMENT => true
+		);
 		$whiteSpaceTokens = array(
 			T_WHITESPACE => true, T_CLOSE_TAG => true,
 			T_OPEN_TAG   => true, T_OPEN_TAG_WITH_ECHO => true,
 		);
 
-		foreach ( $tokens as $token ) {
+		$cleanedSource = '';
+		foreach ( token_get_all( $source ) as $token ) {
 			if ( is_array( $token ) ) {
-				if ( isset( $commentTokens[$token[0]] ) ) continue;
+				if ( isset( $commentTokens[ $token[0] ] ) ) continue;
 
-				if ( $token[0] === T_NEW ) {
-					$token = 'new ';
-				} elseif ( $token[0] === T_NS_SEPARATOR ) {
-					$token = "\\\x07";
-				} elseif ( isset( $whiteSpaceTokens[$token[0]] ) ) {
+				if ( isset( $whiteSpaceTokens[ $token[0] ] ) ) {
 					$token = "\x07";
 				} else {
 					$token = $token[1];
@@ -525,9 +576,149 @@ class Kint
 				$token = "\x07";
 			}
 
-			$newStr .= $token;
+			$cleanedSource .= $token;
 		}
-		return $newStr;
+		return $cleanedSource;
+	}
+
+	/**
+	 * returns whether current trace step belongs to Kint or its wrappers
+	 *
+	 * @param $step
+	 *
+	 * @return array
+	 */
+	private static function _stepIsInternal( $step )
+	{
+		if ( isset( $step['class'] ) ) {
+			foreach ( self::$aliases['methods'] as $alias ) {
+				if ( $alias[0] === strtolower( $step['class'] ) && $alias[1] === strtolower( $step['function'] ) ) {
+					return true;
+				}
+			}
+			return false;
+		} else {
+			return in_array( strtolower( $step['function'] ), self::$aliases['functions'], true );
+		}
+	}
+
+	private static function _parseTrace( array $data )
+	{
+		$trace       = array();
+		$traceFields = array( 'file', 'line', 'args', 'class' );
+		$fileFound   = false; # file element must exist in one of the steps
+
+		# validate whether a trace was indeed passed
+		while ( $step = array_pop( $data ) ) {
+			if ( !is_array( $step ) || !isset( $step['function'] ) ) return false;
+			if ( !$fileFound && isset( $step['file'] ) && file_exists( $step['file'] ) ) {
+				$fileFound = true;
+			}
+
+			$valid = false;
+			foreach ( $traceFields as $element ) {
+				if ( isset( $step[ $element ] ) ) {
+					$valid = true;
+					break;
+				}
+			}
+			if ( !$valid ) return false;
+
+			if ( self::_stepIsInternal( $step ) ) {
+				$step = array(
+					'file'     => $step['file'],
+					'line'     => $step['line'],
+					'function' => '',
+				);
+				array_unshift( $trace, $step );
+				break;
+			}
+			if ( $step['function'] !== 'spl_autoload_call' ) { # meaningless
+				array_unshift( $trace, $step );
+			}
+		}
+		if ( !$fileFound ) return false;
+
+		$output = array();
+		foreach ( $trace as $step ) {
+			if ( isset( $step['file'] ) ) {
+				$file = $step['file'];
+
+				if ( isset( $step['line'] ) ) {
+					$line = $step['line'];
+					# include the source of this step
+					if ( self::enabled() === self::MODE_RICH ) {
+						$source = self::_showSource( $file, $line );
+					}
+				}
+			}
+
+			$function = $step['function'];
+
+			if ( in_array( $function, array( 'include', 'include_once', 'require', 'require_once' ) ) ) {
+				if ( empty( $step['args'] ) ) {
+					# no arguments
+					$args = array();
+				} else {
+					# sanitize the included file path
+					$args = array( 'file' => self::shortenPath( $step['args'][0] ) );
+				}
+			} elseif ( isset( $step['args'] ) ) {
+				if ( empty( $step['class'] ) && !function_exists( $function ) ) {
+					# introspection on closures or language constructs in a stack trace is impossible before PHP 5.3
+					$params = null;
+				} else {
+					try {
+						if ( isset( $step['class'] ) ) {
+							if ( method_exists( $step['class'], $function ) ) {
+								$reflection = new ReflectionMethod( $step['class'], $function );
+							} else if ( isset( $step['type'] ) && $step['type'] == '::' ) {
+								$reflection = new ReflectionMethod( $step['class'], '__callStatic' );
+							} else {
+								$reflection = new ReflectionMethod( $step['class'], '__call' );
+							}
+						} else {
+							$reflection = new ReflectionFunction( $function );
+						}
+
+						# get the function parameters
+						$params = $reflection->getParameters();
+					} catch ( Exception $e ) { # avoid various PHP version incompatibilities
+						$params = null;
+					}
+				}
+
+				$args = array();
+				foreach ( $step['args'] as $i => $arg ) {
+					if ( isset( $params[ $i ] ) ) {
+						# assign the argument by the parameter name
+						$args[ $params[ $i ]->name ] = $arg;
+					} else {
+						# assign the argument by number
+						$args[ '#' . ( $i + 1 ) ] = $arg;
+					}
+				}
+			}
+
+			if ( isset( $step['class'] ) ) {
+				# Class->method() or Class::method()
+				$function = $step['class'] . $step['type'] . $function;
+			}
+
+			// todo it's possible to parse the object name out from the source!
+			$output[] = array(
+				'function' => $function,
+				'args'     => isset( $args ) ? $args : null,
+				'file'     => isset( $file ) ? $file : null,
+				'line'     => isset( $line ) ? $line : null,
+				'source'   => isset( $source ) ? $source : null,
+				'object'   => isset( $step['object'] ) ? $step['object'] : null,
+			);
+
+			unset( $function, $args, $file, $line, $source );
+		}
+
+		return $output;
 	}
 }
 
@@ -540,10 +731,9 @@ if ( !function_exists( 'd' ) ) {
 	 */
 	function d()
 	{
-		if ( !Kint::enabled() ) return null;
-
-		$args = func_get_args();
-		return call_user_func_array( array( 'Kint', 'dump' ), $args );
+		if ( !Kint::enabled() ) return '';
+		$_ = func_get_args();
+		return call_user_func_array( array( 'Kint', 'dump' ), $_ );
 	}
 }
 
@@ -553,190 +743,90 @@ if ( !function_exists( 'dd' ) ) {
 	 * [!!!] IMPORTANT: execution will halt after call to this function
 	 *
 	 * @return string
+	 * @deprecated
 	 */
 	function dd()
 	{
-		if ( !Kint::enabled() ) return;
+		if ( !Kint::enabled() ) return '';
 
-		$args = func_get_args();
-		call_user_func_array( array( 'Kint', 'dump' ), $args );
+		echo "<pre>Kint: dd() is being deprecated, please use ddd() instead</pre>\n";
+		$_ = func_get_args();
+		call_user_func_array( array( 'Kint', 'dump' ), $_ );
+		die;
+	}
+}
+
+if ( !function_exists( 'ddd' ) ) {
+	/**
+	 * Alias of Kint::dump()
+	 * [!!!] IMPORTANT: execution will halt after call to this function
+	 *
+	 * @return string
+	 */
+	function ddd()
+	{
+		if ( !Kint::enabled() ) return '';
+		$_ = func_get_args();
+		call_user_func_array( array( 'Kint', 'dump' ), $_ );
 		die;
 	}
 }
 
 if ( !function_exists( 's' ) ) {
-
 	/**
-	 * Alias of kintLite()
+	 * Alias of Kint::dump(), however the output is in plain htmlescaped text and some minor visibility enhancements
+	 * added. If run in CLI mode, output is pure whitespace.
+	 *
+	 * To force rendering mode without autodetecting anything:
+	 *
+	 *  Kint::enabled( Kint::MODE_PLAIN );
+	 *  Kint::dump( $variable );
+	 *
+	 * [!!!] IMPORTANT: execution will halt after call to this function
 	 *
 	 * @return string
 	 */
 	function s()
 	{
-		if ( !Kint::enabled() ) return;
+		$enabled = Kint::enabled();
+		if ( !$enabled ) return '';
 
-		$argv = func_get_args();
-		echo '<pre>';
-		foreach ( $argv as $k => $v ) {
-			$k && print( "\n\n" );
-			echo kintLite( $v );
+		if ( $enabled === Kint::MODE_WHITESPACE ) { # if already in whitespace, don't elevate to plain
+			$restoreMode = Kint::MODE_WHITESPACE;
+		} else {
+			$restoreMode = Kint::enabled( # remove cli colors in cli mode; remove rich interface in HTML mode
+				PHP_SAPI === 'cli' ? Kint::MODE_WHITESPACE : Kint::MODE_PLAIN
+			);
 		}
-		echo '</pre>' . "\n";
-	}
 
+		$params = func_get_args();
+		$dump   = call_user_func_array( array( 'Kint', 'dump' ), $params );
+		Kint::enabled( $restoreMode );
+		return $dump;
+	}
+}
+
+if ( !function_exists( 'sd' ) ) {
 	/**
-	 * Alias of kintLite()
+	 * @see s()
+	 *
 	 * [!!!] IMPORTANT: execution will halt after call to this function
 	 *
 	 * @return string
 	 */
 	function sd()
 	{
-		if ( !Kint::enabled() ) return;
+		$enabled = Kint::enabled();
+		if ( !$enabled ) return '';
 
-		echo '<pre>';
-		foreach ( func_get_args() as $k => $v ) {
-			$k && print( "\n\n" );
-			echo kintLite( $v );
+		if ( $enabled !== Kint::MODE_WHITESPACE ) {
+			Kint::enabled(
+				PHP_SAPI === 'cli' ? Kint::MODE_WHITESPACE : Kint::MODE_PLAIN
+			);
 		}
-		echo '</pre>';
+
+		$params = func_get_args();
+		call_user_func_array( array( 'Kint', 'dump' ), $params );
 		die;
-
-	}
-
-}
-
-
-/**
- * lightweight version of Kint::dump(). Uses whitespace for formatting instead of html
- * sadly not DRY yet
- *
- * @param     $var
- * @param int $level
- *
- * @return string
- */
-function kintLite( &$var, $level = 0 )
-{
-
-	// initialize function names into variables for prettier string output (html and implode are also DRY)
-	$html     = "htmlspecialchars";
-	$implode  = "implode";
-	$strlen   = "strlen";
-	$count    = "count";
-	$getClass = "get_class";
-
-
-	if ( $var === null ) {
-		return 'NULL';
-	} elseif ( is_bool( $var ) ) {
-		return 'bool ' . ( $var ? 'TRUE' : 'FALSE' );
-	} elseif ( is_float( $var ) ) {
-		return 'float ' . $var;
-	} elseif ( is_int( $var ) ) {
-		return 'integer ' . $var;
-	} elseif ( is_resource( $var ) ) {
-		if ( ( $type = get_resource_type( $var ) ) === 'stream' AND $meta = stream_get_meta_data( $var ) ) {
-
-			if ( isset( $meta['uri'] ) ) {
-				$file = $meta['uri'];
-
-				return "resource ({$type}) {$html( $file, 0 )}";
-			} else {
-				return "resource ({$type})";
-			}
-		} else {
-			return "resource ({$type})";
-		}
-	} elseif ( is_string( $var ) ) {
-		return "string ({$strlen( $var )}) \"{$html( $var )}\"";
-	} elseif ( is_array( $var ) ) {
-		$output = array();
-		$space  = str_repeat( $s = '    ', $level );
-
-		static $marker;
-
-		if ( $marker === null ) {
-			// Make a unique marker
-			$marker = uniqid( "\x00" );
-		}
-
-		if ( empty( $var ) ) {
-			return "array()";
-		} elseif ( isset( $var[$marker] ) ) {
-			$output[] = "[\n$space$s*RECURSION*\n$space]";
-		} elseif ( $level < 7 ) {
-			$isSeq = array_keys( $var ) === range( 0, count( $var ) - 1 );
-
-			$output[] = "[";
-
-			$var[$marker] = true;
-
-
-			foreach ( $var as $key => &$val ) {
-				if ( $key === $marker ) continue;
-
-				$key = $space . $s . ( $isSeq ? "" : "'{$html( $key, 0 )}' => " );
-
-				$dump     = kintLite( $val, $level + 1 );
-				$output[] = "{$key}{$dump}";
-			}
-
-			unset( $var[$marker] );
-			$output[] = "$space]";
-
-		} else {
-			$output[] = "[\n$space$s*depth too great*\n$space]";
-		}
-		return "array({$count( $var )}) {$implode( "\n", $output )}";
-	} elseif ( is_object( $var ) ) {
-		if ( $var instanceof SplFileInfo ) {
-			return "object SplFileInfo " . $var->getRealPath();
-		}
-
-		// Copy the object as an array
-		$array = (array)$var;
-
-		$output = array();
-		$space  = str_repeat( $s = '    ', $level );
-
-		$hash = spl_object_hash( $var );
-
-		// Objects that are being dumped
-		static $objects = array();
-
-		if ( empty( $array ) ) {
-			return "object {$getClass( $var )} {}";
-		} elseif ( isset( $objects[$hash] ) ) {
-			$output[] = "{\n$space$s*RECURSION*\n$space}";
-		} elseif ( $level < 7 ) {
-			$output[]       = "{";
-			$objects[$hash] = true;
-
-			foreach ( $array as $key => & $val ) {
-				if ( $key[0] === "\x00" ) {
-
-					$access = $key[1] === "*" ? "protected" : "private";
-
-					// Remove the access level from the variable name
-					$key = substr( $key, strrpos( $key, "\x00" ) + 1 );
-				} else {
-					$access = "public";
-				}
-
-				$output[] = "$space$s$access $key -> " . kintLite( $val, $level + 1 );
-			}
-			unset( $objects[$hash] );
-			$output[] = "$space}";
-
-		} else {
-			$output[] = "{\n$space$s*depth too great*\n$space}";
-		}
-
-		return "object {$getClass( $var )} ({$count( $array )}) {$implode( "\n", $output )}";
-	} else {
-		return gettype( $var ) . htmlspecialchars( var_export( $var, true ), ENT_NOQUOTES );
 	}
 }
-
-Kint::_init();

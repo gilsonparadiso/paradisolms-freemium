@@ -49,82 +49,30 @@ $_kintSettings['fileLinkFormat'] = ini_get( 'xdebug.file_link_format' );
  * $_kintSettings['fileLinkFormat'] = 'http://localhost:8091/?message=%f:%l';
  *
  */
-$_kintSettings['appRootDirs'] = array(
-	$_SERVER['DOCUMENT_ROOT'] => '&lt;ROOT&gt;'
-);
-
-
-/**
- * @var callable|null
- *
- * @param array $step each step of the backtrace is passed to this callback to clean it up or skip it entirely
- *
- * @return array|null you can return null if you want to bypass outputting this step
- *
- * [!] EXAMPLE:
- *
- * $_kintSettings['traceCleanupCallback'] = function( $traceStep ) {
- *      if ( isset( $traceStep['class'] ) && strtolower( $traceStep['class'] ) === 'errorHandler' ) {
- *           return null;
- *      }
- *
- *      if ( isset( $traceStep['function'] ) && strtolower( $traceStep['function'] ) === '__tostring' ) {
- *          $traceStep['function'] = "[object converted to string]";
- *      }
- *
- *       return $traceStep;
- * };
- */
-$_kintSettings['traceCleanupCallback'] = null;
+$_kintSettings['appRootDirs'] = isset( $_SERVER['DOCUMENT_ROOT'] )
+	? array( $_SERVER['DOCUMENT_ROOT'] => '&lt;ROOT&gt;' )
+	: array();
 
 
 /** @var int max length of string before it is truncated and displayed separately in full. Zero or false to disable */
-$_kintSettings['maxStrLength'] = 60;
-
-/** @var array possible alternative char encodings in order of probability, eg. array('windows-1251') */
-$_kintSettings['charEncodings'] = array();
+$_kintSettings['maxStrLength'] = 80;
 
 
 /** @var int max array/object levels to go deep, if zero no limits are applied */
-$_kintSettings['maxLevels'] = 5;
-
-
-/** @var bool whether dumped indexed arrays that are in ideal sequence are displayed */
-$_kintSettings['hideSequentialKeys'] = true;
+$_kintSettings['maxLevels'] = 7;
 
 
 /** @var string name of theme for rich view */
 $_kintSettings['theme'] = 'original';
 
 
-/**
- * @var callback filters array/object keys before outputting; return false if you do not wish to see it in the output
- *
- * @param string $key the key being output
- * @param mixed  $val the contents of the dumped element in case you need it
- *
- * @return bool return false to skip displaying
- *
- * [!] EXAMPLE:
- *
- * $_kintSettings['keyFilterCallback'] = function( $key, $val ) {
- *     if ( preg_match( '#_mt$#', $key ) ) {
- *         return false;
- *     }
- *
- *     if ( $val === '--testing--' ) {
- *         return false;
- *     }
- *
- *     // no need to return true to continue output
- * };
- *
+/** @var bool enable detection when Kint is command line. Formats output with whitespace only; does not HTML-escape it */
+$_kintSettings['cliDetection'] = true;
+
+/** @var bool in addition to above setting, enable detection when Kint is run in *UNIX* command line.
+ * Attempts to add coloring, but if seen as plain text, the color information is visible as gibberish
  */
-$_kintSettings['keyFilterCallback'] = null;
-
-
-/** @var bool only set to true if you want to develop kint and know what you're doing */
-$_kintSettings['devel'] = false;
+$_kintSettings['cliColors'] = true;
 
 
 unset( $_kintSettings );
