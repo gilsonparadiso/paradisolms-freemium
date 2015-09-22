@@ -152,8 +152,8 @@ return array(
                     'port' => 465,
                     'connection_class' => 'login',
                     'connection_config' => array(
-                        'username' => 'sales@paradisosolutions.com',
-                        'password' => 'Parad1s0',
+                        'username' => 'sfdemo@paradisosolutions.com',
+                        'password' => 'paradiso123',
                         'ssl' => 'ssl' 
                     ) 
                 ) 

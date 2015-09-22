@@ -13,6 +13,13 @@ class ShopifyController extends Com\Controller\AbstractController
     {
         $request = $this->getRequest();
         
+        $sl = $this->getServiceLocator();
+        $log = $sl->get('Zend\Log\Logger');
+        
+        $log->debug(print_r(array(
+            'dasdaAAS' 
+        ), 1));
+        
         // check if the user wants to install the application
         if($this->_isInstall())
         {
@@ -199,6 +206,9 @@ class ShopifyController extends Com\Controller\AbstractController
             
             $dbShopifyApp = $sl->get('App\Db\ShopifyAuth');
             $row = $dbShopifyApp->findByStore($shop);
+            
+            // first step is to check if the app is already installed ion the store
+            // if we found a record in our database then, that means the app is installed in the user store
             if(! $row)
             {
                 return $this->_badRequest();
@@ -208,88 +218,13 @@ class ShopifyController extends Com\Controller\AbstractController
                 // check if the application is already installed and redirect the user to the lms in such case
                 if($row->access_token != '' && $row->code != '' && $row->lms_token != '')
                 {
-                    // time to do sso, so we get the auth token salt from the webservice
-                    $instance = $row->lms_instance;
-                    $token = $row->lms_token;
-                    
-                    $clientConfig = array(
-                        'adapter' => 'Zend\Http\Client\Adapter\Curl',
-                        'curloptions' => array(
-                            CURLOPT_FOLLOWLOCATION => TRUE,
-                            CURLOPT_SSL_VERIFYPEER => FALSE 
-                        ) 
-                    );
-                    
-                    
-                    $client = new Zend\Http\Client(null, $clientConfig);
-                    $client->setUri("$instance/local/paradisolms/ws_proxy.php");
-                    $client->setMethod('GET');
-                    
-                    $client->setParameterGet(array(
-                        'wstoken' => $token,
-                        'wsfunction' => 'local_paradisolms_auth_token_salt' 
-                    ));
-                    
-                    $response = $client->send();
-                    
-                    if($response->isSuccess())
-                    {
-                        try
-                        {
-                            $decoded = Zend\Json\Decoder::decode($response->getBody());
-                            if(isset($decoded->salt))
-                            {
-                                $salt = $decoded->salt;
-                                // now get the user information related to the token code
-                                
-                                $client->setParameterGet(array(
-                                    'wstoken' => $token,
-                                    'wsfunction' => 'local_paradisolms_get_user_by_token',
-                                    'token' => $token 
-                                ));
-                                
-                                $response = $client->send();
-                                if($response->isSuccess())
-                                {
-                                    $decoded = Zend\Json\Decoder::decode($response->getBody());
-                                    if($decoded->email)
-                                    {
-                                        // redirect to the sso page
-                                        $email = $decoded->email;
-                                        $time = time();
-                                        $token = crypt($time . $email, $salt);
-                                        
-                                        $uri = "$instance/local/paradisolms/sso.php?token=$token&timestamp=$time&email=$email";
-                                        $this->redirect()->toUrl($uri);
-                                        
-                                        return $this->getResponse();
-                                    }
-                                    else
-                                    {
-                                        return $this->_badRequest();
-                                    }
-                                }
-                                else
-                                {
-                                    return $this->_badRequest();
-                                }
-                            }
-                            else
-                            {
-                                return $this->_badRequest();
-                            }
-                        }
-                        catch(\Exception $e)
-                        {
-                            return $this->_badRequest();
-                        }
-                    }
-                    else
-                    {
-                        return $this->_badRequest();
-                    }
+                    // now redirect the user to the help page
+                    return $this->_goToHelp();
                 }
             }
+            
+            // the application is not installed yet
+            // so we have to install some webhooks in the user store
             
             $uri = "https://$shop/admin/oauth/access_token";
             $apiKey = $sl->get('shopify_api');
@@ -366,28 +301,60 @@ class ShopifyController extends Com\Controller\AbstractController
                     
                     $dbShopifyApp->doUpdate($data, $where);
                     
-                    $uri = "https://$shop/admin/apps";
-                    $this->redirect()->toUrl($uri);
-                    return $this->getResponse();
+                    // now redirect the user to the help page
+                    return $this->_goToHelp();
+                    
+                    // $uri = "https://$shop/admin/apps";
+                    // $this->redirect()->toUrl($uri);
+                    // return $this->getResponse();
                 }
                 else
                 {
                     // there was an error, redirect the suer to the paradiso app on shopify store
                     $uri = "https://apps.shopify.com/paradiso-lms/";
-                    $this->redirect()->toUrl($uri);
-                    
-                    return $this->getResponse();
+                    return $this->redirect()->toUrl($uri);
                 }
             }
             catch(\Exception $e)
             {
-                dd($e);
+                ddd($e);
             }
         }
         else
         {
             return $this->_badRequest();
         }
+    }
+
+
+    function helpAction()
+    {
+        $verified = $this->_verifyWebhook($_GET);
+        if(! $verified)
+        {
+            return $this->_badRequest();
+        }
+        
+        $sl = $this->getServiceLocator();
+        $dbShopifyApp = $sl->get('App\Db\ShopifyAuth');
+        
+        $row = $dbShopifyApp->findByStore($_GET['shop']);
+        if(! $row)
+        {
+            $this->_badRequest();
+        }
+        
+        $instance = $row->lms_instance;
+        $token = $row->lms_token;
+        
+        $lmsLink = $this->_getSsoLink($instance, $token);
+        
+        # 'lms_instance'
+        # 'lms_token'
+        $this->assign('store_url', "https://{$row->store}");
+        $this->assign('lms_url', $row->lms_instance);
+        
+        return $this->viewVars;
     }
 
 
@@ -437,6 +404,11 @@ class ShopifyController extends Com\Controller\AbstractController
         $sl = $this->getServiceLocator();
         $log = $sl->get('Zend\Log\Logger');
         
+        $log->info(print_r(array(
+            $params,
+            $headers 
+        ), 1));
+        
         // TODO
         // we need to check if the request comes from shopify
         $verified = true; // $this->_verifyWebhook($params, false);
@@ -448,9 +420,13 @@ class ShopifyController extends Com\Controller\AbstractController
             $row = $dbShopifyApp->findByStore($params['shop']);
             if($row)
             {
+                $log->info('show found');
+                
                 // get the order from the shopify store
                 $shopifyClient = new App\Model\Shopify\Client($params['shop'], $row->access_token);
                 $order = $shopifyClient->call('GET', "/admin/orders/{$params['order_id']}.json");
+                
+                $log->info('Order -> ' . print_r($order, 1));
                 if(is_array($order))
                 {
                     // now we are going to try to create the user into the lms and enrol the user
@@ -493,6 +469,8 @@ class ShopifyController extends Com\Controller\AbstractController
                         
                         $resp = $curl->post($serverUrl, $params);
                         
+                        $log->info('Response on create user -> ' . print_r($resp, 1));
+                        
                         // enrol the user into the course
                         $serverUrl = $getServerUrl('local_paradisolms_manual_enrol_users');
                         
@@ -507,6 +485,8 @@ class ShopifyController extends Com\Controller\AbstractController
                         );
                         
                         $resp = $curl->post($serverUrl, $params);
+                        
+                        $log->info('Response on enrol user -> ' . print_r($resp, 1));
                     }
                 }
             }
@@ -625,5 +605,95 @@ class ShopifyController extends Com\Controller\AbstractController
         $calculatedHmac = hash_hmac('sha256', $p, $shopifyAppSecret);
         
         return ($hmac == $calculatedHmac);
+    }
+
+
+    /**
+     *
+     * @return Zend\Http\Response
+     */
+    protected function _goToHelp()
+    {
+        // now redirect the user to the help page
+        $queryParams = array(
+            'code' => isset($_GET['code']) ? $_GET['code'] : '',
+            'hmac' => isset($_GET['hmac']) ? $_GET['hmac'] : '',
+            'shop' => isset($_GET['shop']) ? $_GET['shop'] : '',
+            'signature' => isset($_GET['signature']) ? $_GET['signature'] : '',
+            'timestamp' => isset($_GET['timestamp']) ? $_GET['timestamp'] : '' 
+        );
+        $query = http_build_query($queryParams, null, '&');
+        
+        $routeParams = array(
+            'controller' => 'shopify',
+            'action' => 'help' 
+        );
+        
+        $url = $this->url()->fromRoute('apps', $routeParams) . "?$query";
+        return $this->redirect()->toUrl($url);
+    }
+
+
+    protected function _getSsoLink($instance, $token)
+    {
+        $r = false;
+        
+        $clientConfig = array(
+            'adapter' => 'Zend\Http\Client\Adapter\Curl',
+            'curloptions' => array(
+                CURLOPT_FOLLOWLOCATION => TRUE,
+                CURLOPT_SSL_VERIFYPEER => FALSE 
+            ) 
+        );
+        
+        $client = new Zend\Http\Client(null, $clientConfig);
+        $client->setUri("$instance/local/paradisolms/ws_proxy.php");
+        $client->setMethod('GET');
+        
+        $client->setParameterGet(array(
+            'wstoken' => $token,
+            'wsfunction' => 'local_paradisolms_auth_token_salt' 
+        ));
+        
+        $response = $client->send();
+        if($response->isSuccess())
+        {
+            try
+            {
+                $decoded = Zend\Json\Decoder::decode($response->getBody());
+                if(isset($decoded->salt))
+                {
+                    $salt = $decoded->salt;
+                    // now get the user information related to the token code
+                    
+                    $client->setParameterGet(array(
+                        'wstoken' => $token,
+                        'wsfunction' => 'local_paradisolms_get_user_by_token',
+                        'token' => $token 
+                    ));
+                    
+                    $response = $client->send();
+                    if($response->isSuccess())
+                    {
+                        $decoded = Zend\Json\Decoder::decode($response->getBody());
+                        if($decoded->email)
+                        {
+                            // redirect to the sso page
+                            $email = $decoded->email;
+                            $time = time();
+                            $token = crypt($time . $email, $salt);
+                            
+                            $r = "$instance/local/paradisolms/sso.php?token=$token&timestamp=$time&email=$email";
+                        }
+                    }
+                }
+            }
+            catch(\Exception $e)
+            {
+                ;
+            }
+        }
+        
+        return $r;
     }
 }
