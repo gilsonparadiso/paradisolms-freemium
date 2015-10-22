@@ -162,7 +162,7 @@ class IndexController extends Com\Controller\AbstractController
                 // create the database
                 /*************************************/
                 $response = $cp->api2_query($cpanelUser, 'MysqlFE', 'createdb', array(
-                    'db' => $newDatabaseName,
+                    'db' => $newDatabaseNamePrefixed,
                 ));
 
                 if(isset($response['error']) || isset($response['event']['error']))
